@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC
+    "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN"
+    "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+
+<tiles-definitions>
+
+    <!--
+        layout.default : 헤더 포함 - 로그인 후 모든 페이지
+        layout.simple  : 헤더 없음 - 첫 화면, 로그인, 회원가입
+    -->
+    <definition name="layout.default" template="/WEB-INF/tiles/layout/header.jsp"/>
+    <definition name="layout.simple"  template="/WEB-INF/tiles/layout/simple.jsp"/>
+
+    <!-- ===== 헤더 없는 페이지 (layout.simple) ===== -->
+    <definition name="user/login"    extends="layout.simple">
+        <put-attribute name="title"   value="로그인"/>
+        <put-attribute name="content" value="/WEB-INF/views/user/login.jsp"/>
+    </definition>
+
+    <definition name="user/register" extends="layout.simple">
+        <put-attribute name="title"   value="회원가입"/>
+        <put-attribute name="content" value="/WEB-INF/views/user/register.jsp"/>
+    </definition>
+
+    <!-- ===== 헤더 있는 페이지 (layout.default) ===== -->
+    <definition name="board/*"   extends="layout.default">
+        <put-attribute name="title"   value="게시판 목록"/>
+        <put-attribute name="content" value="/WEB-INF/views/board/{1}.jsp"/>
+    </definition>
+
+</tiles-definitions>

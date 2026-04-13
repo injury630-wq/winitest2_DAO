@@ -1,0 +1,15 @@
+^글 작성시 input에 길이 제한 없이 들어가는거 maxlength
+^post방식으로 바꾸는거 controller에서 다음 요청 url과 param값을 넘겨주고 bridge.jsp로 가서 bridge.jsp에서 form 태그를 만들고 바로 다음 요청으로 submit
+^뒤로가기 조회수 증가된거 안보여주는 현상 - 캐싱때문에 목록 dom로딩
+^user 테이블 user_no pk 추가 user_id 는 유니크 키로 변경
+^board 테이블 parent_no 추가 부모의 글번호를 자가참조(board_no) 
+부모글 삭제시 자식과 함께 삭제
+^tiles 적용 user 관련은 없고 board는 header추가
+^error페이지 404, 500, java.lang.Throwable 에러페이지 web.xml에 추가
+
+유효성 - 매우 급함 서버단에서 하지 않고있음.
+- 
+- 게시글당 파일 개수 5제한, 파일용량 각각 10mb제한, 크기 초과시 오류 처리 (글 작성, 수정, 답변 작성 모두 처리해야함)
+- 다중 파일 첨부시 파일명 보여주기 - (글 작성, 수정, 답변 작성 처리해야함)
+- 첨부파일 등록된 글은 글 목록에서 표시
+- 페이지네이션 안됨

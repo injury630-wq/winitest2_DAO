@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+    namespace = "userDAO" → UserDAO.java에서 "userDAO.{queryId}"로 호출
+    모든 파라미터/결과는 Map 기반 (VO 미사용)
+-->
+<mapper namespace="userDAO">
+
+    <!-- 로그인 정보 조회 (Map 반환)
+         user_no: 내부 식별자(PK) - 향후 권한/관리 기능에 활용
+         user_id: 화면 표시 및 중복 로그인 방지 키로 사용 -->
+    <select id="selectLoginInfo" parameterType="map" resultType="map">
+        SELECT user_no                              AS userNo
+             , user_id                             AS userId
+             , user_pw                             AS userPw
+             , user_name                           AS userName
+             , DATE_FORMAT(reg_date, '%Y-%m-%d')   AS regDate
+        FROM users
+        WHERE user_id = #{userId}
+          AND user_pw = #{userPw}
+    </select>
+
+    <!-- 아이디 중복확인 (0: 사용가능, 1이상: 중복) -->
+    <select id="idCheck" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM users
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 회원가입 (useGeneratedKeys로 생성된 user_no를 param에 반환) -->
+    <insert id="register" parameterType="map"
+            useGeneratedKeys="true" keyProperty="userNo" keyColumn="user_no">
+        INSERT INTO users (user_id, user_pw, user_name, reg_date)
+        VALUES (#{userId}, #{userPw}, #{userName}, NOW())
+    </insert>
+
+</mapper>

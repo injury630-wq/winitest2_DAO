@@ -1,0 +1,232 @@
+===========================================================================
+  TODO: 본인 글 수정/삭제 기능 구현 방향
+  작성일: 2026-04-14
+===========================================================================
+
+목표
+----
+  게시글 상세 조회 시:
+  - 내가 쓴 글  → 비밀번호 입력창 없이 수정/삭제 바로 진행 (삭제는 confirm 한 번)
+  - 남의 글     → 현재처럼 게시글 비밀번호 입력 후 수정/삭제
+
+===========================================================================
+STEP 1. BoardMapper.xml 수정 (필수 - userNo 를 쿼리 결과에 추가)
+===========================================================================
+
+  파일: src/main/resources/mapper/BoardMapper.xml
+  쿼리: getBoardDetail (id="getBoardDetail")
+
+  현재:
+    SELECT b.board_no AS boardNo
+         , b.title    AS title
+         ...
+         , b.parent_no AS parentNo
+         , DATE_FORMAT(b.reg_date, '%Y-%m-%d') AS regDate
+         , b.modi_date AS modiDate
+    FROM board b JOIN users u ON b.user_no = u.user_no
+    WHERE b.board_no = #{boardNo}
+
+  변경: modiDate 아래에 한 줄 추가
+         , b.user_no AS userNo   ← 추가
+
+  이유: JSP 에서 ${board.userNo} 와 ${sessionScope.loginUser.userNo} 를
+        비교하려면 board 맵에 userNo 가 있어야 한다.
+        userNo 가 없으면 JSTL 비교가 항상 false 가 되어 조건이 동작 안 함.
+
+
+===========================================================================
+STEP 2. detail.jsp 수정 - 프론트엔드 UI 분기
+===========================================================================
+
+  파일: src/main/webapp/WEB-INF/views/board/detail.jsp
+
+  [2-1] JSTL 비교 변수 선언 (버튼 영역 위)
+
+    <%-- 세션 userNo 와 게시글 userNo 비교: 본인 글이면 true --%>
+    <c:set var="isOwner"
+           value="${not empty sessionScope.loginUser
+                   and sessionScope.loginUser.userNo == board.userNo}"/>
+
+    주의: JSTL == 는 타입 변환 없이 비교한다.
+          sessionScope.loginUser.userNo 는 Integer (DB에서 int 로 옴),
+          board.userNo 는 Integer (MyBatis int 컬럼 → Integer).
+          둘 다 Integer 이면 == 로 정상 비교된다.
+          만약 한쪽이 String 이면 false 가 되므로,
+          문제 발생 시 fn:equals(String.valueOf(a), String.valueOf(b)) 방식으로 변경.
+
+  [2-2] 버튼 영역 분기
+
+    현재 버튼 영역:
+      <div class="d-flex gap-2 align-items-center">
+          <input type="password" id="writerPw" .../>
+          <button onclick="goEdit()">수정</button>
+          <button onclick="goDelete()">삭제</button>
+          <c:if test="${board.reLev < 2 and replyCount < 5}">
+              <button onclick="goReply()">답변등록</button>
+          </c:if>
+      </div>
+
+    변경 후:
+      <c:choose>
+          <c:when test="${isOwner}">
+              <%-- 본인 글: 비밀번호 입력창 없이 바로 수정/삭제 --%>
+              <div class="d-flex gap-2 align-items-center">
+                  <button class="btn btn-success" onclick="ownerEdit()">수정</button>
+                  <button class="btn btn-danger"  onclick="ownerDelete()">삭제</button>
+                  <c:if test="${board.reLev < 2 and replyCount < 5}">
+                      <button class="btn btn-info" onclick="goReply()">답변등록</button>
+                  </c:if>
+              </div>
+          </c:when>
+          <c:otherwise>
+              <%-- 남의 글: 비밀번호 입력 후 수정/삭제 (현재 방식 유지) --%>
+              <div class="d-flex gap-2 align-items-center">
+                  <input type="password" id="writerPw" class="form-control"
+                         style="width:150px;" placeholder="비밀번호 입력"/>
+                  <button class="btn btn-success" onclick="goEdit()">수정</button>
+                  <button class="btn btn-danger"  onclick="goDelete()">삭제</button>
+                  <c:if test="${board.reLev < 2 and replyCount < 5}">
+                      <button class="btn btn-info" onclick="goReply()">답변등록</button>
+                  </c:if>
+              </div>
+          </c:otherwise>
+      </c:choose>
+      <%-- 답변 불가 안내문 (현재 코드 그대로 유지) --%>
+
+  [2-3] JS 함수 추가 (script 블록에 추가)
+
+    // ownerEdit(): 본인 글 수정 - 비밀번호 없이 바로 이동
+    function ownerEdit() {
+        let f = document.querySelector('#actionForm');
+        f.action = 'board/edit.do';
+        f.submit();
+    }
+
+    // ownerDelete(): 본인 글 삭제 - confirm 한 번 후 바로 처리
+    function ownerDelete() {
+        if (!confirm('삭제하시겠습니까?')) return;
+        let f = document.querySelector('#actionForm');
+        f.action = 'board/delete.do';
+        f.submit();
+    }
+
+    참고: ownerEdit/ownerDelete 는 actionForm 을 사용하므로
+          fWriterPw (hidden input) 에 값을 세팅하지 않고 그냥 submit 한다.
+          서버에서 writerPw 파라미터가 없거나 비어있을 때
+          세션 userNo 로 소유자 확인 후 처리하는 로직이 필요하다 (STEP 3 참조).
+
+
+===========================================================================
+STEP 3. BoardController.java 수정 - 서버 측 소유자 확인 (보안 핵심)
+===========================================================================
+
+  중요: 프론트만 분기하면 JS 를 우회해서 비밀번호 없이 수정/삭제가 가능하다.
+        서버에서도 반드시 소유자 여부를 확인해야 한다.
+
+  [3-1] editView 수정
+
+    현재 로직:
+      if (!board.get("writerPw").equals(writerPw)) { // 비밀번호 불일치
+          ...오류 처리
+      }
+
+    변경 후:
+      Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
+      boolean isOwner = loginUser != null
+          && String.valueOf(loginUser.get("userNo")).equals(String.valueOf(board.get("userNo")));
+
+      if (!isOwner) {
+          // 본인 글이 아닌 경우에만 비밀번호 확인
+          String writerPw = (String) param.get("writerPw");
+          if (writerPw == null || writerPw.isEmpty() || !board.get("writerPw").equals(writerPw)) {
+              // 비밀번호 불일치: 현재 오류 처리 코드 그대로
+              model.addAttribute("pwError",    "1");
+              model.addAttribute("board",      board);
+              model.addAttribute("fileList",   boardService.selectBoardFileList(param));
+              model.addAttribute("replyCount", boardService.countChildReply(board));
+              model.addAttribute("param",      param);
+              return "board/detail";
+          }
+      }
+      // isOwner 이거나 비밀번호 일치 → 수정 폼으로 이동
+
+    주의: editView 는 HttpSession 파라미터가 없으므로 메서드 시그니처에 추가 필요
+      public String editView(@RequestParam Map<String, Object> param,
+                             Model model, HttpSession session) throws Exception {
+
+  [3-2] delete 수정
+
+    현재 로직:
+      if (!board.get("writerPw").equals(param.get("writerPw"))) { // 비밀번호 불일치
+          ...오류 처리
+      }
+
+    변경 후:
+      Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
+      boolean isOwner = loginUser != null
+          && String.valueOf(loginUser.get("userNo")).equals(String.valueOf(board.get("userNo")));
+
+      if (!isOwner) {
+          String writerPw = (String) param.get("writerPw");
+          if (writerPw == null || writerPw.isEmpty() || !board.get("writerPw").equals(writerPw)) {
+              param.put("pwError",   "1");
+              param.put("bridgeUrl", "board/detail.do");
+              model.addAttribute("param", param);
+              return "bridge";
+          }
+      }
+      // isOwner 이거나 비밀번호 일치 → 삭제 처리 계속
+
+    참고: delete 메서드는 이미 HttpSession 이 파라미터에 없다.
+          필요 시 HttpSession session 을 추가해야 한다.
+          (현재 시그니처: delete(@RequestParam Map, Model, HttpServletRequest)
+          → delete(@RequestParam Map, Model, HttpServletRequest, HttpSession session) 으로 변경)
+
+
+===========================================================================
+STEP 4. 확인 및 테스트
+===========================================================================
+
+  [4-1] 본인 글 수정 흐름
+    1. 목록에서 본인 글 클릭 → 상세 조회
+    2. 비밀번호 입력창 없이 "수정" 버튼만 표시 확인
+    3. 수정 버튼 클릭 → edit.do → 서버에서 isOwner 확인 → 수정 폼 이동
+    4. 수정 완료 후 상세로 돌아옴
+
+  [4-2] 본인 글 삭제 흐름
+    1. 상세 조회 → "삭제" 버튼 클릭
+    2. confirm 창 표시 → 확인 클릭
+    3. delete.do → 서버에서 isOwner 확인 → 삭제 처리 → 목록 이동
+
+  [4-3] 남의 글 수정/삭제 흐름 (기존 동작 유지 확인)
+    1. 비밀번호 입력창 + 수정/삭제 버튼 표시 확인
+    2. 비밀번호 틀리면 오류 메시지
+    3. 비밀번호 맞으면 수정 폼 이동 또는 삭제 처리
+
+  [4-4] 보안 우회 방어 확인
+    - 로그인 후 남의 글 boardNo 로 직접 edit.do POST 전송 (writerPw 없이)
+    → 서버에서 isOwner = false, writerPw 없음 → 비밀번호 오류 처리 되어야 함
+
+
+===========================================================================
+주의사항
+===========================================================================
+
+  1. userNo 타입 불일치 주의
+     MyBatis 는 DB int 컬럼을 Java Integer 로 매핑한다.
+     session 의 loginUser.userNo 도 Integer.
+     JSTL == 로 Integer == Integer 비교는 작동하지만,
+     Java 코드에서 String.valueOf() 로 변환 후 equals() 비교가 가장 안전하다.
+
+  2. editView 에 HttpSession 파라미터 추가
+     현재 editView 시그니처에 HttpSession 이 없으므로 반드시 추가해야 한다.
+
+  3. 게시글 비밀번호(writerPw)는 삭제하지 않는다
+     본인 글이면 비밀번호 체크를 건너뛰는 것이지,
+     writerPw 컬럼을 제거하거나 NULL 로 바꾸지 않는다.
+     남의 글 수정/삭제 시 여전히 writerPw 가 필요하다.
+
+  4. 답변글 수정/삭제도 동일하게 적용된다
+     답변글도 user_no 를 가지므로 같은 로직이 그대로 동작한다.
+
+===========================================================================
