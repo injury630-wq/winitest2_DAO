@@ -31,13 +31,13 @@
             <tr>
                 <th><span class="required">*</span>제목</th>
                 <td colspan="3">
-                    <input type="text" name="title" class="form-control" value="Re: ${board.title}" maxlength="200" required/>
+                    <input type="text" name="title" class="form-control" value="Re: ${board.title}" maxlength="160" required/>
                 </td>
             </tr>
             <tr>
                 <th><span class="required">*</span>내용</th>
                 <td colspan="3">
-                    <textarea name="content" class="form-control" rows="8" placeholder="내용 입력" maxlength="3000" required></textarea>
+                    <textarea name="content" class="form-control" rows="8" placeholder="내용 입력" maxlength="2800" required></textarea>
                 </td>
             </tr>
             <tr>

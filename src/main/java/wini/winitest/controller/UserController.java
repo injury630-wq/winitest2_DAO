@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import egovframework.com.utl.slm.EgovHttpSessionBindingListener;
 import wini.winitest.service.UserService;
-import wini.winitest.sessionlistener.EgovHttpSessionBindingListener;
 
 @Controller
 public class UserController {

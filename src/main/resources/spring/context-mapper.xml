@@ -25,11 +25,4 @@
 		<constructor-arg ref="egov.sqlSession" />
 	</bean>
 
-	<!-- Mapper 자동 스캔후 생성 - 전통DAO 방식에서는 MAPPER를 쓰지 않음 -->
-<!-- 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-		<property name="basePackage" value="wini.winitest.mapper" />
-		<property name="sqlSessionFactoryBeanName"
-			value="egov.sqlSessionFactory" />
-	</bean> -->
-
 </beans>

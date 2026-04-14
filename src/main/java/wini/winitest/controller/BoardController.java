@@ -189,44 +189,52 @@ public class BoardController {
         return "bridge";
     }
 
-    // 게시글 수정 폼 (비밀번호 확인 포함)
+    // 게시글 수정 폼 (1.원글 수정/2.답글 수정 - 게시글작성자/비밀번호 확인(수정권한) - 수정페이지) 
     @RequestMapping(value = "/board/edit.do", method = RequestMethod.POST)
-    public String editView(@RequestParam Map<String, Object> param, Model model) throws Exception {
-        Map<String, Object> board = boardService.selectBoardDetail(param);
-        if (board == null) {
-            param.put("bridgeUrl", "board/list.do");
-            model.addAttribute("param", param);
-            return "bridge";
-        }
-        String writerPw = (String) param.get("writerPw");
-        if (!board.get("writerPw").equals(writerPw)) {
-            // 비밀번호 불일치: 상세 페이지로 돌아가면서 오류 표시
-            // replyCount 를 함께 담아야 detail.jsp 의 답변 버튼 표시 조건이 정상 동작한다.
-            // 누락 시 ${replyCount} 가 null → JSTL 비교에서 0 으로 평가 → 5개 도달해도 버튼이 다시 나타남
-            model.addAttribute("pwError",    "1");
-            model.addAttribute("board",      board);
-            model.addAttribute("fileList",   boardService.selectBoardFileList(param));
-            model.addAttribute("replyCount", boardService.countChildReply(board));
-            // 답글인 경우 부모글 제목 조회 (parentBoard 누뽕 시 detail.jsp 원글 표시 안 됨)
-            Object parentNo2 = board.get("parentNo");
-            if (parentNo2 != null) {
-                Map<String, Object> parentParam2 = new HashMap<>();
-                parentParam2.put("boardNo", parentNo2);
-                Map<String, Object> parentBoard2 = boardService.selectBoardDetail(parentParam2);
-                if (parentBoard2 != null) {
-                    model.addAttribute("parentBoard", parentBoard2);
-                }
-            }
-            model.addAttribute("param",      param);
-            return "board/detail";
-        }
-        model.addAttribute("board",    board);
-        model.addAttribute("fileList", boardService.selectBoardFileList(param));
-        model.addAttribute("param",    param);
-        return "board/edit";
+    public String editView(@RequestParam Map<String, Object> param, Model model, HttpSession session) throws Exception {
+        try {
+        	Map<String, Object> board = boardService.selectBoardDetail(param);
+        	if (board == null) { //게시글 없음: 목록조회
+        		param.put("bridgeUrl", "board/list.do");
+        		model.addAttribute("param", param);
+        		return "bridge";
+        	}
+        	Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser"); // 게시글 주인과 사용자 일치 비교용
+        	String writerPw = (String) param.get("writerPw");
+        	// 입력한 비밀번호 같음 || 로그인 정보와 게시글의 작성자 정보 같음 -> 수정폼 이동
+        	if (board.get("writerPw").equals(writerPw) || board.get("userNo").equals(loginUser.get("userNo"))) {
+        		model.addAttribute("board",    board);
+        		model.addAttribute("fileList", boardService.selectBoardFileList(param));
+        		model.addAttribute("param",    param);
+        		return "board/edit";
+        	}
+        	// 비밀번호 불일치: 상세 페이지로 돌아가면서 오류 표시
+        	// replyCount 를 함께 담아야 detail.jsp 의 답변 버튼 표시 조건이 정상 동작한다.
+        	// 누락 시 ${replyCount} 가 null → JSTL 비교에서 0 으로 평가 → 5개 도달해도 버튼이 다시 나타남
+        	model.addAttribute("pwError",    "1");
+        	model.addAttribute("board",      board);
+        	model.addAttribute("fileList",   boardService.selectBoardFileList(param));
+        	model.addAttribute("replyCount", boardService.countChildReply(board));
+        	// 답글인 경우 부모글 제목 조회 (parentBoard 누뽕 시 detail.jsp 원글 표시 안 됨)
+        	Object parentNo2 = board.get("parentNo");
+        	if (parentNo2 != null) {
+        		Map<String, Object> parentParam2 = new HashMap<>();
+        		parentParam2.put("boardNo", parentNo2);
+        		Map<String, Object> parentBoard2 = boardService.selectBoardDetail(parentParam2);
+        		if (parentBoard2 != null) {
+        			model.addAttribute("parentBoard", parentBoard2);
+        		}
+        	}
+        	model.addAttribute("param", param);
+        	return "board/detail";
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "common/error";
+		}
     }
 
-    // 게시글 수정 처리
+    // 게시글 수정 처리 (권한은 수정폼 올때 확인)
     @RequestMapping(value = "/board/editProc.do", method = RequestMethod.POST)
     public String editProc(@RequestParam Map<String, Object> param, Model model,
                            HttpServletRequest request) throws Exception {
@@ -238,38 +246,58 @@ public class BoardController {
         return "bridge";
     }
 
-    // 게시글 삭제 처리
+/*	게시글 삭제 처리 (본인 글 -> 삭제 /타인 글 -> 입력 비밀번호 비교)
+	계층 삭제(parent_no) 자신 - 자식 - 자손 일괄삭제*/
     @RequestMapping(value = "/board/delete.do", method = RequestMethod.POST)
     public String delete(@RequestParam Map<String, Object> param, Model model,
                          HttpServletRequest request) throws Exception {
+        HttpSession session = request.getSession();
+        Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser"); // 게시글 주인과 사용자 일치 비교용
+        
         Map<String, Object> board = boardService.selectBoardDetail(param);
+        // 게시글 없으면 목록 이동
         if (board == null) {
-            param.put("bridgeUrl", "board/list.do");
-            model.addAttribute("param", param);
-            return "bridge";
+        	param.put("bridgeUrl", "board/list.do");
+        	model.addAttribute("param", param);
+        	return "bridge";
         }
-        if (!board.get("writerPw").equals(param.get("writerPw"))) {
-            // 비밀번호 불일치: 상세 페이지로 돌아가면서 오류 표시
-            param.put("pwError",   "1");
-            param.put("bridgeUrl", "board/detail.do");
-            model.addAttribute("param", param);
-            return "bridge";
+        
+        boolean isOwner = false; // 게시글 삭제 권한
+        
+        // 1. 로그인 사용자
+        if(loginUser != null) {
+        	isOwner = board.get("userNo").equals(loginUser.get("userNo")); // 작성자 = 로그인/권한 업데이트
         }
-
-        // 계층 삭제: 서비스가 param 에 "_deleteFileList" 세팅 후 DB 삭제
-        boardService.deleteBoard(param);
-
-        // DB 삭제 후 물리 파일 삭제
-        List<Map<String, Object>> fileList = (List<Map<String, Object>>) param.get("_deleteFileList");
-        if (fileList != null) {
-            for (Map<String, Object> file : fileList) {
-                deletePhysicalFile(request, (String) file.get("filePath"));
-            }
+        
+        // 2. 게시글 비밀번호(로그인사용자 불일치)
+        if(!isOwner) {
+        	isOwner = board.get("writerPw").equals(param.get("writerPw")); // 입력 비밀번호 <> 게시글 비밀번호
         }
-
-        param.put("bridgeUrl", "board/list.do");
-        model.addAttribute("param", param);
-        return "bridge";
+        
+        // 3. 삭제(권한 있으면 삭제)
+        if(isOwner) {
+        	// 계층 삭제: 서비스가 param 에 "_deleteFileList" 세팅 후 DB 삭제
+        	boardService.deleteBoard(param);
+        	
+        	// DB 삭제 후 물리 파일 삭제
+        	List<Map<String, Object>> fileList = (List<Map<String, Object>>) param.get("_deleteFileList");
+        	if (fileList != null) {
+        		for (Map<String, Object> file : fileList) {
+        			deletePhysicalFile(request, (String) file.get("filePath"));
+        		}
+        	}
+        	
+        	param.put("bridgeUrl", "board/list.do");
+        	model.addAttribute("param", param);
+        	return "bridge";
+        }else {
+        	// 비밀번호 불일치: 상세 페이지로 돌아가면서 오류 표시
+        	param.put("pwError",   "1");
+        	param.put("bridgeUrl", "board/detail.do");
+        	model.addAttribute("param", param);
+        	return "bridge";
+        }
+        
     }
 
     // 답변 폼

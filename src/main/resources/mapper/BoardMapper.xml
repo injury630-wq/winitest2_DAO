@@ -82,7 +82,7 @@
 
     <!-- 게시글 단건 상세 조회 -->
     <select id="getBoardDetail" parameterType="map" resultType="map">
-        SELECT b.board_no                              AS boardNo
+SELECT b.board_no                              AS boardNo
              , b.title                                AS title
              , b.content                              AS content
              , u.user_name                            AS writerName
@@ -94,10 +94,11 @@
              , b.parent_no                            AS parentNo
              , DATE_FORMAT(b.reg_date, '%Y-%m-%d')    AS regDate
              , b.modi_date							  AS modiDate <!-- 현재 사용 x -->
+             , b.user_no								AS userNo
         FROM board b
     	JOIN users u ON b.user_no = u.user_no
         WHERE b.board_no = #{boardNo}
-    </select>
+</select>
 
     <!-- 게시글 처리  -->
 
@@ -112,7 +113,7 @@
     <!-- parent_no: 원글은 null, 답변글은 부모글의 board_no -->
     <insert id="insertBoard" parameterType="map" useGeneratedKeys="true" keyProperty="boardNo">
         INSERT INTO board (title, content, user_no, writer_pw, ref, re_lev, re_seq, hit, parent_no, reg_date)
-        VALUES (#{title}, #{content}, #{userNo}, #{writerPw}, #{ref}, #{reLev}, #{reSeq}, 0, #{parentNo,jdbcType=INTEGER}, NOW())
+        VALUES (#{title}, #{content}, #{userNo}, #{writerPw}, #{ref}, #{reLev}, #{reSeq}, 0, #{parentNo}, NOW())
     </insert>
 
     <!-- ref 업데이트: 원글 등록 후 boardNo로 자기 참조 -->

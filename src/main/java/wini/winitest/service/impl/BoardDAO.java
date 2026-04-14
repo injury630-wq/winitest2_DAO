@@ -81,7 +81,6 @@ public class BoardDAO extends EgovComAbstractDAO {
     }
 
     /** 첨부파일 단건 조회 */
-    @SuppressWarnings("unchecked")
     public Map<String, Object> selectBoardFileDetail(Map<String, Object> param) {
         return (Map<String, Object>) selectOne("boardDAO.getBoardFileDetail", param);
     }

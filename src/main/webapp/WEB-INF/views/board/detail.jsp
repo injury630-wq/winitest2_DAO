@@ -11,7 +11,6 @@
             <span>(원글제목) </span>${parentBoard.title}
         </div>
     </c:if>
-
     <%--
         detail-table: th 너비를 고정(10%)하여 내용 길이와 무관하게 레이아웃 유지.
         table-layout:fixed + 명시적 열 너비가 없으면 브라우저가 내용에 따라 th 를 압축하여
@@ -82,9 +81,9 @@
         <div>
             <%-- 버튼 행: 비밀번호 + 수정 + 삭제 + (답변등록) --%>
             <div class="d-flex gap-2 align-items-center">
-                <input type="password" id="writerPw" class="form-control" style="width:150px;" placeholder="비밀번호 입력"/>
-                <button class="btn btn-success" onclick="goEdit()">수정</button>
-                <button class="btn btn-danger" onclick="goDelete()">삭제</button>
+              	<input type="${board.userNo != loginUser.userNo ? 'password' : 'hidden'}" id="writerPw" class="form-control" style="width:150px;" placeholder="비밀번호 입력"/>
+                <button class="btn btn-success" onclick="goEdit(${loginUser.userNo})">수정</button>
+                <button class="btn btn-danger" onclick="goDelete(${loginUser.userNo})">삭제</button>
                 <%-- 답변 가능한 경우에만 버튼 표시 (c:if 로 조건 충족 시에만 렌더링) --%>
                 <c:if test="${board.reLev < 2 and replyCount < 5}">
                     <button class="btn btn-info" onclick="goReply()">답변등록</button>
@@ -129,23 +128,45 @@
         f.submit();
     }
 
-    // goEdit(): 수정 버튼 클릭 시 비밀번호 확인 후 수정 폼으로 이동
-    function goEdit() {
-        let pw = document.querySelector('#writerPw').value.trim();
-        if (!pw) { alert('비밀번호를 입력하세요.'); return; }
-        document.querySelector('#fWriterPw').value = pw; // 입력한 비밀번호를 hidden 에 세팅
-        let f = document.querySelector('#actionForm');
+    // goEdit(): 수정 버튼 클릭  - 게시글 권한 확인 - 1.권한있음 - 이동/2.없음 - 비밀번호 확인
+    function goEdit(loginUserNo) {
+    	let boardUserNo = ${board.userNo}; // 글 작성자 정보
+    	const pwInput = document.querySelector('#writerPw');
+
+        let f = document.querySelector('#actionForm'); // 작성/수정/답변/목록 요청용 form
+
+        // 작성자가 아닌 경우만 비밀번호 체크
+        if (loginUserNo != boardUserNo) {
+            let pw = pwInput.value.trim();
+            if (!pw) {
+                alert('비밀번호를 입력하세요.');
+                return;
+            }
+            document.querySelector('#fWriterPw').value = pw;
+        }
+
         f.action = 'board/edit.do';
         f.submit();
     }
 
-    // goDelete(): 삭제 버튼 클릭 시 비밀번호 확인 + confirm 후 삭제 처리
-    function goDelete() {
-        let pw = document.querySelector('#writerPw').value.trim();
-        if (!pw) { alert('비밀번호를 입력하세요.'); return; }
+    // goDelete(): 삭제 버튼 클릭 - 사용자 권한 체크 - 1.권한있음 - 삭제/2.없음 - 비밀번호 확인
+    function goDelete(loginUserNo) {
+    	let boardUserNo = ${board.userNo}; // 글 작성자 정보
+    	const pwInput = document.querySelector('#writerPw');
+
+        let f = document.querySelector('#actionForm');// 작성/수정/답변/목록 요청용 form
+
+        // 작성자가 아닌 경우만 비밀번호 체크
+        if (loginUserNo != boardUserNo) {
+            let pw = pwInput.value.trim();
+            if (!pw) {
+                alert('비밀번호를 입력하세요.');
+                return;
+            }
+            document.querySelector('#fWriterPw').value = pw;
+        }
         if (!confirm('삭제하시겠습니까?')) return;
-        document.querySelector('#fWriterPw').value = pw;
-        let f = document.querySelector('#actionForm');
+        
         f.action = 'board/delete.do';
         f.submit();
     }

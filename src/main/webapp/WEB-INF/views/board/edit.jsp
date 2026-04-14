@@ -30,13 +30,13 @@
             <tr>
                 <th><span class="required">*</span>제목</th>
                 <td colspan="3">
-                    <input type="text" name="title" class="form-control" value="${board.title}" maxlength="200"/>
+                    <input type="text" name="title" class="form-control" value="${board.title}" maxlength="160"/>
                 </td>
             </tr>
             <tr>
                 <th><span class="required">*</span>내용</th>
                 <td colspan="3">
-                    <textarea name="content" class="form-control" rows="8" maxlength="3000">${board.content}</textarea>
+                    <textarea name="content" class="form-control" rows="8" maxlength="2800">${board.content}</textarea>
                 </td>
             </tr>
             <tr>
@@ -78,6 +78,7 @@
 </div>
 
 <script>
+/* 단건 파일 삭제 ajax  */
 async function deleteFile(fileNo) {
     if (!confirm('파일을 삭제하시겠습니까?')) return;
     try {

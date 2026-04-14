@@ -50,10 +50,11 @@
         <thead>
             <tr>
                 <th style="width:10%">순번</th>
-                <th style="width:38%">제목</th>
+                <th style="width:30%">제목</th>
+                <th style="width:8%">첨부</th>
                 <th style="width:20%">작성자</th>
                 <th style="width:17%">등록일</th>
-                <th style="width:15%">조회수</th>
+                <th style="width:10%">조회수</th>
             </tr>
         </thead>
         <tbody>
@@ -82,13 +83,15 @@
                             --%>
                             <td class="title">
                                 <div class="d-flex align-items-center gap-1">
-                                    <span class="text-truncate re-lev${board.reLev}" style="flex:1; min-width:0;">
+                                    <span class="text-truncate re-lev${board.reLev}">
                                         <c:if test="${board.reLev > 0}">ㄴ </c:if>${board.title}
                                     </span>
-                                    <c:if test="${board.fileCount > 0}">
-                                        <span class="badge bg-danger" style="flex-shrink:0;">${board.fileCount}</span>
-                                    </c:if>
                                 </div>
+                            </td>
+                            <td>
+                            <c:if test="${board.fileCount > 0}">
+                                <span class="badge bg-danger">${board.fileCount}</span>
+                            </c:if>
                             </td>
                             <td>${board.writerName}</td>
                             <td>${board.regDate}</td>

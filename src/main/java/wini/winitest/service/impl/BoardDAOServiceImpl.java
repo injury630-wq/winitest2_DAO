@@ -70,8 +70,8 @@ public class BoardDAOServiceImpl extends EgovAbstractServiceImpl implements Boar
 
     /**
      * 계층 삭제 (parent_no 기반)
-     * - 자신 → 자식(lev1) → 손자(lev2) 2단계 조회 후 일괄 삭제
-     * - 파일 삭제 → 게시글 삭제 순서로 처리
+     * - 자신 - 자식(lev1) - 손자(lev2) 2단계 조회 후 일괄 삭제
+     * - 파일 삭제 - 게시글 삭제 순서로 처리
      */
     @Transactional
     @Override

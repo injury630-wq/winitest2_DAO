@@ -27,13 +27,13 @@
             <tr>
                 <th><span class="required">*</span>제목</th>
                 <td colspan="3">
-                    <input type="text" name="title" class="form-control" placeholder="제목 입력" maxlength="200"/>
+                    <input type="text" name="title" class="form-control" placeholder="제목 입력" maxlength="160"/>
                 </td>
             </tr>
             <tr>
                 <th><span class="required">*</span>내용</th>
                 <td colspan="3">
-                    <textarea name="content" class="form-control" rows="8" placeholder="내용 입력" maxlength="3000"></textarea>
+                    <textarea name="content" class="form-control" rows="8" placeholder="내용 입력" maxlength="2800"></textarea>
                 </td>
             </tr>
             <tr>
