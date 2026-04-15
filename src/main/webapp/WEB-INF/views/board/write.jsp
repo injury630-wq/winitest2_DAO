@@ -1,18 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<%--
-    write.jsp 는 goPost(__navForm) 대신 직접 <form> 을 보유한다.
-    이유: 파일 첨부가 있으므로 enctype="multipart/form-data" 가 필요하다.
-         goPost 의 __navForm 은 기본 enctype(application/x-www-form-urlencoded)이라
-         파일 업로드가 불가능하다. 따라서 이 페이지 전용 form 을 직접 사용한다.
---%>
 <div class="container">
     <h2>게시판 등록</h2>
     <form action="board/writeProc.do" method="post" enctype="multipart/form-data">
         <input type="hidden" name="searchType"    value="${param.searchType}"/>
         <input type="hidden" name="searchKeyword" value="${param.searchKeyword}"/>
-        <input type="hidden" name="currentPageNo" value="${param.currentPageNo}"/>
         <table>
             <tr>
                 <th><span class="required">*</span>작성자</th>
@@ -21,19 +14,19 @@
                 </td>
                 <th><span class="required">*</span>비밀번호</th>
                 <td>
-                    <input type="password" name="writerPw" class="form-control" placeholder="비밀번호 입력" maxlength="50"/>
+                    <input type="password" name="writerPw" class="form-control" placeholder="비밀번호 입력" maxlength="50" required/>
                 </td>
             </tr>
             <tr>
                 <th><span class="required">*</span>제목</th>
                 <td colspan="3">
-                    <input type="text" name="title" class="form-control" placeholder="제목 입력" maxlength="160"/>
+                    <input type="text" name="title" class="form-control" placeholder="제목 입력" maxlength="160" required/>
                 </td>
             </tr>
             <tr>
                 <th><span class="required">*</span>내용</th>
                 <td colspan="3">
-                    <textarea name="content" class="form-control" rows="8" placeholder="내용 입력" maxlength="2800"></textarea>
+                    <textarea name="content" class="form-control" rows="8" placeholder="내용 입력" maxlength="2800" required></textarea>
                 </td>
             </tr>
             <tr>
@@ -50,13 +43,14 @@
             </tr>
         </table>
         <div class="d-flex justify-content-center gap-2 mt-3">
-            <button type="button" class="btn btn-outline-secondary" onclick="goPost('board/list.do')">취소</button>
+            <button type="button" class="btn btn-outline-secondary" onclick="goPost('board/list.do', {searchType:'${param.searchType}', searchKeyword:'${param.searchKeyword}'})">취소</button>
             <button type="submit" class="btn btn-danger" onclick="return validate()">저장</button>
         </div>
     </form>
 </div>
 
 <script>
+
 // 제목, 내용, 비밀번호 공백 체크
 function validate() {
     let writerPw = document.querySelector("input[name=writerPw]").value.trim();

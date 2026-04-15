@@ -5,24 +5,15 @@
 <div class="container detail-container">
     <h2>게시판 조회</h2>
 
-    <%-- 답글인 경우: 부모글 제목을 reply.jsp 와 동일한 스타일로 상단에 표시 --%>
+    <%-- 답글인 경우: 부모글 제목을 상단에 표시 --%>
     <c:if test="${not empty parentBoard}">
         <div class="bg-light p-3 text-truncate mb-3" style="max-width:100%;">
             <span>(원글제목) </span>${parentBoard.title}
         </div>
     </c:if>
-    <%--
-        detail-table: th 너비를 고정(10%)하여 내용 길이와 무관하게 레이아웃 유지.
-        table-layout:fixed + 명시적 열 너비가 없으면 브라우저가 내용에 따라 th 를 압축하여
-        "첨부파일" 같은 긴 th 텍스트가 세로로 줄바꿈된다.
-    --%>
     <table class="detail-table">
         <tr>
             <th>제목</th>
-            <%-- max-width:0 + text-truncate: 테이블 셀에서 말줄임표를 적용하는 표준 기법.
-                 max-width:0 으로 설정하면 셀이 테이블 레이아웃이 할당한 너비만 사용하고,
-                 text-truncate(overflow:hidden + ellipsis + nowrap)가 동작하게 된다.
-                 title 속성으로 전체 제목을 툴팁으로 볼 수 있다. --%>
             <td colspan="3" class="text-truncate" style="max-width:0;" title="${board.title}">
                 ${board.title}
             </td>
@@ -69,11 +60,6 @@
         <p class="error-msg">비밀번호가 틀렸습니다.</p>
     </c:if>
 
-    <%--
-        버튼 영역: 목록(왼쪽) / 수정·삭제·답변등록(오른쪽) 분리
-        답변 제한 안내문은 버튼 행 아래에 별도 출력 (버튼 옆에 두면 줄바꿈·밀림 발생)
-        align-items-start: 안내문이 생겼을 때 목록 버튼이 수직 중앙으로 밀리지 않도록
-    --%>
     <div class="d-flex justify-content-between align-items-start mt-3">
         <div>
             <button class="btn btn-secondary" onclick="goList()">목록</button>
@@ -89,9 +75,9 @@
                     <button class="btn btn-info" onclick="goReply()">답변등록</button>
                 </c:if>
             </div>
-            <%-- 답변 불가 안내문: 버튼 행 아래에 오른쪽 정렬로 표시
-                 우선순위 1: reLev 2(답답글)이면 더 이상 답변 불가 (최대 2레벨)
-                 우선순위 2: 직접 자식 수(replyCount) 5개 이상이면 불가 --%>
+            <%-- 
+                 1. reLev 2(답답글)이면 더 이상 답변 불가 (최대 2레벨)
+                 2. 직접 자식 수(replyCount) 5개 이상이면 불가 --%>
             <c:choose>
                 <c:when test="${board.reLev >= 2}">
                     <small class="text-muted d-block text-end mt-1">더 이상 답변을 달 수 없습니다.</small>
@@ -104,13 +90,8 @@
     </div>
 </div>
 <%--
-    actionForm: detail.jsp 전용 공용 POST 이동 폼
-    [왜 goPost(__navForm) 대신 전용 form 을 쓰는가?]
-    이 페이지에서는 목록/수정/삭제/답변 이동 시 모두 동일한 파라미터 묶음
+    actionForm: detail.jsp 전용 공용 POST 폼
     (boardNo + writerPw + searchType + searchKeyword + currentPageNo) 을 함께 전달해야 한다.
-    writerPw 는 JS 로 비밀번호 입력 후 동적으로 세팅되는 값이므로,
-    전용 form 을 하나 두고 action 만 바꿔가며 submit 하는 방식이 가장 깔끔하다.
-    goPost 를 쓰면 매번 5개 파라미터를 params 객체에 나열해야 해서 코드가 길어진다.
 --%>
 <form id="actionForm" method="post">
     <input type="hidden" name="boardNo"       id="boardNo"    value="${board.boardNo}"/>
@@ -179,7 +160,6 @@
     }
 
     // goDownload(fileNo): 첨부파일 링크 클릭 시 POST 방식으로 다운로드 요청
-    // 이유: 다운로드도 POST 전용 컨트롤러이므로 <a href="..."> 대신 form 을 동적 생성해서 전송
     function goDownload(fileNo) {
         let form = document.createElement('form');
         form.method = 'post';

@@ -3,6 +3,8 @@ package wini.winitest.service;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * 게시판 서비스 인터페이스 - Map 기반 DAO 방식
  * 모든 파라미터/반환값은 Map 사용 (VO 미사용)
@@ -53,4 +55,8 @@ public interface BoardService {
 
     /** 첨부파일 단건 삭제 */
     int deleteBoardFile(Map<String, Object> param) throws Exception;
+
+    /** 게시글 등록 + 파일 등록
+     * @throws Exception */
+	void insertBoardWithFiles(Map<String, Object> param, HttpServletRequest request) throws Exception;
 }

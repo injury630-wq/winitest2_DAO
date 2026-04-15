@@ -3,8 +3,6 @@
 
 <%--
     reply.jsp 는 goPost(__navForm) 대신 직접 <form> 을 보유한다.
-    이유: 파일 첨부가 있으므로 enctype="multipart/form-data" 가 필요하다.
-         취소 버튼은 파일 업로드 form 이 아닌 이동만 필요하므로 goPost 를 사용한다.
 --%>
 <div class="container">
     <h2>답변글 등록</h2>
@@ -17,6 +15,9 @@
         <input type="hidden" name="ref"      value="${board.ref}"/>
         <input type="hidden" name="reLev"    value="${board.reLev}"/>
         <input type="hidden" name="reSeq"    value="${board.reSeq}"/>
+        <input type="hidden" name="searchType"    value="${param.searchType}"/>
+        <input type="hidden" name="searchKeyword"    value="${param.searchKeyword}"/>
+        <input type="hidden" name="currentPageNo"    value="${param.currentPageNo}"/>
         <table>
             <tr>
                 <th><span class="required">*</span>작성자</th>
@@ -52,7 +53,7 @@
         </table>
         <div class="d-flex justify-content-center gap-2 mt-3">
             <button type="button" class="btn btn-outline-secondary"
-                    onclick="goPost('board/detail.do', {boardNo:'${board.boardNo}', currentPageNo:'${param.currentPageNo}'})">취소</button>
+                    onclick="goPost('board/detail.do', {boardNo:'${board.boardNo}', currentPageNo:'${param.currentPageNo}', searchKeyword:'${param.searchKeyword}', searchType:'${param.searchType}'})">취소</button>
             <button type="submit" class="btn btn-danger" onclick="return validate()">저장</button>
         </div>
     </form>

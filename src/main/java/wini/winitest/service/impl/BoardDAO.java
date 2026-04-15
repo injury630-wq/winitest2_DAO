@@ -27,7 +27,6 @@ public class BoardDAO extends EgovComAbstractDAO {
     }
 
     /** 게시글 단건 상세 조회 */
-    @SuppressWarnings("unchecked")
     public Map<String, Object> selectBoardDetail(Map<String, Object> param) {
         return (Map<String, Object>) selectOne("boardDAO.getBoardDetail", param);
     }

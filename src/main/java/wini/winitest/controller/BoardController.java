@@ -30,45 +30,20 @@ public class BoardController {
 
     @Resource(name = "boardDAOService")
     private BoardService boardService;
+    
     private static final String path = "C:/upload/board/";
-
-    // 업로드 디렉터리 경로 반환 (없으면 자동 생성)
+ // 업로드 디렉터리 경로 반환 (없으면 자동 생성)
     private String uploadPath(HttpServletRequest request) {
-        //String path = request.getServletContext().getRealPath("/upload/board/");
         File dir = new File(path);
         if (!dir.exists()) dir.mkdirs();
         return path;
     }
-
-    // 첨부파일 저장 후 board_file 테이블에 등록
-    private void saveFiles(HttpServletRequest request, Object boardNo) throws Exception {
-        if (!(request instanceof MultipartHttpServletRequest)) return;
-        MultipartHttpServletRequest mr = (MultipartHttpServletRequest) request;
-        List<MultipartFile> files = mr.getFiles("uploadFile");
-        String path = uploadPath(request);
-
-        for (MultipartFile file : files) {
-            if (file.isEmpty()) continue;
-            String original = file.getOriginalFilename();
-            // UUID 로 파일명 중복 방지
-            String saved = UUID.randomUUID().toString() + "_" + original;
-            file.transferTo(new File(path, saved));
-
-            Map<String, Object> fp = new HashMap<>();
-            fp.put("boardNo",  boardNo);
-            fp.put("fileName", original);
-            fp.put("filePath", saved);
-            fp.put("fileSize", file.getSize());
-            boardService.insertBoardFile(fp);
-        }
-    }
-
     // 물리 파일 삭제
     private void deletePhysicalFile(HttpServletRequest request, String filePath) {
         File f = new File(uploadPath(request), filePath);
         if (f.exists()) f.delete();
     }
-
+    
     // 게시글 목록
     @RequestMapping(value = "/board/list.do", method = RequestMethod.POST)
     public String boardList(@RequestParam Map<String, Object> param, Model model) throws Exception {
@@ -76,7 +51,6 @@ public class BoardController {
             // 전자정부 페이징 설정
             PaginationInfo paginationInfo = new PaginationInfo();
             // null 이거나 빈 문자열("") 이면 1페이지로 처리
-            // 빈 문자열을 parseInt 하면 NumberFormatException 이 발생하므로 반드시 체크
             String cpnStr = (String) param.get("currentPageNo");
             int currentPageNo = (cpnStr != null && !cpnStr.isEmpty()) ? Integer.parseInt(cpnStr) : 1;
             paginationInfo.setCurrentPageNo(currentPageNo);       // 현재 페이지
@@ -116,7 +90,9 @@ public class BoardController {
     @RequestMapping(value = "/board/detail.do", method = RequestMethod.POST)
     public String boardDetail(@RequestParam Map<String, Object> param, Model model) throws Exception {
         try {
+        		// 선택한 게시글 정보 조회
             	Map<String, Object> board = boardService.selectBoardDetail(param);
+            	
 	            if (board == null) { //조회 안되면 바로 목록으로 보내기
 	                param.put("bridgeUrl", "board/list.do");
 	                model.addAttribute("param", param);
@@ -129,14 +105,14 @@ public class BoardController {
 	            int replyCount = boardService.countChildReply(board);
 
 	            // 답글인 경우 부모글 제목 조회 (detail.jsp 상단 원글 표시용)
-	            // parentNo 가 null 이면 원글이미로 조회 생뷽
+	            // parentNo 가 null 이면 원글이므로 조회 생략
 	            Object parentNo = board.get("parentNo");
 	            if (parentNo != null) {
 	                Map<String, Object> parentParam = new HashMap<>();
 	                parentParam.put("boardNo", parentNo);
 	                Map<String, Object> parentBoard = boardService.selectBoardDetail(parentParam);
 	                if (parentBoard != null) {
-	                    model.addAttribute("parentBoard", parentBoard);
+	                    model.addAttribute("parentBoard", parentBoard); // 부모글 제목 표시용
 	                }
 	            }
 
@@ -145,10 +121,10 @@ public class BoardController {
 	                model.addAttribute("pwError", "1");
 	            }
 
-	            model.addAttribute("board",      board);
-	            model.addAttribute("fileList",   fileList);
-	            model.addAttribute("replyCount", replyCount);
-	            model.addAttribute("param",      param);
+	            model.addAttribute("board",      board); 		//조회 게시글
+	            model.addAttribute("fileList",   fileList);		//조회 게시글 파일리스트
+	            model.addAttribute("replyCount", replyCount);	//조회 게시글 자식수
+	            model.addAttribute("param",      param);		//boardNo, 검색조건
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -157,32 +133,30 @@ public class BoardController {
         return "board/detail";
     }
 
-    // 게시글 작성 폼
+    // 게시글 작성 폼 (list -> write 검색 조건 전달)
     @RequestMapping(value = "/board/write.do", method = RequestMethod.POST)
     public String writeView(@RequestParam Map<String, Object> param, Model model) {
         model.addAttribute("param", param);
         return "board/write";
     }
 
-    // 게시글 등록 처리
+    // 게시글 등록 처리 (검색 조건 유지) 원글 작성만 처리
     @RequestMapping(value = "/board/writeProc.do", method = RequestMethod.POST)
     public String writeProc(@RequestParam Map<String, Object> param,
                             HttpSession session, Model model,
-                            HttpServletRequest request) throws Exception {
-        try {
-            Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
-            param.put("userNo", loginUser.get("userNo"));
-            param.put("ref",   0);
-            param.put("reLev", 0);
-            param.put("reSeq", 0);
+                        HttpServletRequest request) throws Exception {
+        Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
+        param.put("userNo", loginUser.get("userNo"));
+        /*원글은 무조건 000으로 설정*/
+        param.put("ref",   0); //그룹
+        param.put("reLev", 0); //그룹깊이
+        param.put("reSeq", 0); //그룹순서
+        param.put("mode", "write"); // 저장 모드설정
+        boardService.insertBoardWithFiles(param, request); // board, file 테이블 저장 + 물리파일저장
+//        boardService.insertBoard(param); // useGeneratedKeys 로 boardNo 가 param 에 자동 세팅됨
+//        saveFiles(request, param.get("boardNo")); // 실제 파일 저장 DB삽입
 
-            boardService.insertBoard(param); // useGeneratedKeys 로 boardNo 가 param 에 자동 세팅됨
-            saveFiles(request, param.get("boardNo"));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        // 목록 1페이지로 이동 (검색 조건 유지)
+        // 목록 1페이지로 이동 (검색 조건 유지/param에 저장)
         param.put("currentPageNo", "1");
         param.put("bridgeUrl", "board/list.do");
         model.addAttribute("param", param);
@@ -210,7 +184,6 @@ public class BoardController {
         	}
         	// 비밀번호 불일치: 상세 페이지로 돌아가면서 오류 표시
         	// replyCount 를 함께 담아야 detail.jsp 의 답변 버튼 표시 조건이 정상 동작한다.
-        	// 누락 시 ${replyCount} 가 null → JSTL 비교에서 0 으로 평가 → 5개 도달해도 버튼이 다시 나타남
         	model.addAttribute("pwError",    "1");
         	model.addAttribute("board",      board);
         	model.addAttribute("fileList",   boardService.selectBoardFileList(param));
@@ -238,8 +211,10 @@ public class BoardController {
     @RequestMapping(value = "/board/editProc.do", method = RequestMethod.POST)
     public String editProc(@RequestParam Map<String, Object> param, Model model,
                            HttpServletRequest request) throws Exception {
-        boardService.updateBoard(param);
-        saveFiles(request, param.get("boardNo"));
+    	param.put("mode", "edit");
+    	boardService.insertBoardWithFiles(param, request);
+//        boardService.updateBoard(param);
+//        saveFiles(request, param.get("boardNo"));
 
         param.put("bridgeUrl", "board/detail.do");
         model.addAttribute("param", param);
@@ -280,7 +255,7 @@ public class BoardController {
         	boardService.deleteBoard(param);
         	
         	// DB 삭제 후 물리 파일 삭제
-        	List<Map<String, Object>> fileList = (List<Map<String, Object>>) param.get("_deleteFileList");
+        	List<Map<String, Object>> fileList = (List<Map<String, Object>>) param.get("deleteFileList");
         	if (fileList != null) {
         		for (Map<String, Object> file : fileList) {
         			deletePhysicalFile(request, (String) file.get("filePath"));
@@ -308,7 +283,7 @@ public class BoardController {
         // 같은 ref 그룹 내 답글 수 조회 (답글 5개 제한 체크용)
         int replyCount = boardService.countChildReply(board);
 
-        // 이미 답글이 5개 이상이면 상세 페이지로 돌려보냄 (서버 이중 방어)
+        // 이미 답글이 5개 이상이면 상세 페이지로 돌려보냄 
         if (replyCount >= 5) {
             param.put("bridgeUrl", "board/detail.do");
             model.addAttribute("param", param);
@@ -326,8 +301,8 @@ public class BoardController {
                             HttpSession session, Model model,
                             HttpServletRequest request) throws Exception {
 
-        // 답글 등록 직전 재확인: reply.jsp form 에서 parentNo 로 넘어온 부모글 boardNo 기준 직접 자식 수 커운트
-        java.util.Map<String, Object> replyCheckParam = new java.util.HashMap<>();
+        // 답글 등록 직전 재확인: reply.jsp form 에서 parentNo 로 넘어온 부모글 boardNo 기준 직자식 수 커운트
+        Map<String, Object> replyCheckParam = new HashMap<>();
         replyCheckParam.put("boardNo", param.get("parentNo"));
         int replyCount = boardService.countChildReply(replyCheckParam);
         if (replyCount >= 5) {
@@ -338,9 +313,12 @@ public class BoardController {
 
         Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
         param.put("userNo", loginUser.get("userNo"));
+        
+        param.put("mode", "reply");
+        boardService.insertBoardWithFiles(param, request);
 
-        boardService.insertReply(param); // useGeneratedKeys 로 boardNo 가 param 에 자동 세팅됨
-        saveFiles(request, param.get("boardNo"));
+//        boardService.insertReply(param); // useGeneratedKeys 로 boardNo 가 param 에 자동 세팅됨
+//        saveFiles(request, param.get("boardNo"));
 
         param.put("bridgeUrl", "board/list.do");
         model.addAttribute("param", param);
@@ -351,8 +329,8 @@ public class BoardController {
     @RequestMapping(value = "/board/download.do", method = RequestMethod.POST)
     public void download(@RequestParam Map<String, Object> param,
                          HttpServletRequest request, HttpServletResponse response) throws Exception {
-        Map<String, Object> file = boardService.selectBoardFileDetail(param);
-        if (file == null) return;
+        Map<String, Object> file = boardService.selectBoardFileDetail(param); // {fileNo : ?}
+        if (file == null) return; // DB에 파일 정보 없을때
 
         File f = new File(uploadPath(request), (String) file.get("filePath"));
         if (!f.exists()) return;

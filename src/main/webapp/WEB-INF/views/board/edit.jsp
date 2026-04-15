@@ -3,10 +3,7 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <%--
-    edit.jsp 는 goPost(__navForm) 대신 직접 <form> 을 보유한다.
-    이유: 파일 첨부(신규 파일 추가)가 있으므로 enctype="multipart/form-data" 가 필요하다.
-         boardNo/writerPw 는 서버에서 렌더링된 값으로 이미 hidden 에 들어있어
-         전용 form 이 가장 간단하다.
+    edit.jsp 는 goPost 대신 직접 <form> 을 보유. 파일 첨부이므로 multipart가 필요.
 --%>
 <div class="container">
     <h2>게시판 수정</h2>

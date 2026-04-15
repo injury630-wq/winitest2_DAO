@@ -38,9 +38,7 @@
         .required { color: #dc3545; margin-right: 3px; }
         .error-msg { color: #dc3545; font-size: 13px; margin-top: 8px; }
 
-        /* 게시판 목록 제목 셀
-           overflow:hidden: td 안의 flex 컨테이너가 셀 밖으로 넘치지 않도록 차단.
-           내부 span 에 text-truncate + min-width:0 을 적용해야 flex 에서 말줄임표가 동작한다. */
+        /* 게시판 목록 제목 셀. */
         td.title { text-align: left; max-width: 280px; overflow: hidden; }
         /* 목록 행 hover: board-list 클래스를 가진 테이블에만 적용 */
         .board-list tbody tr:hover td { color: #dc3545; }
@@ -52,13 +50,8 @@
         .file-item { display: flex; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid #eee; font-size: 13px; }
 
         /* 상세 */
-        /* detail-table th: 너비를 고정하여 내용 길이와 무관하게 th 가 압축·줄바꿈되지 않게 함.
-           white-space:nowrap 으로 "첨부파일" 같은 긴 텍스트도 한 줄 유지. */
         .detail-table th { width: 10%; min-width: 80px; white-space: nowrap; }
-        /* content-area: <td> 에 직접 min-height 를 주면 브라우저가 무시하므로 내부 div 에 적용.
-           min-height: 내용이 짧아도 일정 높이 유지. max-height + overflow-y: 내용이 길어도 레이아웃 고정. */
         .content-area { min-height: 180px; max-height: 500px; overflow-y: auto; white-space: pre-wrap; }
-        /* 상세 페이지 전체 컨테이너: 내용물이 짧아도 최소 높이 보장 */
         .detail-container { min-height: 480px; }
     </style>
 </head>
@@ -81,28 +74,9 @@
     <tiles:insertAttribute name="content"/>
 
     <%--
-        __navForm: 전체 페이지 공용 POST 이동 전용 숨겨진 폼
-
-        [왜 header.jsp 에 있는가?]
-        Tiles 레이아웃 구조상 header.jsp 가 모든 페이지에 공통으로 포함된다.
-        여기에 빈 form 하나를 두면 어떤 JSP 조각(fragment)에서도
-        goPost() 함수를 통해 POST 방식으로 이동할 수 있다.
-
-        [goPost(url, params) 역할]
-        href 기반 GET 이동 대신 POST 이동이 필요할 때 사용한다.
-        이 프로젝트의 모든 컨트롤러가 POST 전용(@RequestMapping method=POST)이기 때문에
-        단순 <a href="..."> 로는 이동 자체가 불가능하다.
-        따라서 goPost 로 임의의 URL 과 파라미터를 동적으로 주입해서 POST 폼 전송을 흉내낸다.
-
-        [data-dyn 속성의 역할]
-        goPost 는 재사용되는 단일 폼(__navForm)에 파라미터를 동적으로 append 한다.
-        연속 호출 시 이전 호출의 input 이 남아있으면 안 되므로,
-        새로 추가한 input 에 data-dyn 마킹을 해두고, 다음 호출 시 먼저 제거한다.
-
-        [goPost vs 각 JSP 자체 form]
-        goPost : 파일 업로드가 없는 단순 이동 전용. enctype 이 기본(urlencoded)이다.
-        자체 form : 파일 업로드(enctype="multipart/form-data")가 필요한 페이지(write/edit/reply)는
-                    goPost 의 __navForm 을 사용할 수 없으므로 페이지마다 전용 form 을 직접 보유한다.
+    __navForm: 전체 페이지 공용 POST 이동 전용 숨겨진 폼
+    data-dyn 속성의 역할 goPost 는 재사용되는 단일 폼(__navForm)에 파라미터를 동적으로 append 한다.
+        새로 추가한 input 에 data-dyn 속성을 해두고 다음 호출 시 먼저 제거한다.
     --%>
     <form id="__navForm" method="post" style="display:none"></form>
 
@@ -116,9 +90,7 @@
             var form = document.getElementById('__navForm');
             form.action = url;
             // 이전 호출에서 동적으로 추가된 input 제거 (중복 전송 방지)
-            [].forEach.call(form.querySelectorAll('[data-dyn]'), function(el) {
-                el.parentNode.removeChild(el);
-            });
+            form.querySelectorAll('[data-dyn]').forEach(el => el.remove());
             // 파라미터가 있으면 hidden input 으로 추가
             if (params) {
                 Object.keys(params).forEach(function(key) {

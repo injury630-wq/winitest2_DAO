@@ -2,14 +2,18 @@ package wini.winitest.service.impl;
 
 import java.util.List;
 import java.util.Map;
-
+import java.util.UUID;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import egovframework.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import wini.winitest.service.BoardService;
@@ -24,6 +28,45 @@ public class BoardDAOServiceImpl extends EgovAbstractServiceImpl implements Boar
 
     @Resource(name = "boardDAO")
     private BoardDAO boardDAO;
+    
+    private static final String path = "C:/upload/board/";
+
+    // 업로드 디렉터리 경로 반환 (없으면 자동 생성)
+    private String uploadPath(HttpServletRequest request) {
+        File dir = new File(path);
+        if (!dir.exists()) dir.mkdirs();
+        return path;
+    }
+
+    // 첨부파일 저장 후 board_file 테이블에 등록
+    private void saveFiles(HttpServletRequest request, Object boardNo) throws Exception {
+        if (!(request instanceof MultipartHttpServletRequest)) return;
+        MultipartHttpServletRequest mr = (MultipartHttpServletRequest) request;
+        List<MultipartFile> files = mr.getFiles("uploadFile");
+        String path = uploadPath(request);
+
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) continue;
+            String original = file.getOriginalFilename();
+            // UUID 로 파일명 중복 방지
+            String saved = UUID.randomUUID().toString() + "_" + original;
+            file.transferTo(new File(path, saved));
+
+            Map<String, Object> fp = new HashMap<>();
+            fp.put("boardNo",  boardNo);
+            fp.put("fileName", original);
+            fp.put("filePath", saved);
+            fp.put("fileSize", file.getSize());
+            boardDAO.insertBoardFile(fp);
+        }
+    }
+
+    // 물리 파일 삭제
+    private void deletePhysicalFile(HttpServletRequest request, String filePath) {
+        File f = new File(uploadPath(request), filePath);
+        if (f.exists()) f.delete();
+    }
+
 
     /* ===== 게시글 조회 ===== */
 
@@ -56,6 +99,7 @@ public class BoardDAOServiceImpl extends EgovAbstractServiceImpl implements Boar
     @Override
     public int insertBoard(Map<String, Object> param) throws Exception {
         int result = boardDAO.insertBoard(param);
+        //boardDAO.insertBoardFile(param);
         // 원글 등록 후 boardNo로 ref 자기 참조 업데이트
         if (result > 0) {
             boardDAO.updateRef(param);
@@ -100,12 +144,45 @@ public class BoardDAOServiceImpl extends EgovAbstractServiceImpl implements Boar
 
         // DB 삭제 전 물리 파일 경로 수집 → 컨트롤러에서 파일 시스템 삭제에 사용
         List<Map<String, Object>> fileList = boardDAO.selectFileListByIds(deleteParam);
-        param.put("_deleteFileList", fileList);
+        param.put("deleteFileList", fileList);
 
         boardDAO.deleteBoardFilesByBoardIds(deleteParam);
         boardDAO.deleteBoardByIds(deleteParam);
         return deleteIds.size();
     }
+//    @Transactional
+//    @Override
+//    public int deleteBoardTest(Map<String, Object> param) throws Exception {
+//    	List<Object> deleteIds = new ArrayList<>();
+//    	
+//    	// 자신
+//    	deleteIds.add(param.get("boardNo"));
+//    	
+//    	// 자식글 (parent_no = 삭제 대상 boardNo)
+//    	List<Map<String, Object>> children = boardDAO.selectChildBoardNos(param);
+//    	for (Map<String, Object> child : children) {
+//    		deleteIds.add(child.get("boardNo"));
+//    		
+//    		// 손자글 (parent_no = 자식글 boardNo)
+//    		Map<String, Object> childParam = new HashMap<>();
+//    		childParam.put("boardNo", child.get("boardNo"));
+//    		List<Map<String, Object>> grandChildren = boardDAO.selectChildBoardNos(childParam);
+//    		for (Map<String, Object> gc : grandChildren) {
+//    			deleteIds.add(gc.get("boardNo"));
+//    		}
+//    	}
+//    	
+//    	Map<String, Object> deleteParam = new HashMap<>();
+//    	deleteParam.put("ids", deleteIds);
+//    	
+//    	// DB 삭제 전 물리 파일 경로 수집 → 컨트롤러에서 파일 시스템 삭제에 사용
+//    	List<Map<String, Object>> fileList = boardDAO.selectFileListByIds(deleteParam);
+//    	param.put("_deleteFileList", fileList);
+//    	
+//    	boardDAO.deleteBoardFilesByBoardIds(deleteParam);
+//    	boardDAO.deleteBoardByIds(deleteParam);
+//    	return deleteIds.size();
+//    }
 
     // 특정 글(boardNo)의 직접 자식 수 조회
     @Override
@@ -121,10 +198,11 @@ public class BoardDAOServiceImpl extends EgovAbstractServiceImpl implements Boar
     @Transactional
     @Override
     public int insertReply(Map<String, Object> param) throws Exception {
-        boardDAO.updateReSeq(param);
+        boardDAO.updateReSeq(param); //답변글 re_seq 밀기 (같은 ref 선택글 위치 이후 항목 +1)
 
         int parentReLev = Integer.parseInt(param.get("reLev").toString());
         int parentReSeq = Integer.parseInt(param.get("reSeq").toString());
+        // 깊이와 순서 증가(선택글의 답변으로 들어가므로 깊이 +1, 순서 +1)
         param.put("reLev", parentReLev + 1);
         param.put("reSeq", parentReSeq + 1);
 
@@ -157,5 +235,29 @@ public class BoardDAOServiceImpl extends EgovAbstractServiceImpl implements Boar
     @Override
     public int deleteBoardFile(Map<String, Object> param) throws Exception {
         return boardDAO.deleteBoardFile(param);
+    }
+    
+    // 게시글 저장 + 파일 저장
+    @Transactional
+    @Override
+    public void insertBoardWithFiles(Map<String, Object> param,
+                                      HttpServletRequest request) throws Exception {
+
+    	String mode = (String) param.get("mode"); 
+        // write / edit / reply 구분용 (선택)
+
+        if ("write".equals(mode)) {
+        	insertBoard(param);
+        } 
+        else if ("edit".equals(mode)) {
+            updateBoard(param);
+        } 
+        else if ("reply".equals(mode)) {
+            insertReply(param);
+        }
+
+
+        // 2. 파일 저장 (DB + 물리)
+        saveFiles(request, param.get("boardNo"));
     }
 }

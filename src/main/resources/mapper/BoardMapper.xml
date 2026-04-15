@@ -4,7 +4,7 @@
 
 <!--
     namespace = "boardDAO" → BoardDAO.java에서 "boardDAO.{queryId}"로 호출
-    모든 파라미터/결과는 Map 기반 (VO 미사용)
+    모든 파라미터/결과는 Map 기반 사용 (vo 미사용)
 -->
 <mapper namespace="boardDAO">
 
@@ -36,16 +36,16 @@
 
     <!-- 게시글 목록 조회 (페이징 + 검색) -->
     <select id="selectBoardList" parameterType="map" resultType="map">
-        SELECT b.board_no                           AS boardNo
-        	 , b.title                              AS title
-         	 , u.user_name                          AS writerName
-         	 , b.hit                                AS hit
-        	 , DATE_FORMAT(b.reg_date, '%Y-%m-%d')  AS regDate
-        	 , b.ref                                AS ref
-       		 , b.re_lev                             AS reLev
-        	 , b.re_seq                             AS reSeq
-             /* 해당 게시글에 첨부파일이 있는지 여부 (0 = 없음, 1 이상 = 있음) */
-             , (SELECT COUNT(*) FROM board_file bf WHERE bf.board_no = b.board_no) AS fileCount
+        SELECT b.board_no                           AS boardNo		<!-- 글번호  -->
+        	 , b.title                              AS title		<!-- 글제목 -->
+        	 , u.user_name                          AS writerName	<!-- 작성자이름(유저이름) -->
+         	 , b.hit                                AS hit			<!-- 조회수 -->
+        	 , DATE_FORMAT(b.reg_date, '%Y-%m-%d')  AS regDate		<!-- 작성일 -->
+        	 , b.ref                                AS ref			<!-- 그룹 -->
+       		 , b.re_lev                             AS reLev		<!-- 그룹내깊이 -->
+        	 , b.re_seq                             AS reSeq		<!-- 그룹내순서 -->
+             /* 해당 게시글에 첨부파일이 있는지 여부 (0 = 없음, 1 이상 = 있음) */		<!--  -->
+             , (SELECT COUNT(*) FROM board_file bf WHERE bf.board_no = b.board_no) AS fileCount	<!-- 서브쿼리 파일개수 -->
     	FROM board b
     	JOIN users u ON b.user_no = u.user_no
 	    <where>
@@ -83,18 +83,18 @@
     <!-- 게시글 단건 상세 조회 -->
     <select id="getBoardDetail" parameterType="map" resultType="map">
 SELECT b.board_no                              AS boardNo
-             , b.title                                AS title
-             , b.content                              AS content
-             , u.user_name                            AS writerName
-             , b.writer_pw                            AS writerPw
-             , b.hit                                  AS hit
-             , b.ref                                  AS ref
-             , b.re_lev                               AS reLev
-             , b.re_seq                               AS reSeq
-             , b.parent_no                            AS parentNo
-             , DATE_FORMAT(b.reg_date, '%Y-%m-%d')    AS regDate
-             , b.modi_date							  AS modiDate <!-- 현재 사용 x -->
-             , b.user_no								AS userNo
+             , b.title                                AS title		<!-- 글제목 -->
+             , b.content                              AS content	<!-- 글내용 -->
+             , u.user_name                            AS writerName	<!-- 작성자이름 -->
+             , b.writer_pw                            AS writerPw	<!-- 게시글비밀번호 -->
+             , b.hit                                  AS hit		<!-- 조회수 -->
+             , b.ref                                  AS ref		<!-- 그룹 -->
+             , b.re_lev                               AS reLev		<!-- 그룹내깊이 -->
+             , b.re_seq                               AS reSeq		<!-- 그룹순서 -->
+             , b.parent_no                            AS parentNo	<!-- 부모글번호(원글시null) -->
+             , DATE_FORMAT(b.reg_date, '%Y-%m-%d')    AS regDate	<!-- 작성일 -->
+             , b.modi_date							  AS modiDate	<!-- 수정일 -->
+             , b.user_no								AS userNo	<!-- 사용자번호pk -->
         FROM board b
     	JOIN users u ON b.user_no = u.user_no
         WHERE b.board_no = #{boardNo}
@@ -148,9 +148,7 @@ SELECT b.board_no                              AS boardNo
         </foreach>
     </delete>
 
-    <!-- 특정 글(boardNo)의 직접 자식 수 조회 (부모글당 최대 5개 답글 제한 체크용)
-         parent_no = #{boardNo} : 이 글을 부모로 둔 직접 자식만 카운트
-         원글(a1)에 5개, 그 자식(a1-1)에 또 5개 등 각 부모별 독립적으로 제한 -->
+    <!-- 특정 글(boardNo)의 직접 자식 수 조회 (부모글당 최대 5개 답글 제한 체크용) 원글(a1)에 5개, 그 자식(a1-1)에 또 5개 각 부모별 독립적 제한-->
     <select id="countChildReply" parameterType="map" resultType="int">
         SELECT COUNT(*)
         FROM board
