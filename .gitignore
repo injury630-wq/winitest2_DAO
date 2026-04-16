@@ -85,3 +85,6 @@ application-prod.yml
 
 # Eclipse cache
 .metadata/
+.classpath
+.project
+.settings/
