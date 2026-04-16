@@ -11,235 +11,264 @@
     <!-- 공통 검색 조건 SQL -->
     <sql id="searchCondition">
         <where>
-	        <if test="searchType != null and searchType != '' and searchKeyword != null and searchKeyword != ''">
-	            <choose>
-	                <when test="searchType == 'title'">
-	                    AND b.title LIKE CONCAT('%', #{searchKeyword}, '%')
-	                </when>
-	
-	                <when test="searchType == 'writer_name'">
-	                    AND u.user_name LIKE CONCAT('%', #{searchKeyword}, '%')
-	                </when>
-	            </choose>
-	        </if>
-	
-	        <if test="(searchType == null or searchType == '') and searchKeyword != null and searchKeyword != ''">
-	            AND (
-	                title LIKE CONCAT('%', #{searchKeyword}, '%')
-	                OR u.user_name LIKE CONCAT('%', #{searchKeyword}, '%')
-	            )
-	        </if>
-	    </where>
+            <if test="searchType != null and searchType != '' and searchKeyword != null and searchKeyword != ''">
+                <choose>
+                    <when test="searchType == 'title'">
+                        AND b.title LIKE CONCAT('%', #{searchKeyword}, '%')
+                    </when>
+                    <when test="searchType == 'writer_name'">
+                        AND u.user_name LIKE CONCAT('%', #{searchKeyword}, '%')
+                    </when>
+                </choose>
+            </if>
+            <if test="(searchType == null or searchType == '') and searchKeyword != null and searchKeyword != ''">
+                AND (
+                    b.title     LIKE CONCAT('%', #{searchKeyword}, '%')
+                    OR u.user_name LIKE CONCAT('%', #{searchKeyword}, '%')
+                )
+            </if>
+        </where>
     </sql>
 
     <!-- ===== 게시글 조회 ===== -->
 
     <!-- 게시글 목록 조회 (페이징 + 검색) -->
+    <!-- **BoardDAO.selectBoardList -->
     <select id="selectBoardList" parameterType="map" resultType="map">
-        SELECT b.board_no                           AS boardNo		<!-- 글번호  -->
-        	 , b.title                              AS title		<!-- 글제목 -->
-        	 , u.user_name                          AS writerName	<!-- 작성자이름(유저이름) -->
-         	 , b.hit                                AS hit			<!-- 조회수 -->
-        	 , DATE_FORMAT(b.reg_date, '%Y-%m-%d')  AS regDate		<!-- 작성일 -->
-        	 , b.ref                                AS ref			<!-- 그룹 -->
-       		 , b.re_lev                             AS reLev		<!-- 그룹내깊이 -->
-        	 , b.re_seq                             AS reSeq		<!-- 그룹내순서 -->
-             /* 해당 게시글에 첨부파일이 있는지 여부 (0 = 없음, 1 이상 = 있음) */		<!--  -->
-             , (SELECT COUNT(*) FROM board_file bf WHERE bf.board_no = b.board_no) AS fileCount	<!-- 서브쿼리 파일개수 -->
-    	FROM board b
-    	JOIN users u ON b.user_no = u.user_no
-	    <where>
-	        <if test="searchType != null and searchType != '' and searchKeyword != null and searchKeyword != ''">
-	            <choose>
-	                <when test="searchType == 'title'">
-	                    AND b.title LIKE CONCAT('%', #{searchKeyword}, '%')
-	                </when>
-	
-	                <when test="searchType == 'writer_name'">
-	                    AND u.user_name LIKE CONCAT('%', #{searchKeyword}, '%')
-	                </when>
-	            </choose>
-	        </if>
-	
-	        <if test="(searchType == null or searchType == '') and searchKeyword != null and searchKeyword != ''">
-	            AND (
-	                title LIKE CONCAT('%', #{searchKeyword}, '%')
-	                OR u.user_name LIKE CONCAT('%', #{searchKeyword}, '%')
-	            )
-	        </if>
-	    </where>
-        ORDER BY ref DESC, re_seq ASC
+        SELECT b.board_no                           AS boardNo      -- 글번호
+             , b.title                              AS title        -- 글제목
+             , u.user_name                          AS writerName   -- 작성자이름
+             , b.hit                                AS hit          -- 조회수
+             , DATE_FORMAT(b.reg_date, '%Y-%m-%d')  AS regDate      -- 작성일
+             , b.ref                                AS ref          -- 그룹
+             , b.re_lev                             AS reLev        -- 그룹내깊이
+             , b.re_seq                             AS reSeq        -- 그룹내순서
+             , (
+                 SELECT COUNT(*)
+                 FROM   board_file bf
+                 WHERE  bf.board_no = b.board_no
+               )                                    AS fileCount    -- 첨부파일수
+        FROM  board b
+        JOIN  users u ON b.user_no = u.user_no
+        <where>
+            <if test="searchType != null and searchType != '' and searchKeyword != null and searchKeyword != ''">
+                <choose>
+                    <when test="searchType == 'title'">
+                        AND b.title LIKE CONCAT('%', #{searchKeyword}, '%')
+                    </when>
+                    <when test="searchType == 'writer_name'">
+                        AND u.user_name LIKE CONCAT('%', #{searchKeyword}, '%')
+                    </when>
+                </choose>
+            </if>
+            <if test="(searchType == null or searchType == '') and searchKeyword != null and searchKeyword != ''">
+                AND (
+                    b.title     LIKE CONCAT('%', #{searchKeyword}, '%')
+                    OR u.user_name LIKE CONCAT('%', #{searchKeyword}, '%')
+                )
+            </if>
+        </where>
+        ORDER BY ref    DESC
+               , re_seq ASC
         LIMIT #{firstIndex}, #{recordCountPerPage}
     </select>
 
     <!-- 게시글 전체 건수 (페이징용) -->
+    <!-- **BoardDAO.selectBoardTotalCount -->
     <select id="selectBoardTotalCount" parameterType="map" resultType="int">
         SELECT COUNT(*)
-        FROM board b 
-        JOIN users u ON b.user_no = u.user_no
+        FROM   board b
+        JOIN   users u ON b.user_no = u.user_no
         <include refid="searchCondition"/>
     </select>
 
     <!-- 게시글 단건 상세 조회 -->
+    <!-- **BoardDAO.getBoardDetail -->
     <select id="getBoardDetail" parameterType="map" resultType="map">
-SELECT b.board_no                              AS boardNo
-             , b.title                                AS title		<!-- 글제목 -->
-             , b.content                              AS content	<!-- 글내용 -->
-             , u.user_name                            AS writerName	<!-- 작성자이름 -->
-             , b.writer_pw                            AS writerPw	<!-- 게시글비밀번호 -->
-             , b.hit                                  AS hit		<!-- 조회수 -->
-             , b.ref                                  AS ref		<!-- 그룹 -->
-             , b.re_lev                               AS reLev		<!-- 그룹내깊이 -->
-             , b.re_seq                               AS reSeq		<!-- 그룹순서 -->
-             , b.parent_no                            AS parentNo	<!-- 부모글번호(원글시null) -->
-             , DATE_FORMAT(b.reg_date, '%Y-%m-%d')    AS regDate	<!-- 작성일 -->
-             , b.modi_date							  AS modiDate	<!-- 수정일 -->
-             , b.user_no								AS userNo	<!-- 사용자번호pk -->
-        FROM board b
-    	JOIN users u ON b.user_no = u.user_no
+        SELECT b.board_no                            AS boardNo     -- 글번호
+             , b.title                               AS title       -- 글제목
+             , b.content                             AS content     -- 글내용
+             , u.user_name                           AS writerName  -- 작성자이름
+             , b.writer_pw                           AS writerPw    -- 게시글비밀번호
+             , b.hit                                 AS hit         -- 조회수
+             , b.ref                                 AS ref         -- 그룹
+             , b.re_lev                              AS reLev       -- 그룹내깊이
+             , b.re_seq                              AS reSeq       -- 그룹순서
+             , b.parent_no                           AS parentNo    -- 부모글번호(원글시null)
+             , DATE_FORMAT(b.reg_date, '%Y-%m-%d')   AS regDate     -- 작성일
+             , b.modi_date                           AS modiDate    -- 수정일
+             , b.user_no                             AS userNo      -- 사용자번호pk
+        FROM  board b
+        JOIN  users u ON b.user_no = u.user_no
         WHERE b.board_no = #{boardNo}
-</select>
+    </select>
 
-    <!-- 게시글 처리  -->
+    <!-- ===== 게시글 처리 ===== -->
 
     <!-- 조회수 증가 -->
+    <!-- **BoardDAO.updateHit -->
     <update id="updateHit" parameterType="map">
         UPDATE board
-        SET hit = hit + 1
-        WHERE board_no = #{boardNo}
+        SET    hit = hit + 1
+        WHERE  board_no = #{boardNo}
     </update>
 
-    <!-- 게시글 등록 (useGeneratedKeys로 boardNo 자동 반환) -->
-    <!-- parent_no: 원글은 null, 답변글은 부모글의 board_no -->
+    <!-- 게시글 등록 -->
+    <!-- **BoardDAO.insertBoard -->
     <insert id="insertBoard" parameterType="map" useGeneratedKeys="true" keyProperty="boardNo">
-        INSERT INTO board 
+        INSERT INTO board
         (
-        title 			<!-- 제목 -->
-      	, content		<!-- 내용 -->
-        , user_no		<!-- 작성자 -->
-        , writer_pw		<!-- 글 비밀번호 -->
-        , ref			<!-- 글 그룹 -->
-       	, re_lev		<!-- 그룹 깊이-->
-        , re_seq		<!-- 그룹 순서-->
-        , hit			<!-- 조회수 -->
-        , parent_no		<!-- 부모글 번호(원글일시 NULL)-->
-        , reg_date		<!-- 등록일 -->
+          title      -- 제목
+        , content    -- 내용
+        , user_no    -- 작성자
+        , writer_pw  -- 글 비밀번호
+        , ref        -- 글 그룹
+        , re_lev     -- 그룹 깊이
+        , re_seq     -- 그룹 순서
+        , hit        -- 조회수
+        , parent_no  -- 부모글 번호(원글일시 NULL)
+        , reg_date   -- 등록일
         )
-		VALUES 
-		(
-		#{title}
-		, #{content}
-		, #{userNo}
-		, #{writerPw}
-		, #{ref}
-		, #{reLev}
-		, #{reSeq}
-		, 0
-		, #{parentNo}
-		, NOW())
+        VALUES
+        (
+          #{title}
+        , #{content}
+        , #{userNo}
+        , #{writerPw}
+        , #{ref}
+        , #{reLev}
+        , #{reSeq}
+        , 0
+        , #{parentNo}
+        , NOW()
+        )
     </insert>
 
-    <!-- ref 업데이트: 원글 등록 후 boardNo로 자기 참조 -->
+    <!-- ref 업데이트 (원글 등록 후 boardNo로 자기 참조) -->
+    <!-- **BoardDAO.updateRef -->
     <update id="updateRef" parameterType="map">
         UPDATE board
-        SET ref = #{boardNo}
-        WHERE board_no = #{boardNo}
+        SET    ref = #{boardNo}
+        WHERE  board_no = #{boardNo}
     </update>
 
     <!-- 게시글 수정 -->
+    <!-- **BoardDAO.updateBoard -->
     <update id="updateBoard" parameterType="map">
         UPDATE board
-        SET title      = #{title}
-          , content    = #{content}
-          , modi_date  = NOW()
-        WHERE board_no = #{boardNo}
+        SET    title     = #{title}
+             , content   = #{content}
+             , modi_date = NOW()
+        WHERE  board_no = #{boardNo}
     </update>
 
-    <!-- 직접 자식글 조회 (parent_no 기반 계층 삭제용) -->
+    <!-- 직접 자식글 조회 (계층 삭제용) -->
+    <!-- **BoardDAO.selectChildBoardNos -->
     <select id="selectChildBoardNos" parameterType="map" resultType="map">
         SELECT board_no AS boardNo
-        FROM board
-        WHERE parent_no = #{boardNo}
+        FROM   board
+        WHERE  parent_no = #{boardNo}
     </select>
 
     <!-- 게시글 복수 삭제 (계층 삭제용) -->
+    <!-- **BoardDAO.deleteBoardByIds -->
     <delete id="deleteBoardByIds" parameterType="map">
         DELETE FROM board
-        WHERE board_no IN
+        WHERE  board_no IN
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
     </delete>
 
-    <!-- 특정 글(boardNo)의 직접 자식 수 조회 (부모글당 최대 5개 답글 제한 체크용) 원글(a1)에 5개, 그 자식(a1-1)에 또 5개 각 부모별 독립적 제한-->
+    <!-- 직접 자식 수 조회 (답글 최대 5개 제한 체크용) -->
+    <!-- **BoardDAO.countChildReply -->
     <select id="countChildReply" parameterType="map" resultType="int">
         SELECT COUNT(*)
-        FROM board
-        WHERE parent_no = #{boardNo}
+        FROM   board
+        WHERE  parent_no = #{boardNo}
     </select>
 
-    <!-- 답변글 re_seq 밀기 (같은 ref 내 내 위치 이후 항목 +1) -->
+    <!-- 답변글 순서 밀기 (같은 ref 내 새 답글 위치 이후 항목 +1) -->
+    <!-- **BoardDAO.updateReSeq -->
     <update id="updateReSeq" parameterType="map">
         UPDATE board
-        SET re_seq = re_seq + 1
-        WHERE ref = #{ref}
-          AND re_seq > #{reSeq}
+        SET    re_seq = re_seq + 1
+        WHERE  ref    = #{ref}
+          AND  re_seq > #{reSeq}
     </update>
 
     <!-- ===== 첨부파일 ===== -->
 
     <!-- 첨부파일 등록 -->
+    <!-- **BoardDAO.insertBoardFile -->
     <insert id="insertBoardFile" parameterType="map">
-        INSERT INTO board_file (board_no, file_name, file_path, file_size)
-        VALUES (#{boardNo}, #{fileName}, #{filePath}, #{fileSize})
+        INSERT INTO board_file
+        (
+          board_no   -- 게시글번호
+        , file_name  -- 원본파일명
+        , file_path  -- 저장파일명(UUID_원본명)
+        , file_size  -- 파일크기(bytes)
+        )
+        VALUES
+        (
+          #{boardNo}
+        , #{fileName}
+        , #{filePath}
+        , #{fileSize}
+        )
     </insert>
 
     <!-- 첨부파일 목록 조회 -->
+    <!-- **BoardDAO.getBoardFileList -->
     <select id="getBoardFileList" parameterType="map" resultType="map">
         SELECT file_no   AS fileNo
              , board_no  AS boardNo
              , file_name AS fileName
              , file_path AS filePath
              , file_size AS fileSize
-        FROM board_file
-        WHERE board_no = #{boardNo}
+        FROM   board_file
+        WHERE  board_no = #{boardNo}
     </select>
 
     <!-- 첨부파일 단건 조회 -->
+    <!-- **BoardDAO.getBoardFileDetail -->
     <select id="getBoardFileDetail" parameterType="map" resultType="map">
         SELECT file_no   AS fileNo
              , board_no  AS boardNo
              , file_name AS fileName
              , file_path AS filePath
              , file_size AS fileSize
-        FROM board_file
-        WHERE file_no = #{fileNo}
+        FROM   board_file
+        WHERE  file_no = #{fileNo}
     </select>
 
     <!-- 첨부파일 단건 삭제 -->
+    <!-- **BoardDAO.deleteBoardFile -->
     <delete id="deleteBoardFile" parameterType="map">
         DELETE FROM board_file
-        WHERE file_no = #{fileNo}
+        WHERE  file_no = #{fileNo}
     </delete>
 
-    <!-- 첨부파일 목록 조회 (게시글 복수 ID 기반 - 계층 삭제 전 물리 파일 경로 수집용) -->
+    <!-- 첨부파일 목록 조회 (게시글 복수 ID 기반, 계층 삭제 전 파일 경로 수집용) -->
+    <!-- **BoardDAO.selectFileListByIds -->
     <select id="selectFileListByIds" parameterType="map" resultType="map">
         SELECT file_no   AS fileNo
              , board_no  AS boardNo
              , file_name AS fileName
              , file_path AS filePath
              , file_size AS fileSize
-        FROM board_file
-        WHERE board_no IN
+        FROM   board_file
+        WHERE  board_no IN
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
     </select>
 
     <!-- 첨부파일 복수 삭제 (계층 삭제용) -->
+    <!-- **BoardDAO.deleteBoardFilesByBoardIds -->
     <delete id="deleteBoardFilesByBoardIds" parameterType="map">
         DELETE FROM board_file
-        WHERE board_no IN
+        WHERE  board_no IN
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>

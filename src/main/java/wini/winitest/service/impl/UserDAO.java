@@ -14,9 +14,13 @@ import egovframework.com.cmm.service.impl.EgovComAbstractDAO;
 @Repository("userDAO")
 public class UserDAO extends EgovComAbstractDAO {
 	/** ======== 사용자 관리 ========*/
-	// 사용자 목록 조회
-	public List<Map<String, Object>> selectUserList(Map<String, Object> params) {
+	// 사용자 목록 조회 (페이징, 검색조건)
+	public List<Map<String, Object>> selectUserList(Map<String, Object> params) throws Exception{
 		return selectList("userDAO.selectUserList", params);
+	}
+	// 사용자 목록 전체 건수 조회(검색조건)
+	public int selectUserTotalCount(Map<String, Object> params) throws Exception{
+		return selectOne("userDAO.selectUserTotalCount", params);
 	}
 
 
@@ -34,6 +38,10 @@ public class UserDAO extends EgovComAbstractDAO {
     public int register(Map<String, Object> param) throws Exception {
         return insert("userDAO.register", param);
     }
-    
-    
+
+    /** 최초 등록자 자기 자신으로 업데이트 (회원가입 INSERT 직후 호출) */
+    public void updateRegUser(Map<String, Object> param) throws Exception {
+        update("userDAO.updateRegUser", param);
+    }
+
 }

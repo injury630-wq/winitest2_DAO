@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import egovframework.com.utl.slm.EgovHttpSessionBindingListener;
+import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import wini.winitest.common.PagingUtil;
 import wini.winitest.service.UserService;
 
 @Controller
@@ -48,6 +50,7 @@ public class UserController {
     @RequestMapping(value = "/user/loginProc.do", method = RequestMethod.POST)
     public String loginProc(@RequestParam Map<String, Object> param,
                             HttpServletRequest request, Model model) throws Exception {
+    	System.out.println("안녕하세요~~~~~~");
         Map<String, Object> loginUser = userService.selectLoginInfo(param);
         if (loginUser != null && loginUser.get("userId") != null) {
             // 세션에 로그인 정보 저장
@@ -111,11 +114,23 @@ public class UserController {
     }
     
     // 사용자 목록 조회
-    @RequestMapping(value = "/user/userList.do", method = RequestMethod.POST)
-    public String userList(@RequestParam Map<String, Object> params, Model model){
+    @RequestMapping(value = "/user/userManage.do", method = RequestMethod.POST)
+    public String userList(@RequestParam Map<String, Object> params, Model model) throws Exception{
     	List<Map<String, Object>> userList = userService.getUserList(params);
     	model.addAttribute("userList", userList);
-    	return "user/userTest";
+    	return "user/userManage";
     }
-    
+
+    // 사용자관리 디자인 테스트용 
+    @RequestMapping(value = "/user/userManage2.do", method = RequestMethod.POST)
+    public String userManageTest(@RequestParam Map<String, Object> params, Model model) throws Exception {
+    	 PaginationInfo paginationInfo = PagingUtil.create(params);
+	    int totalCount = userService.selectUserTotalCount(params);
+	    paginationInfo.setTotalRecordCount(totalCount);
+	
+    	List<Map<String, Object>> userList = userService.getUserList(params);
+    	model.addAttribute("userList", userList);
+        return "user/userManage2";
+    }
+
 }
