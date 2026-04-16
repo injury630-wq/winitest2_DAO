@@ -1,5 +1,6 @@
 package wini.winitest.service.impl;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -14,11 +15,17 @@ import wini.winitest.service.UserService;
  * - EgovAbstractServiceImpl 상속
  * - UserDAO를 통한 DB 접근 (Map 기반)
  */
-@Service("userDAOService")
-public class UserDAOServiceImpl extends EgovAbstractServiceImpl implements UserService {
+@Service("userService")
+public class UserServiceImpl extends EgovAbstractServiceImpl implements UserService {
 
     @Resource(name = "userDAO")
     private UserDAO userDAO;
+    
+    /** 사용자 정보 목록 조회 예외처리 언제해야하는지 모르겠음.*/
+    @Override
+	public List<Map<String, Object>> getUserList(Map<String, Object> params){
+    	return userDAO.selectUserList(params);
+	}
 
     /** 로그인 정보 단건 조회 */
     @Override
@@ -37,4 +44,5 @@ public class UserDAOServiceImpl extends EgovAbstractServiceImpl implements UserS
     public int register(Map<String, Object> param) throws Exception {
         return userDAO.register(param);
     }
+
 }

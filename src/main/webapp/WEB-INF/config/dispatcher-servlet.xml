@@ -67,7 +67,8 @@
 	<mvc:interceptors>
     <mvc:interceptor>
         <mvc:mapping path="/**/*.do"/>
-        <mvc:exclude-mapping path="/user/*.do"/>
+        <mvc:exclude-mapping path="/user/login.do"/>
+        <mvc:exclude-mapping path="/user/register.do"/>
         <bean class="wini.winitest.interceptor.LoginInterceptor"/>
     </mvc:interceptor>
 	</mvc:interceptors>

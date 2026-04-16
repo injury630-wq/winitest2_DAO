@@ -1,6 +1,8 @@
 package wini.winitest.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -20,7 +22,7 @@ import wini.winitest.service.UserService;
 @Controller
 public class UserController {
 
-    @Resource(name = "userDAOService")
+    @Resource(name = "userService")
     private UserService userService;
 
     // 로그인 페이지 (GET: 로그인 인터셉터용, POST: bridge.jsp 에서 redirect 된 경우)
@@ -107,4 +109,13 @@ public class UserController {
     public int idCheck(@RequestParam Map<String, Object> param) throws Exception {
         return userService.idCheck(param);
     }
+    
+    // 사용자 목록 조회
+    @RequestMapping(value = "/user/userList.do", method = RequestMethod.POST)
+    public String userList(@RequestParam Map<String, Object> params, Model model){
+    	List<Map<String, Object>> userList = userService.getUserList(params);
+    	model.addAttribute("userList", userList);
+    	return "user/userTest";
+    }
+    
 }

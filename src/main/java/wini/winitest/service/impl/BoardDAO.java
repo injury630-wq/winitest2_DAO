@@ -17,7 +17,7 @@ public class BoardDAO extends EgovComAbstractDAO {
     /* ===== 게시글 조회 ===== */
 
     /** 게시글 목록 조회 (페이징 + 검색 조건) */
-    public List<Map<String, Object>> selectList(Map<String, Object> param) {
+    public List<Map<String, Object>> selectList(Map<String, Object> param) throws Exception {
         return selectList("boardDAO.selectBoardList", param);
     }
 

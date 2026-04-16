@@ -112,8 +112,31 @@ SELECT b.board_no                              AS boardNo
     <!-- 게시글 등록 (useGeneratedKeys로 boardNo 자동 반환) -->
     <!-- parent_no: 원글은 null, 답변글은 부모글의 board_no -->
     <insert id="insertBoard" parameterType="map" useGeneratedKeys="true" keyProperty="boardNo">
-        INSERT INTO board (title, content, user_no, writer_pw, ref, re_lev, re_seq, hit, parent_no, reg_date)
-        VALUES (#{title}, #{content}, #{userNo}, #{writerPw}, #{ref}, #{reLev}, #{reSeq}, 0, #{parentNo}, NOW())
+        INSERT INTO board 
+        (
+        title 			<!-- 제목 -->
+      	, content		<!-- 내용 -->
+        , user_no		<!-- 작성자 -->
+        , writer_pw		<!-- 글 비밀번호 -->
+        , ref			<!-- 글 그룹 -->
+       	, re_lev		<!-- 그룹 깊이-->
+        , re_seq		<!-- 그룹 순서-->
+        , hit			<!-- 조회수 -->
+        , parent_no		<!-- 부모글 번호(원글일시 NULL)-->
+        , reg_date		<!-- 등록일 -->
+        )
+		VALUES 
+		(
+		#{title}
+		, #{content}
+		, #{userNo}
+		, #{writerPw}
+		, #{ref}
+		, #{reLev}
+		, #{reSeq}
+		, 0
+		, #{parentNo}
+		, NOW())
     </insert>
 
     <!-- ref 업데이트: 원글 등록 후 boardNo로 자기 참조 -->

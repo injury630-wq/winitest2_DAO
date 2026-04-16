@@ -35,5 +35,21 @@
         INSERT INTO users (user_id, user_pw, user_name, reg_date)
         VALUES (#{userId}, #{userPw}, #{userName}, NOW())
     </insert>
+    
+    <!-- 사용자 목록 조회  -->
+    <select id="selectUserList" parameterType="map" resultType="map">
+  	SELECT 
+  		   user_no		AS userNo		-- 사용자 번호
+		 , user_id		AS userId 		-- 사용자 아이디
+		 , user_name	AS userName		-- 사용자 이름
+		 , reg_date		AS regDate		-- 등록일
+		 , reg_user		AS regUser		-- 최초 등록자
+		 , mod_date		AS modDate		-- 수정일
+		 , mod_user		AS modUser		-- 마지막 수정자
+		 , `role`		AS role			-- 권한(SYSTEM/ADMIN/USER)
+		 , status		AS status		-- 계정상태(ACTIVE / DISABLED)
+	FROM users
+	ORDER BY user_no DESC
+    </select>
 
 </mapper>

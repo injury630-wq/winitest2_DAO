@@ -1,5 +1,6 @@
 package wini.winitest.service.impl;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Repository;
@@ -12,6 +13,12 @@ import egovframework.com.cmm.service.impl.EgovComAbstractDAO;
  */
 @Repository("userDAO")
 public class UserDAO extends EgovComAbstractDAO {
+	/** ======== 사용자 관리 ========*/
+	// 사용자 목록 조회
+	public List<Map<String, Object>> selectUserList(Map<String, Object> params) {
+		return selectList("userDAO.selectUserList", params);
+	}
+
 
     /** 로그인 정보 단건 조회 */
     public Map<String, Object> selectLoginInfo(Map<String, Object> param) throws Exception {
@@ -27,4 +34,6 @@ public class UserDAO extends EgovComAbstractDAO {
     public int register(Map<String, Object> param) throws Exception {
         return insert("userDAO.register", param);
     }
+    
+    
 }
