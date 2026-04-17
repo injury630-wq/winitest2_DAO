@@ -3,6 +3,7 @@ package wini.winitest.service.impl;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import egovframework.com.cmm.service.impl.EgovComAbstractDAO;
@@ -22,26 +23,30 @@ public class UserDAO extends EgovComAbstractDAO {
 	public int selectUserTotalCount(Map<String, Object> params) throws Exception{
 		return selectOne("userDAO.selectUserTotalCount", params);
 	}
+	
+	/**사용자 상세조회*/
+	public Map<String, Object> selectUserDetail(@Param("userNo") int userNo) throws Exception{
+		return (Map<String, Object>)selectOne("userDAO.selectUserDetail", userNo);
+	}
 
+  /** 로그인 정보 단건 조회 */
+  public Map<String, Object> selectLoginInfo(Map<String, Object> param) throws Exception {
+      return (Map<String, Object>) selectOne("userDAO.selectLoginInfo", param);
+  }
 
-    /** 로그인 정보 단건 조회 */
-    public Map<String, Object> selectLoginInfo(Map<String, Object> param) throws Exception {
-        return (Map<String, Object>) selectOne("userDAO.selectLoginInfo", param);
-    }
+  /** 아이디 중복확인 (0: 사용가능, 1이상: 중복) */
+  public int idCheck(Map<String, Object> param) throws Exception {
+      return (Integer) selectOne("userDAO.idCheck", param);
+  }
 
-    /** 아이디 중복확인 (0: 사용가능, 1이상: 중복) */
-    public int idCheck(Map<String, Object> param) throws Exception {
-        return (Integer) selectOne("userDAO.idCheck", param);
-    }
+  /** 회원가입 처리 */
+  public int register(Map<String, Object> param) throws Exception {
+      return insert("userDAO.register", param);
+  }
 
-    /** 회원가입 처리 */
-    public int register(Map<String, Object> param) throws Exception {
-        return insert("userDAO.register", param);
-    }
-
-    /** 최초 등록자 자기 자신으로 업데이트 (회원가입 INSERT 직후 호출) */
-    public void updateRegUser(Map<String, Object> param) throws Exception {
-        update("userDAO.updateRegUser", param);
-    }
+  /** 최초 등록자 자기 자신으로 업데이트 (회원가입 INSERT 직후 호출) */
+  public void updateRegUser(Map<String, Object> param) throws Exception {
+      update("userDAO.updateRegUser", param);
+  }
 
 }

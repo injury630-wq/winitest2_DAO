@@ -11,10 +11,12 @@ import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
 import egovframework.com.utl.slm.EgovHttpSessionBindingListener;
 import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
@@ -116,7 +118,7 @@ public class UserController {
     // 사용자 목록 조회
     @RequestMapping(value = "/user/userManage.do", method = RequestMethod.POST)
     public String userList(@RequestParam Map<String, Object> params, Model model) throws Exception{
-    	List<Map<String, Object>> userList = userService.getUserList(params);
+    	Map<String, Object> userList = userService.getUserList(params); // 수정요함  list, search, pagination
     	model.addAttribute("userList", userList);
     	return "user/userManage";
     }
@@ -124,13 +126,41 @@ public class UserController {
     // 사용자관리 디자인 테스트용 
     @RequestMapping(value = "/user/userManage2.do", method = RequestMethod.POST)
     public String userManageTest(@RequestParam Map<String, Object> params, Model model) throws Exception {
-    	 PaginationInfo paginationInfo = PagingUtil.create(params);
-	    int totalCount = userService.selectUserTotalCount(params);
-	    paginationInfo.setTotalRecordCount(totalCount);
-	
-    	List<Map<String, Object>> userList = userService.getUserList(params);
-    	model.addAttribute("userList", userList);
-        return "user/userManage2";
+    	Map<String, Object> result = new HashMap<>();
+			result = userService.getUserList(params); // list, search, pagination
+    	if(result.get("message").equals("success")){
+    		model.addAttribute("list", result.get("list"));
+    		model.addAttribute("search", result.get("search"));
+    		model.addAttribute("paginationInfo", result.get("paginationInfo"));
+    	}else {
+    		model.addAttribute("message", "error");
+    	}
+      return "user/userManage2";
     }
+    
+    // 사용자 상세조회 (ajax)
+//    @ResponseBody
+//    @RequestMapping(value = "/user/detail.do", method = RequestMethod.POST)
+//    public Map<String, Object> userDetail(@RequestParam Map<String, Object> param) throws Exception {
+//        return userService.idCheck(param);
+//    }
+    // 사용자 상세조회 (ajax)
+    @ResponseBody
+    @RequestMapping(value = "/user/ajaxTest.do", method = RequestMethod.POST)
+    public Map<String, Object> userDetail(@RequestBody Map<String, Object> param) throws Exception {
+    	Map<String, Object> result = new HashMap<>();
+    	try {
+        int userNo = Integer.parseInt(String.valueOf(param.get("userNo")));
 
+        Map<String, Object> user = userService.selectUserDetail(userNo);
+
+        result.put("user", user);
+        result.put("message", "success");
+
+	    } catch (Exception e) {
+        result.put("message", "fail");
+        result.put("error", e.getMessage());
+	    }
+    	return result;
+    }
 }

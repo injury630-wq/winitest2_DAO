@@ -43,10 +43,10 @@
         	<tbody>
           	<c:forEach var="user" items="${userList}" varStatus="status">
 	        <tr style="cursor:pointer;" data-user-no="${user.userNo}" onclick="goDetail(this)">
-	                <td>${status.index + 1}</td>
-	                <td>${user.userId}</td>
-	                <td>${user.userName}</td>
-	                <td><c:out value="${user.status eq 'ACTIVE' ? '사용가능' : '사용불가'}"></c:out></td>
+	          <td>${status.index + 1}</td>
+	          <td>${user.userId}</td>
+	          <td>${user.userName}</td>
+	          <td><c:out value="${user.status eq 'ACTIVE' ? '사용가능' : '사용불가'}"></c:out></td>
 	         </tr>
            </c:forEach>
            </tbody>

@@ -18,7 +18,7 @@
         <input type="hidden" name="currentPageNo" id="currentPageNo" value="1"/>
         <div class="border p-3 mb-3">
             <div class="d-flex gap-2 mb-2">
-                <select name="searchType" class="form-select" style="width:auto; min-width:90px;">
+                <select name="searchType" class="form-select" style="width:auto; min-width:100px;">
                     <option value="">전체</option>
                     <option value="title"      <c:if test="${param.searchType == 'title'}"      >selected</c:if>>제목</option>
                     <option value="writer_name" <c:if test="${param.searchType == 'writer_name'}">selected</c:if>>작성자</option>

@@ -3,15 +3,19 @@ package wini.winitest.service;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ibatis.annotations.Param;
+
 /**
  * 사용자 서비스 인터페이스 - Map 기반 DAO 방식
  */
 public interface UserService {
 	/** ======== 사용자 관리 ========*/
 	// 사용자 목록 조회(페이징, 검색조건)
-	List<Map<String, Object>> getUserList(Map<String, Object> params) throws Exception;
+	Map<String, Object> getUserList(Map<String, Object> params) throws Exception;
 	// 사용자 목록 전체건수(검색조건)
 	int selectUserTotalCount(Map<String, Object> params) throws Exception;
+	/**사용자 상세 조회*/
+	Map<String, Object> selectUserDetail(int userNo) throws Exception;
 
     /** 로그인 정보 단건 조회 */
     Map<String, Object> selectLoginInfo(Map<String, Object> param) throws Exception;

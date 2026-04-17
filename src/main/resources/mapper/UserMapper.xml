@@ -11,7 +11,7 @@
     <sql id="searchCondition">
         <where>
             <if test="searchType == 'userId'   and searchKeyword != null and searchKeyword != ''">
-                AND user_id   LIKE CONCAT('%', #{searchKeyword}, '%')
+                AND user_id   LIKE CONCAT('%', LOWER(#{searchKeyword}), '%')
             </if>
             <if test="searchType == 'userName' and searchKeyword != null and searchKeyword != ''">
                 AND user_name LIKE CONCAT('%', #{searchKeyword}, '%')
@@ -77,18 +77,18 @@
     <!-- 사용자 목록 조회 -->
     <!-- **UserDAO.selectUserList -->
     <select id="selectUserList" parameterType="map" resultType="map">
-        SELECT 
+				SELECT 
         	   user_no                                   AS userNo      -- 사용자 번호
-             , user_id                                  AS userId      -- 사용자 아이디
+             , LOWER(user_id)                                  AS userId      -- 사용자 아이디
              , user_name                                AS userName    -- 사용자 이름
-             , role                                     AS role        -- 권한(SYSTEM/ADMIN/USER)
-             , status                                   AS status      -- 계정상태(ACTIVE/DISABLED)
+             , UPPER(role)                                     AS role        -- 권한(SYSTEM/ADMIN/USER)
+             , UPPER(status)                                   AS status      -- 계정상태(ACTIVE/DISABLED)
         FROM   users
         <include refid="searchCondition"/>
         ORDER BY user_no DESC
         <!-- LIMIT 1,10 -->
         LIMIT #{firstIndex}, #{recordCountPerPage}
-    </select>
+</select>
 
     <!-- 사용자 목록 전체 건수 (페이징용) -->
     <!-- **UserDAO.selectUserTotalCount -->
@@ -96,6 +96,27 @@
         SELECT COUNT(*)
         FROM   users
         <include refid="searchCondition"/>
+    </select>
+    
+    <!-- 사용자 상세조회 -->
+    <!-- **UserDAO.selectUserDetail -->
+    <select id="selectUserDetail" parameterType="int" resultType="map">
+    SELECT
+			u.user_no AS userNo 																			<!-- 사용자번호 -->
+			, u.user_id AS userId																			<!-- 사용자 아이디 -->
+			, LENGTH(u.user_pw) AS userPwLen													<!-- 사용자 비밀번호 길이 -->
+			, u.user_name AS userName																	<!-- 사용자 이름 -->
+			, DATE_FORMAT(u.reg_date, '%Y-%m-%d') AS regDate					<!-- 등록일 -->
+			, ru.user_name AS regUserName															<!-- 최초 등록자 -->
+			, DATE_FORMAT(u.mod_date, '%Y-%m-%d') AS modDate					<!-- 수정일 -->
+			, IFNULL(mu.user_name, '--') AS modUserName								<!-- 수정자 -->
+			, u.`role`									 AS role															<!-- 사용자 권한 SYSTEM/ADMIN/USER -->
+			, u.status									 AS	status														<!-- 계정 상태 	ACTIVE/DISABLED -->
+		FROM
+			users u
+		LEFT JOIN users ru ON u.reg_user = ru.user_no
+		LEFT JOIN users mu ON u.mod_user = mu.user_no
+		WHERE u.user_no = #{userNo}
     </select>
 
 </mapper>

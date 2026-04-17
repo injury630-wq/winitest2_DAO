@@ -21,14 +21,14 @@ public class PagingUtil {
 //
 //        return paginationInfo;
 //    }
-    public static PaginationInfo create(Map<String, Object> param) {
+    public static PaginationInfo create(Map<String, Object> param, int recordPerPage, int pageSize) {
         PaginationInfo paginationInfo = new PaginationInfo();
 
-        int currentPageNo = parsePageNo(param.get("currentPageNo"));
+        int currentPageNo = parsePageNo(param.get("currentPageNo")); // 현재 페이지 없으면 1 고정
 
         paginationInfo.setCurrentPageNo(currentPageNo);
-        paginationInfo.setRecordCountPerPage(10);
-        paginationInfo.setPageSize(10);
+        paginationInfo.setRecordCountPerPage(recordPerPage); // 한 페이지당 게시되는 게시물 건 수
+        paginationInfo.setPageSize(pageSize); // 페이지 리스트에 게시되는 페이지 건수
 
         param.put("firstIndex", paginationInfo.getFirstRecordIndex());
         param.put("recordCountPerPage", paginationInfo.getRecordCountPerPage());
