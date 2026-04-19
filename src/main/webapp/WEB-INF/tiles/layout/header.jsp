@@ -26,8 +26,8 @@ data-dyn 속성의 역할 goPost 는 재사용되는 단일 폼(__navForm)에 �
     // 공용 POST 이동 함수
     // url  : 이동할 컨트롤러 URL
     // params: 전송할 파라미터 객체 (없으면 생략)
-    // 사용 예) goPost('board/write.do')
-    //         goPost('board/detail.do', {boardNo: '5', currentPageNo: '2'})
+    // ex) goPost('board/write.do')
+    //     goPost('board/detail.do', {boardNo: '5', currentPageNo: '2'})
     function goPost(url, params) {
         var form = document.getElementById('__navForm');
         form.action = url;

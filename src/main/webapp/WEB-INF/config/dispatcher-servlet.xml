@@ -11,6 +11,9 @@
 	<!-- MVC 어노테이션 활성화 -->
 	<mvc:annotation-driven />
 
+	<!-- 정적 리소스 서빙: /resources/** → /webapp/resources/ 당장 필요하지 않은 파일 설정 x-->
+	<!-- <mvc:resources mapping="/resources/**" location="/resources/"/> -->
+
 	<!-- 컨트롤러 컴포넌트 스캔 -->
 	<context:component-scan base-package="wini.winitest" use-default-filters="false">
         <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
@@ -63,18 +66,29 @@
 	</bean>
 
 
-	<!-- 로그인 인터셉터: /user/*.do 를 제외한 모든 .do 요청에 적용 -->
-	<mvc:interceptors>
-    <mvc:interceptor>
-        <mvc:mapping path="/**/*.do"/>
-        <mvc:exclude-mapping path="/user/login.do"/>
-        <mvc:exclude-mapping path="/user/loginProc.do"/>
-        <mvc:exclude-mapping path="/user/register.do"/>
-        <mvc:exclude-mapping path="/user/registerProc.do"/>
-        <mvc:exclude-mapping path="/user/idCheck.do"/>
-        <mvc:exclude-mapping path="/user/*.do"/>
-        <bean class="wini.winitest.interceptor.LoginInterceptor"/>
-    </mvc:interceptor>
-	</mvc:interceptors>
+<!-- ===== 인터셉터 체인 (선언 순서대로 실행) ===== -->
+<mvc:interceptors>
+   	<!-- 1. 로그인 인터셉터 - 세션 없으면 로그인 페이지로 이동 -->
+   <mvc:interceptor>
+       <mvc:mapping path="/**/*.do"/>
+       <mvc:exclude-mapping path="/user/login.do"/>
+       <mvc:exclude-mapping path="/user/loginProc.do"/>
+       <mvc:exclude-mapping path="/user/register.do"/>
+       <mvc:exclude-mapping path="/user/registerProc.do"/>
+       <mvc:exclude-mapping path="/user/idCheck.do"/>
+       <bean class="wini.winitest.interceptor.LoginInterceptor"/>
+   </mvc:interceptor>
+
+   <!-- 2. 권한 인터셉터 - 등록만 ADMIN 이상 (수정/삭제는 본인도 가능하므로 서비스에서 판단) -->
+	<!-- 새로운 관리 기능이 생기면 mvc:mapping 을 추가한다 -->
+   <mvc:interceptor>
+       <mvc:mapping path="/user/userRegist2.do"/>
+       <mvc:mapping path="/user/ajaxTest.do"/>
+       <bean class="wini.winitest.interceptor.RoleInterceptor">
+           <constructor-arg name="requiredRole" value="ADMIN"/>
+       </bean>
+   </mvc:interceptor>
+</mvc:interceptors>
+
 
 </beans>

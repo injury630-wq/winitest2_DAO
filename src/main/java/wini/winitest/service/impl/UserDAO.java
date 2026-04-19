@@ -29,6 +29,21 @@ public class UserDAO extends EgovComAbstractDAO {
 		return (Map<String, Object>)selectOne("userDAO.selectUserDetail", userNo);
 	}
 
+  /** 사용자 등록 (관리자) */
+  public void insertUser(Map<String, Object> param) throws Exception {
+      insert("userDAO.insertUser", param);
+  }
+
+  /** 사용자 수정 (관리자) */
+  public void updateUser(Map<String, Object> param) throws Exception {
+      update("userDAO.updateUser", param);
+  }
+
+  /** 사용자 비활성화 (관리자 - 실제 삭제 X) */
+  public void disableUser(Map<String, Object> param) throws Exception {
+      update("userDAO.disableUser", param);
+  }
+
   /** 로그인 정보 단건 조회 */
   public Map<String, Object> selectLoginInfo(Map<String, Object> param) throws Exception {
       return (Map<String, Object>) selectOne("userDAO.selectLoginInfo", param);

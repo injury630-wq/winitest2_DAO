@@ -1,0 +1,20 @@
+<!-- 사용자 상세조회 -->
+<!-- **UserDAO.selectUserDetail -->
+<select id="selectUserDetail" parameterType="int" resultType="map">
+SELECT
+	u.user_no AS userNo 			<!-- 사용자번호 -->
+	, u.user_id AS userId				<!-- 사용자 아이디 -->
+	, LENGTH(u.user_pw) AS userPwLen				    <!-- 사용자 비밀번호 길이 -->
+	, u.user_name AS userName							<!-- 사용자 이름 -->
+	, DATE_FORMAT(u.reg_date, '%Y-%m-%d') AS regDate	<!-- 등록일 -->
+	, ru.user_name AS regUserName						<!-- 최초 등록자 -->
+	, DATE_FORMAT(u.mod_date, '%Y-%m-%d') AS modDate	<!-- 수정일 -->
+	, IFNULL(mu.user_name, '--')          AS modUserName			<!-- 수정자 -->
+	, u.`role`				 			  AS role				    <!-- 사용자 권한 SYSTEM/ADMIN/USER -->
+	, u.status							 AS	status		<!-- 계정상태 	ACTIVE/DISABLED -->
+FROM
+	users u
+LEFT JOIN users ru ON u.reg_user = ru.user_no
+LEFT JOIN users mu ON u.mod_user = mu.user_no
+WHERE u.user_no = #{userNo}
+</select>

@@ -6,6 +6,9 @@ import javax.servlet.http.HttpSession;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
+/**
+ * 로그인 인터셉터 - 비로그인 시 접근 차단.
+ */
 public class LoginInterceptor implements HandlerInterceptor {
 
 	//컨트롤러 실행전 세션 확인

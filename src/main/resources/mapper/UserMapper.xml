@@ -98,6 +98,59 @@
         <include refid="searchCondition"/>
     </select>
     
+    <!-- 사용자 등록 (관리자) -->
+    <!-- **UserDAO.insertUser -->
+    <insert id="insertUser" parameterType="map"
+            useGeneratedKeys="true" keyProperty="userNo" keyColumn="user_no">
+        INSERT INTO users
+        (
+          user_id    -- 사용자 아이디 (소문자 저장)
+        , user_pw    -- 비밀번호
+        , user_name  -- 이름
+        , role       -- 권한
+        , status     -- 계정상태
+        , reg_date   -- 최초등록일시
+        , reg_user   -- 최초등록자 (로그인 사용자 userNo)
+        )
+        VALUES
+        (
+          LOWER(#{userId})
+        , #{userPw}
+        , #{userName}
+        , #{role}
+        , #{status}
+        , NOW()
+        , #{regUser}
+        )
+    </insert>
+
+    <!-- 사용자 수정 (관리자) -->
+    <!-- **UserDAO.updateUser -->
+    <update id="updateUser" parameterType="map">
+        UPDATE users
+        SET
+              user_name = #{userName}   -- 이름
+            , role      = #{role}       -- 권한
+            , status    = #{status}     -- 계정상태
+            , mod_date  = NOW()         -- 수정일시 (자동)
+            , mod_user  = #{modUser}    -- 수정자 (로그인 사용자 userNo)
+            <if test="userPw != null and userPw != ''">
+            , user_pw   = #{userPw}     -- 비밀번호 (입력된 경우에만 변경)
+            </if>
+        WHERE  user_no = #{userNo}
+    </update>
+
+    <!-- 사용자 비활성화 (실제 삭제 X, status = DISABLED 처리) -->
+    <!-- **UserDAO.disableUser -->
+    <update id="disableUser" parameterType="map">
+        UPDATE users
+        SET
+              status   = 'DISABLED'    <!-- 계정상태 비활성화 -->
+            , mod_date = NOW()         <!--  수정일시 (자동) -->
+            , mod_user = #{modUser}    <!--  수정자 (로그인 사용자 userNo) -->
+        WHERE  user_no = #{userNo}
+    </update>
+
     <!-- 사용자 상세조회 -->
     <!-- **UserDAO.selectUserDetail -->
     <select id="selectUserDetail" parameterType="int" resultType="map">

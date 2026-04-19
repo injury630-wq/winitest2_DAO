@@ -23,7 +23,7 @@
             </div>
         </div>
     </form>
-
+	
     <!-- 2. 목록 영역 -->
     <div class="bg-white border mb-2">
         <div class="px-3 pt-2 pb-1">
@@ -61,7 +61,7 @@
     <div class="paging mb-3">
         <nav aria-label="페이지 이동">
             <ul class="pagination justify-content-center">
-                <ui:pagination paginationInfo="${paginationInfo}" type="customRenderer" jsFunction="linkPage"/>
+             	<ui:pagination paginationInfo="${paginationInfo}" type="customRenderer" jsFunction="linkPage"/>
             </ul>
         </nav>
     </div>
@@ -69,6 +69,8 @@
     <!-- 4. 상세 / 등록 폼 -->
     <div class="bg-white border p-3 mb-3">
     <form id="detailForm" method="post" action="">
+        <%-- userNo: 수정/삭제 시 대상 식별용 hidden 필드 --%>
+        <input type="hidden" id="userNo" name="userNo" value=""/>
         <table class="table table-bordered mb-0" style="font-size:14px;">
             <colgroup>
                 <col style="width:15%">
@@ -80,38 +82,55 @@
                 <tr>
                     <th class="table-light align-middle">아이디</th>
                     <td>
-                      <input type="text" id="dUserId" disabled
-                               class="form-control form-control-sm bg-light" maxlength="15" placeholder="영문 입력"/>
+                        <input type="text" id="userId" name="userId"
+                               class="form-control form-control-sm" maxlength="15"
+                               placeholder="영문/숫자 5~15자" required/>
+                        <p id="userIdMsg" class="guide-msg"></p>
                     </td>
                     <th class="table-light align-middle">이름</th>
                     <td>
-                        <input type="text" id="dUserName"
-                               class="form-control form-control-sm" maxlength="30"/>
+                        <input type="text" id="userName" name="userName"
+                               class="form-control form-control-sm" maxlength="30"
+                               placeholder="이름 입력" required/>
                     </td>
                 </tr>
                 <tr>
                     <th class="table-light align-middle">비밀번호</th>
-                    <td>
-                        <input type="password" id="dUserPwView" maxlength="25" disabled
-                               class="form-control form-control-sm bg-light"/>
-                    </td>
-                    <th class="table-light align-middle">비밀번호 변경</th>
-                    <td>
-                        <input type="password" id="dUserPw" maxlength="25" placeholder="비밀번호 변경시에만 입력하세요"
-                               class="form-control form-control-sm"/>
+                    <td colspan="3">
+                        <%-- 등록 모드: 새 비밀번호 입력 (필수) --%>
+                        <div id="pwRegistDiv">
+                            <input type="password" id="userPw" maxlength="25"
+                                   class="form-control form-control-sm"
+                                   placeholder="숫자+영문+특수문자 조합 10~25자" required/>
+                            <p id="userPwMsg" class="guide-msg"></p>
+                        </div>
+                        <%-- 수정 모드: 현재 비밀번호(마스킹) + 새 비밀번호 선택 입력 --%>
+                        <div id="pwUpdateDiv" style="display:none;" class="row g-2">
+                            <div class="col-6">
+                                <div class="text-muted mb-1" style="font-size:11px;">현재 비밀번호</div>
+                                <input type="password" id="userPwView" disabled
+                                       class="form-control form-control-sm bg-light"/>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-muted mb-1" style="font-size:11px;">새 비밀번호 (미입력 시 변경 안함)</div>
+                                <input type="password" id="userPwChange" maxlength="25"
+                                       class="form-control form-control-sm"
+                                       placeholder="변경 시에만 입력하세요"/>
+                            </div>
+                        </div>
                     </td>
                 </tr>
                 <tr>
                     <th class="table-light align-middle">사용여부</th>
                     <td>
-                        <select id="dStatus" class="form-select form-select-sm">
+                        <select id="status" name="status" class="form-select form-select-sm">
                             <option value="ACTIVE">Y (사용가능)</option>
                             <option value="DISABLED">N (사용불가)</option>
                         </select>
                     </td>
                     <th class="table-light align-middle">사용자구분</th>
                     <td>
-                        <select id="dRole" class="form-select form-select-sm">
+                        <select id="role" name="role" class="form-select form-select-sm">
                             <option value="USER">일반사용자</option>
                             <option value="ADMIN">관리자</option>
                             <option value="SYSTEM">시스템관리자</option>
@@ -121,119 +140,307 @@
                 <tr>
                     <th class="table-light align-middle">최초등록일시</th>
                     <td>
-                        <input type="text" id="dRegDate" class="form-control form-control-sm bg-light" disabled/>
+                        <input type="text" id="regDate" class="form-control form-control-sm bg-light" disabled/>
                     </td>
                     <th class="table-light align-middle">최초등록자</th>
                     <td>
-                        <input type="text" id="dRegUserName" class="form-control form-control-sm bg-light" disabled/>
+                        <input type="text" id="regUserName" class="form-control form-control-sm bg-light" disabled/>
                     </td>
                 </tr>
                 <tr>
                     <th class="table-light align-middle">수정일시</th>
                     <td>
-                        <input type="text" id="dModDate" class="form-control form-control-sm bg-light" disabled/>
+                        <input type="text" id="modDate" class="form-control form-control-sm bg-light" disabled/>
                     </td>
                     <th class="table-light align-middle">수정자</th>
                     <td>
-                        <input type="text" id="dModUserName" class="form-control form-control-sm bg-light" disabled/>
+                        <input type="text" id="modUserName" class="form-control form-control-sm bg-light" disabled/>
                     </td>
                 </tr>
             </tbody>
         </table>
-      </form>
+    </form>
     </div>
 
     <!-- 5. 버튼 영역 -->
     <div class="d-flex justify-content-center gap-2 mb-4">
-        <button type="button" class="btn btn-secondary px-4" id="btnReset">초기화</button>
+        <button type="button" class="btn btn-info px-4" id="btnReset">초기화</button>
         <button type="button" class="btn btn-primary px-4"    id="btnRegist">등록</button>
         <button type="button" class="btn btn-warning px-4"    id="btnUpdate">수정</button>
         <button type="button" class="btn btn-danger px-4"     id="btnDelete">삭제</button>
-        <button type="button" class="btn btn-outline-secondary px-4" id="btnClose">닫기</button>
+        <!-- <button type="button" class="btn btn-outline-secondary px-4" id="btnClose">닫기</button> -->
+         <!-- 닫기 버튼은 아직 사용하지 않음 건들지 마셈 -->
     </div>
 
 </div>
 
 <script>
-	/* =====유저 상세 조회 클릭 이벤트======*/
-/* 	$("tr.user-row").on("click", (e) =>{ // => 함수 this window객체 주의
-		let userNo = $(e.currentTarget).data("userNo");
-		$.ajax({
-	    type : 'post',           // 타입 (get, post, put 등등)
-	    url : '/user/ajaxTest',           // 요청할 서버url
-	    async : true,            // 비동기화 여부 (default : true)
-	    headers : {              // Http header
-	      "Content-Type" : "application/json",
-	      "X-HTTP-Method-Override" : "POST"
-	    },
-	    dataType : 'json',       // 받을 데이터 타입 (html, xml, json, text 등등)
-	    data : JSON.stringify({  // 보낼 데이터 (Object , String, Array)
-	      "userNo" : userNo
-	    }),
-	    success : function(result) { // 결과 성공 콜백함수
-	        console.log(result);
-	    },
-	    error : function(request, status, error) { // 결과 에러 콜백함수
-	        console.log(error)
-	    }
-		})
-	}); */
-	/* =====유저 상세 조회 클릭 이벤트 END======*/
-	
-	/* 목록 행 클릭 → 폼에 데이터 채우기 */
-    $('#userListBody').on('click', '.user-row', function() {
+    /* ===================== 상태 변수 ===================== */
+    let selectedUserNo = null;   // 현재 선택된 사용자 userNo
+    let selectedRow    = null;   // 현재 선택된 목록 행 (jQuery 객체)
+
+    /* ===================== 초기화 ===================== */
+    $(function () {
+        // 페이지 진입 시 등록 모드로 시작
+        setRegistMode();
+
+        // 아이디 실시간 검증 (UserValid.idRegex 사용)
+        $('#userId').on('input', function () {
+            var val = this.value.replace(/[^a-zA-Z0-9]/g, '');
+            this.value = val;
+            if (val === '') {
+                $('#userIdMsg').text('').css('color', '');
+            } else if (UserValid.idRegex.test(val)) {
+                $('#userIdMsg').text('사용 가능한 아이디입니다.').css('color', 'green');
+            } else {
+                $('#userIdMsg').text('영문/숫자 5~15자').css('color', 'red');
+            }
+        });
+
+        // 비밀번호 실시간 검증 (UserValid.pwRegex 사용)
+        $('#userPw').on('input', function () {
+            var val = this.value;
+            if (val === '') {
+                $('#userPwMsg').text('').css('color', '');
+            } else if (UserValid.pwRegex.test(val)) {
+                $('#userPwMsg').text('사용 가능한 비밀번호입니다.').css('color', 'green');
+            } else {
+                $('#userPwMsg').text('영문+숫자+특수문자 10~25자').css('color', 'red');
+            }
+        });
+
+        // 이름 공백 자동 제거
+        $('#userName').on('input', function () {
+            this.value = this.value.replace(/\s/g, '');
+        });
+
+        /* ---- 초기화 버튼 ---- */
+        $('#btnReset').on('click', function () {
+            setRegistMode();
+        });
+
+        /* ---- 목록 행 클릭 → 상세 조회 후 수정 모드 전환 ---- */
+        $('#userListBody').on('click', '.user-row', function () {
+            $('.user-row').removeClass('table-active');
+            $(this).addClass('table-active');
+
+            selectedRow    = $(this);
+            selectedUserNo = $(this).data('userNo');
+
+            $.ajax({
+                type     : 'post',
+                url      : 'user/userSelect2.do',
+                headers  : { 'Content-Type': 'application/json' },
+                dataType : 'json',
+                data     : JSON.stringify({ userNo: selectedUserNo }),
+                success  : function (result) {
+                    if (result.message === 'success') {
+                        setUpdateMode(result.user);
+                        // 폼 영역으로 스크롤
+                        $('#userId')[0].scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                        alert('조회에 실패하였습니다.');
+                    }
+                },
+                error    : function () {
+                    alert('서버 오류가 발생하였습니다.');
+                }
+            });
+        });
+
+        /* ---- 등록 버튼 ---- */
+        $('#btnRegist').on('click', function () {
+            var userId   = $('#userId').val().trim();
+            var userPw   = $('#userPw').val();
+            var userName = $('#userName').val().trim();
+
+            if (!userId)                                { alert('아이디를 입력하세요.');               return; }
+            if (!UserValid.idRegex.test(userId))        { alert('아이디 형식이 올바르지 않습니다.');   return; }
+            if (!userPw)                                { alert('비밀번호를 입력하세요.');             return; }
+            if (!UserValid.pwRegex.test(userPw))        { alert('비밀번호 형식이 올바르지 않습니다.'); return; }
+            if (!userName)                              { alert('이름을 입력하세요.');                 return; }
+            if (!UserValid.nameRegex.test(userName))    { alert('이름 형식이 올바르지 않습니다.');     return; }
+
+            $.ajax({
+                type     : 'post',
+                url      : 'user/userRegist2.do',
+                dataType : 'json',
+                data     : {
+                    userId   : userId,
+                    userPw   : userPw,
+                    userName : userName,
+                    role     : $('#role').val(),
+                    status   : $('#status').val()
+                },
+                success  : function (result) {
+                    if (result.result === 'duplicate') {
+                        alert('이미 사용 중인 아이디입니다.');
+                    } else if (result.result === 'success') {
+                        alert('등록되었습니다.');
+                        // 1페이지로 이동하여 새 사용자 확인
+                        $('#currentPageNo').val(1);
+                        $('#searchForm').submit();
+                    } else {
+                        alert('등록 중 오류가 발생하였습니다.');
+                    }
+                },
+                error    : function () {
+                    alert('서버 오류가 발생하였습니다.');
+                }
+            });
+        });
+
+        /* ---- 수정 버튼 ---- */
+        $('#btnUpdate').on('click', function () {
+            if (!selectedUserNo) { alert('수정할 사용자를 선택하세요.'); return; }
+
+            var userName    = $('#userName').val().trim();
+            var userPwChange = $('#userPwChange').val();
+
+            if (!userName)                                   { alert('이름을 입력하세요.');               return; }
+            if (!UserValid.nameRegex.test(userName))         { alert('이름 형식이 올바르지 않습니다.');   return; }
+            // 비밀번호 변경 입력이 있는 경우에만 형식 검사
+            if (userPwChange && !UserValid.pwRegex.test(userPwChange)) {
+                alert('새 비밀번호 형식이 올바르지 않습니다.'); return;
+            }
+            if (!confirm('수정하시겠습니까?')) return;
+
+            $.ajax({
+                type     : 'post',
+                url      : 'user/userUpdate2.do',
+                dataType : 'json',
+                data     : {
+                    userNo   : selectedUserNo,
+                    userName : userName,
+                    userPw   : userPwChange,   // 빈 값이면 서버에서 비밀번호 변경 안 함
+                    role     : $('#role').val(),
+                    status   : $('#status').val()
+                },
+                success  : function (result) {
+                    if (result.result === 'success') {
+                        alert('수정되었습니다.');
+                        // 선택된 목록 행 in-place 갱신
+                        updateListRow(selectedRow, result.user);
+                        // 폼도 최신 데이터로 갱신
+                        setUpdateMode(result.user);
+                    } else {
+                        alert('수정 중 오류가 발생하였습니다.');
+                    }
+                },
+                error    : function () {
+                    alert('권한이 없습니다.');
+                }
+            });
+        });
+
+        /* ---- 삭제 버튼 (사용 불가 처리) ---- */
+        $('#btnDelete').on('click', function () {
+            if (!selectedUserNo) { alert('처리할 사용자를 선택하세요.'); return; }
+            if (!confirm('해당 사용자를 사용 불가 처리하시겠습니까?\n(실제로 삭제되지 않습니다.)')) return;
+
+            $.ajax({
+                type     : 'post',
+                url      : 'user/userDelete2.do',
+                dataType : 'json',
+                data     : { userNo: selectedUserNo },
+                success  : function (result) {
+                    if (result.result === 'success') {
+                        alert('사용 불가 처리되었습니다.');
+                        updateListRow(selectedRow, result.user);
+                        setUpdateMode(result.user);
+                    } else {
+                        alert('처리 중 오류가 발생하였습니다.');
+                    }
+                },
+                error    : function () {
+                    alert('서버 오류가 발생하였습니다.');
+                }
+            });
+        });
+    }); // $(function) end
+
+    /* ===================== 모드 전환 함수 ===================== */
+
+    /* 등록 모드: 폼 초기화 + 등록 버튼 활성 / 수정·삭제 비활성 */
+    function setRegistMode() {
+        selectedUserNo = null;
+        selectedRow    = null;
         $('.user-row').removeClass('table-active');
-        $(this).addClass('table-active'); //선택행 배경 포커싱
-		//선택행 userNo
-        let $row   = $(this); 
-        let selectedUserNo = $row.data('userNo');
-        let idChecked      = true;
-        
-        $.ajax({
-    	    type : 'post',           // 타입 (get, post, put 등등)
-    	    url : 'user/ajaxTest.do',           // 요청할 서버url
-    	    async : true,            // 비동기화 여부 (default : true)
-    	    headers : {              // Http header
-    	      "Content-Type" : "application/json",
-    	    },
-    	    dataType : 'json',       // 받을 데이터 타입 (html, xml, json, text 등등)
-    	    data : JSON.stringify({  // 보낼 데이터 (Object , String, Array)
-    	      "userNo" : selectedUserNo
-    	    }),
-    	    success : function(result) { // 결과 성공 콜백함수
-    	    	if(result.message == "success"){
-    	    	// 조회한 user 정보 화면 로드
-  	    		let user = result.user;
-	  	    	$('#dUserId').val(user.userId);
-	          $('#dUserName').val(user.userName);
-	          $('#dUserPwView').val("*".repeat(user.userPwLen));
-	          $('#dRole').val(user.role);
-	          $('#dStatus').val(user.status);
-	          $('#dRegUserName').val(user.regUserName);
-	          $('#dModUserName').val(user.modUserName);
-	          $('#dRegDate').val(user.regDate);
-	          $('#dModDate').val(user.modDate);
-    	    	}
-    	    	else{
-    	    		alert("조회 실패했습니다.");
-    	    	}
-  	    	},
-    	    error : function(request, status, error) { // 결과 에러 콜백함수
-    	    	alert("서버 오류가 발생하였습니다.");
-    	    	console.log(request.responseText)	;
-  	        console.log(error);
-    	    }
-        })
 
+        // 폼 초기화
+        $('#userNo').val('');
+        $('#userId').val('').prop('disabled', false);
+        $('#userName').val('');
+        $('#status').val('ACTIVE');
+        $('#role').val('USER');
+        $('#regDate, #regUserName, #modDate, #modUserName').val('');
 
-        // 폼 영역으로 스크롤
-        $('#dUserId')[0].scrollIntoView({ behavior: 'smooth' });
-    });
-	
-	//linkPage(pageNo): 페이지네이션 버튼 클릭 시 CustomPaginationRenderer 가 호출한다.
-  // searchForm 의 currentPageNo 를 바꿔서 submit -> 검색 조건을 유지하면서 해당 페이지로 이동
-  function linkPage(pageNo) {
-      $('#currentPageNo').val(pageNo);
-      $('#searchForm').submit();
-  }
+        // 비밀번호 영역: 등록 모드
+        $('#pwRegistDiv').show();
+        $('#pwUpdateDiv').hide();
+        $('#userPw').val('');
+        $('#userPwChange').val('');
+
+        // 가이드 메시지 초기화
+        $('#userIdMsg, #userPwMsg').text('').css('color', '');
+
+        // 버튼 상태
+        $('#btnRegist').prop('disabled', false)
+                       .removeClass('btn-secondary').addClass('btn-primary');
+        $('#btnUpdate').prop('disabled', true)
+                       .removeClass('btn-warning').addClass('btn-secondary');
+        $('#btnDelete').prop('disabled', true)
+                       .removeClass('btn-danger').addClass('btn-secondary');
+    }
+
+    /* 수정 모드: 조회 데이터 폼에 채우기 + 수정·삭제 버튼 활성 / 등록 비활성 */
+    function setUpdateMode(user) {
+        $('#userNo').val(user.userNo);
+        $('#userId').val(user.userId).prop('disabled', true);  // 아이디 변경 불가
+        $('#userName').val(user.userName);
+        $('#status').val(user.status);
+        $('#role').val(user.role);
+        $('#regDate').val(user.regDate       || '');
+        $('#regUserName').val(user.regUserName || '');
+        $('#modDate').val(user.modDate       || '');
+        $('#modUserName').val(user.modUserName || '');
+
+        // 비밀번호 영역: 수정 모드
+        $('#pwRegistDiv').hide();
+        $('#pwUpdateDiv').show();
+        $('#userPwView').val('*'.repeat(user.userPwLen || 0));
+        $('#userPwChange').val('');
+
+        // 가이드 메시지 초기화
+        $('#userIdMsg, #userPwMsg').text('').css('color', '');
+
+        // 버튼 상태
+        $('#btnRegist').prop('disabled', true)
+                       .removeClass('btn-primary').addClass('btn-secondary');
+        $('#btnUpdate').prop('disabled', false)
+                       .removeClass('btn-secondary').addClass('btn-warning');
+        $('#btnDelete').prop('disabled', false)
+                       .removeClass('btn-secondary').addClass('btn-danger');
+    }
+
+    /* ===================== 목록 행 in-place 갱신 ===================== */
+    function updateListRow($row, user) {
+        // 이름 셀 (3번째 td, index 2)
+        $row.find('td:eq(2)').text(user.userName);
+        // 사용여부 배지 갱신
+        var isActive   = user.status === 'ACTIVE';
+        var badgeClass = isActive ? 'bg-success' : 'bg-danger';
+        var badgeText  = isActive ? '사용가능'   : '사용불가';
+        $row.find('.badge')
+            .removeClass('bg-success bg-danger')
+            .addClass(badgeClass)
+            .text(badgeText);
+    }
+
+    /* ===================== 페이지네이션 ===================== */
+    // linkPage: CustomPaginationRenderer 가 전역 함수로 호출 → $(function) 바깥에 선언
+    function linkPage(pageNo) {
+        $('#currentPageNo').val(pageNo);
+        $('#searchForm').submit();
+    }
 </script>

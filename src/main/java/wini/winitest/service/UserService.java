@@ -17,6 +17,15 @@ public interface UserService {
 	/**사용자 상세 조회*/
 	Map<String, Object> selectUserDetail(int userNo) throws Exception;
 
+    /** 사용자 등록 (관리자) */
+    Map<String, Object> insertUser(Map<String, Object> loginUser, Map<String, Object> param) throws Exception;
+
+    /** 사용자 수정 (관리자) */
+    Map<String, Object> updateUser(Map<String, Object> loginUser, Map<String, Object> param) throws Exception;
+
+    /** 사용자 비활성화 (관리자 - 실제 삭제 X) */
+    Map<String, Object> disableUser(Map<String, Object> loginUser, Map<String, Object> param) throws Exception;
+
     /** 로그인 정보 단건 조회 */
     Map<String, Object> selectLoginInfo(Map<String, Object> param) throws Exception;
 

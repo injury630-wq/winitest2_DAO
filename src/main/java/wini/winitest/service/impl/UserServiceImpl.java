@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import egovframework.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
 import wini.winitest.common.PagingUtil;
+import wini.winitest.common.RoleUtil;
 import wini.winitest.service.UserService;
 
 /**
@@ -62,6 +63,90 @@ public class UserServiceImpl extends EgovAbstractServiceImpl implements UserServ
 
 		return user;
 	}
+
+  /** 사용자 등록 (관리자) - 등록할 역할이 본인보다 낮아야 함 */
+  @Override
+  public Map<String, Object> insertUser(Map<String, Object> loginUser, Map<String, Object> param) throws Exception {
+      Map<String, Object> result = new HashMap<>();
+      String myRole   = String.valueOf(loginUser.get("role"));
+      String newRole  = String.valueOf(param.get("role"));
+      if (RoleUtil.getLevel(myRole) <= RoleUtil.getLevel(newRole)) {
+          result.put("result", "forbidden");
+          return result;
+      }
+      userDAO.insertUser(param);
+      int userNo = Integer.parseInt(String.valueOf(param.get("userNo")));
+      result.put("result", "success");
+      result.put("user", userDAO.selectUserDetail(userNo));
+      return result;
+  }
+
+  /** 사용자 수정 - 본인(권한 상향 불가) 또는 자신보다 낮은 권한의 사용자만 수정 가능 */
+  @Override
+  public Map<String, Object> updateUser(Map<String, Object> loginUser, Map<String, Object> param) throws Exception {
+      Map<String, Object> result = new HashMap<>();
+      int targetUserNo    = Integer.parseInt(String.valueOf(param.get("userNo")));
+      Map<String, Object> targetUser   = userDAO.selectUserDetail(targetUserNo);
+      String currentRole   = String.valueOf(targetUser.get("role"));
+      String currentStatus = String.valueOf(targetUser.get("status"));
+      String newRole       = String.valueOf(param.get("role"));
+
+      // DISABLED 사용자는 수정 불가
+      if ("DISABLED".equals(currentStatus)) {
+          result.put("result", "forbidden");
+          return result;
+      }
+
+      if (RoleUtil.isSelf(loginUser, targetUserNo)) {
+          // 본인: 자신의 권한을 올리는 것만 불가
+          if (RoleUtil.getLevel(newRole) > RoleUtil.getLevel(currentRole)) {
+              result.put("result", "forbidden");
+              return result;
+          }
+      } else {
+          // 타인: 자신보다 낮은 권한의 사용자만 수정, 부여 권한도 나보다 낮아야
+          if (!RoleUtil.canEditUser(loginUser, targetUserNo, currentRole)) {
+              result.put("result", "forbidden");
+              return result;
+          }
+          if (!currentRole.equals(newRole) && !RoleUtil.canChangeRole(loginUser, currentRole, newRole)) {
+              result.put("result", "forbidden");
+              return result;
+          }
+      }
+
+      userDAO.updateUser(param);
+      result.put("result", "success");
+      result.put("user", userDAO.selectUserDetail(targetUserNo));
+      return result;
+  }
+
+  /** 사용자 비활성화 - 본인 또는 자신보다 낮은 권한의 사용자만 삭제 가능 */
+  @Override
+  public Map<String, Object> disableUser(Map<String, Object> loginUser, Map<String, Object> param) throws Exception {
+      Map<String, Object> result = new HashMap<>();
+      int targetUserNo    = Integer.parseInt(String.valueOf(param.get("userNo")));
+      Map<String, Object> targetUser   = userDAO.selectUserDetail(targetUserNo);
+      String targetRole   = String.valueOf(targetUser.get("role"));
+      String targetStatus = String.valueOf(targetUser.get("status"));
+
+      // 이미 비활성화된 사용자는 처리 불가
+      if ("DISABLED".equals(targetStatus)) {
+          result.put("result", "forbidden");
+          return result;
+      }
+
+      // 본인이거나 자신보다 낮은 권한의 사용자만 삭제 가능
+      if (!RoleUtil.canEditUser(loginUser, targetUserNo, targetRole)) {
+          result.put("result", "forbidden");
+          return result;
+      }
+
+      userDAO.disableUser(param);
+      result.put("result", "success");
+      result.put("user", userDAO.selectUserDetail(targetUserNo));
+      return result;
+  }
 
   /** 로그인 정보 단건 조회 */
   @Override

@@ -2,25 +2,14 @@ package wini.winitest.common;
 
 import java.util.Map;
 
+
+/**
+ * 페이지네이션 계산 유틸리티
+ */
 import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
 
 public class PagingUtil {
 
-//    public static PaginationInfo create(Map<String, Object> param) {
-//        PaginationInfo paginationInfo = new PaginationInfo();
-//
-//        String cpnStr = (String) param.get("currentPageNo");
-//        int currentPageNo = (cpnStr != null && !cpnStr.isEmpty()) ? Integer.parseInt(cpnStr) : 1;
-//
-//        paginationInfo.setCurrentPageNo(currentPageNo);
-//        paginationInfo.setRecordCountPerPage(10);
-//        paginationInfo.setPageSize(10);
-//
-//        param.put("firstIndex", paginationInfo.getFirstRecordIndex());
-//        param.put("recordCountPerPage", paginationInfo.getRecordCountPerPage());
-//
-//        return paginationInfo;
-//    }
     public static PaginationInfo create(Map<String, Object> param, int recordPerPage, int pageSize) {
         PaginationInfo paginationInfo = new PaginationInfo();
 

@@ -1,8 +1,6 @@
 package wini.winitest.controller;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -16,11 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
 
 import egovframework.com.utl.slm.EgovHttpSessionBindingListener;
-import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
-import wini.winitest.common.PagingUtil;
 import wini.winitest.service.UserService;
 
 @Controller
@@ -52,7 +47,6 @@ public class UserController {
     @RequestMapping(value = "/user/loginProc.do", method = RequestMethod.POST)
     public String loginProc(@RequestParam Map<String, Object> param,
                             HttpServletRequest request, Model model) throws Exception {
-    	System.out.println("안녕하세요~~~~~~");
         Map<String, Object> loginUser = userService.selectLoginInfo(param);
         if (loginUser != null && loginUser.get("userId") != null) {
             // 세션에 로그인 정보 저장
@@ -123,7 +117,7 @@ public class UserController {
     	return "user/userManage";
     }
 
-    // 사용자관리 디자인 테스트용 
+    // 사용자 목록 조회 
     @RequestMapping(value = "/user/userManage2.do", method = RequestMethod.POST)
     public String userManageTest(@RequestParam Map<String, Object> params, Model model) throws Exception {
     	Map<String, Object> result = new HashMap<>();
@@ -139,28 +133,75 @@ public class UserController {
     }
     
     // 사용자 상세조회 (ajax)
-//    @ResponseBody
-//    @RequestMapping(value = "/user/detail.do", method = RequestMethod.POST)
-//    public Map<String, Object> userDetail(@RequestParam Map<String, Object> param) throws Exception {
-//        return userService.idCheck(param);
-//    }
-    // 사용자 상세조회 (ajax)
     @ResponseBody
-    @RequestMapping(value = "/user/ajaxTest.do", method = RequestMethod.POST)
+    @RequestMapping(value = "/user/userSelect2.do", method = RequestMethod.POST)
     public Map<String, Object> userDetail(@RequestBody Map<String, Object> param) throws Exception {
     	Map<String, Object> result = new HashMap<>();
     	try {
-        int userNo = Integer.parseInt(String.valueOf(param.get("userNo")));
-
-        Map<String, Object> user = userService.selectUserDetail(userNo);
-
-        result.put("user", user);
-        result.put("message", "success");
-
+            int userNo = Integer.parseInt(String.valueOf(param.get("userNo")));
+            Map<String, Object> user = userService.selectUserDetail(userNo);
+            result.put("user", user);
+            result.put("message", "success");
 	    } catch (Exception e) {
-        result.put("message", "fail");
-        result.put("error", e.getMessage());
+            result.put("message", "fail");
+            result.put("error", e.getMessage());
 	    }
     	return result;
+    }
+
+    // 사용자 등록 (관리자 - Ajax)
+    @ResponseBody
+    @RequestMapping(value = "/user/userRegist2.do", method = RequestMethod.POST)
+    public Map<String, Object> userRegist2(@RequestParam Map<String, Object> param,
+                                            HttpSession session) throws Exception {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            int dupCount = userService.idCheck(param);
+            if (dupCount > 0) {
+                result.put("result", "duplicate");
+                return result;
+            }
+            Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
+            param.put("regUser", loginUser.get("userNo"));
+            return userService.insertUser(loginUser, param);
+        } catch (Exception e) {
+            result.put("result", "error");
+            result.put("error", e.getMessage());
+            return result;
+        }
+    }
+
+    // 사용자 수정 (관리자 - Ajax)
+    @ResponseBody
+    @RequestMapping(value = "/user/userUpdate2.do", method = RequestMethod.POST)
+    public Map<String, Object> userUpdate2(@RequestParam Map<String, Object> param,
+                                            HttpSession session) throws Exception {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
+            param.put("modUser", loginUser.get("userNo"));
+            return userService.updateUser(loginUser, param);
+        } catch (Exception e) {
+            result.put("result", "error");
+            result.put("error", e.getMessage());
+            return result;
+        }
+    }
+
+    // 사용자 비활성화 (관리자 - Ajax, 실제 삭제 X)
+    @ResponseBody
+    @RequestMapping(value = "/user/userDelete2.do", method = RequestMethod.POST)
+    public Map<String, Object> userDelete2(@RequestParam Map<String, Object> param,
+                                            HttpSession session) throws Exception {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
+            param.put("modUser", loginUser.get("userNo"));
+            return userService.disableUser(loginUser, param);
+        } catch (Exception e) {
+            result.put("result", "error");
+            result.put("error", e.getMessage());
+            return result;
+        }
     }
 }
