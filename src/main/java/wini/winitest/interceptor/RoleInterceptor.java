@@ -36,10 +36,10 @@ public class RoleInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        // AJAX 요청 → JSON 으로 거부 (프론트에서 alert 처리)
+        // AJAX 요청 → JSON 으로 거부 (프론트에서 alert 처리) 등록아작스 이외 추가되면 변경
         if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
             response.setContentType("application/json;charset=UTF-8");
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setStatus(403);
             response.getWriter().write("{\"result\":\"forbidden\"}");
         } else {
             response.sendRedirect(request.getContextPath() + "/user/login.do");
