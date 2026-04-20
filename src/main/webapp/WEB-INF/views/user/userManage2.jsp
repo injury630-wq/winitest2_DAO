@@ -174,10 +174,10 @@
 </div>
 
 <script>
-    /* ===================== 로그인 사용자 정보 (세션에서 주입) ===================== */
-    var LOGIN_USER_NO   = ${sessionScope.loginUser.userNo};
-    var LOGIN_USER_ROLE = '${sessionScope.loginUser.role}';
-    var IS_ADMIN = (LOGIN_USER_ROLE === 'ADMIN' || LOGIN_USER_ROLE === 'SYSTEM');
+    /*  로그인 사용자 정보 (세션에서 주입)  */
+    const LOGIN_USER_NO   = parseInt('${sessionScope.loginUser.userNo}', 10);
+    const LOGIN_USER_ROLE = '${sessionScope.loginUser.role}';
+    const IS_ADMIN = (LOGIN_USER_ROLE === 'ADMIN' || LOGIN_USER_ROLE === 'SYSTEM');
 
     /* ===================== 상태 변수 ===================== */
     let selectedUserNo = 0;   // 현재 선택된 사용자 userNo

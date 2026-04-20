@@ -1,5 +1,7 @@
 package wini.winitest.interceptor;
 
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -17,9 +19,20 @@ public class LoginInterceptor implements HandlerInterceptor {
                              HttpServletResponse response,
                              Object handler) throws Exception {
         HttpSession session = request.getSession();
-        if(session.getAttribute("loginUser") == null) {
+        Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
+        // 미로그인시 차단
+        if(loginUser == null) {
             response.sendRedirect(request.getContextPath() + "/user/login.do");
             return false;
+        }
+        // 비활성 계정시 차단(세션종료)
+        if(loginUser != null) {
+        	String status = String.valueOf(loginUser.get("status"));
+        	if ("DISABLED".equals(status)) {
+        	    request.getSession().invalidate();
+        	    response.sendRedirect(request.getContextPath() + "/user/login.do");
+        	    return false;
+        	}
         }
         return true;
     }

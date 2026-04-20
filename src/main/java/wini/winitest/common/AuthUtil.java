@@ -13,7 +13,6 @@ public class AuthUtil {
         return 1;
     }
 
-    @SuppressWarnings("unchecked")
     private static Map<String, Object> getLoginUser(HttpSession session) {
         if (session == null) return null;
         return (Map<String, Object>) session.getAttribute("loginUser");
