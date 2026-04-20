@@ -1,0 +1,123 @@
+-- winitest.file_master definition
+
+CREATE TABLE `file_master` (
+  `file_no` int NOT NULL AUTO_INCREMENT COMMENT '파일 PK',
+  `group_id` varchar(32) NOT NULL COMMENT '파일 묶음 ID (UUID, 게시글 등과 연결)',
+  `file_path` varchar(300) DEFAULT NULL COMMENT '파일 저장 경로 (디렉토리 포함)',
+  `file_name` varchar(200) DEFAULT NULL COMMENT '서버 저장 파일명 (UUID 기반)',
+  `org_name` varchar(200) DEFAULT NULL COMMENT '원본 파일명 (사용자 업로드 이름)',
+  `file_ext` varchar(20) DEFAULT NULL COMMENT '파일 확장자 (jpg, png, pdf 등)',
+  `file_size` bigint DEFAULT NULL COMMENT '파일 크기 (byte 단위)',
+  `file_order` int DEFAULT '0' COMMENT '파일 정렬 순서',
+  `is_thumb` char(1) DEFAULT 'N' COMMENT '대표 이미지 여부 (Y/N)',
+  `reg_user` varchar(50) DEFAULT NULL COMMENT '등록자',
+  `reg_date` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '등록일자',
+  PRIMARY KEY (`file_no`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- winitest.image_board definition
+
+CREATE TABLE `image_board` (
+  `board_no` int NOT NULL AUTO_INCREMENT COMMENT '게시글 PK',
+  `title` varchar(200) NOT NULL COMMENT '제목',
+  `content` text COMMENT '내용',
+  `file_group_id` varchar(32) DEFAULT NULL COMMENT '파일 그룹 ID (FILE_MASTER.GROUP_ID 연결)',
+  `hit` int DEFAULT '0' COMMENT '조회수',
+  `status` varchar(3) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'Y' COMMENT '삭제여부 (Y, N)',
+  `reg_date` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+  `reg_user` int DEFAULT NULL COMMENT '등록자 USERS.USER_NO',
+  `mod_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+  `mod_user` int DEFAULT NULL COMMENT '수정자 USERS.USER_NO',
+  PRIMARY KEY (`board_no`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='이미지 게시판';
+
+
+-- winitest.program definition
+
+CREATE TABLE `program` (
+  `pro_no` int NOT NULL AUTO_INCREMENT COMMENT '프로그램 PK',
+  `pro_name` varchar(100) NOT NULL COMMENT '프로그램명',
+  `pro_path` varchar(200) NOT NULL COMMENT '요청 URL 경로 (예: /user/list.do)',
+  `use_yn` varchar(3) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'Y' COMMENT '프로그램 사용 여부 (Y:사용, N:미사용)',
+  `reg_date` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+  `reg_user` int DEFAULT NULL COMMENT '등록자 USER_NO',
+  `mod_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+  `mod_user` int DEFAULT NULL COMMENT '수정자 USER_NO',
+  PRIMARY KEY (`pro_no`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='프로그램 관리 테이블 (URL 및 기능 단위)';
+
+
+-- winitest.users definition
+
+CREATE TABLE `users` (
+  `user_no` int NOT NULL AUTO_INCREMENT,
+  `user_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_pw` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `reg_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `reg_user` int DEFAULT NULL COMMENT '최초 등록자 user_no',
+  `mod_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `mod_user` int DEFAULT NULL COMMENT '최종 수정자 user_no',
+  `role` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT 'USER' COMMENT 'SYSTEM / ADMIN / USER',
+  `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'ACTIVE' COMMENT 'ACTIVE / DISABLED',
+  PRIMARY KEY (`user_no`),
+  UNIQUE KEY `uk_user_id` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=417 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- winitest.board definition
+
+CREATE TABLE `board` (
+  `board_no` int NOT NULL AUTO_INCREMENT,
+  `title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `writer_pw` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ref` int DEFAULT '0',
+  `re_lev` int DEFAULT '0',
+  `hit` int DEFAULT '0',
+  `reg_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `re_seq` int DEFAULT '0',
+  `modi_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `parent_no` int DEFAULT NULL,
+  `user_no` int NOT NULL,
+  PRIMARY KEY (`board_no`),
+  KEY `fk_board_parent` (`parent_no`),
+  KEY `fk_board_user` (`user_no`),
+  CONSTRAINT `fk_board_parent` FOREIGN KEY (`parent_no`) REFERENCES `board` (`board_no`) ON DELETE CASCADE,
+  CONSTRAINT `fk_board_user` FOREIGN KEY (`user_no`) REFERENCES `users` (`user_no`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=261 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- winitest.board_file definition
+
+CREATE TABLE `board_file` (
+  `file_no` int NOT NULL AUTO_INCREMENT,
+  `board_no` int NOT NULL,
+  `file_name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `file_path` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `file_size` bigint DEFAULT '0',
+  PRIMARY KEY (`file_no`),
+  KEY `board_no` (`board_no`),
+  CONSTRAINT `board_file_ibfk_1` FOREIGN KEY (`board_no`) REFERENCES `board` (`board_no`)
+) ENGINE=InnoDB AUTO_INCREMENT=88 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- winitest.menu definition
+
+CREATE TABLE `menu` (
+  `menu_no` int NOT NULL AUTO_INCREMENT COMMENT '메뉴 PK',
+  `menu_name` varchar(100) NOT NULL COMMENT '메뉴명',
+  `parent_no` int DEFAULT NULL COMMENT '부모 메뉴 번호 (최상위 메뉴는 NULL)',
+  `menu_lev` int DEFAULT '0' COMMENT '메뉴 깊이 (UI 표시용 depth)',
+  `menu_order` int DEFAULT '0' COMMENT '같은 레벨 내 정렬 순서',
+  `use_yn` varchar(3) DEFAULT 'Y' COMMENT '메뉴 사용 여부 (Y:사용, N:미사용)',
+  `pro_no` int DEFAULT NULL COMMENT '연결된 프로그램 PK (program.pro_no)',
+  `reg_date` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+  `reg_user` int DEFAULT NULL COMMENT '등록자 USER_NO',
+  `mod_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+  `mod_user` int DEFAULT NULL COMMENT '수정자 USER_NO',
+  PRIMARY KEY (`menu_no`),
+  KEY `menu_program_FK` (`pro_no`),
+  CONSTRAINT `menu_program_FK` FOREIGN KEY (`pro_no`) REFERENCES `program` (`pro_no`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='메뉴 관리 테이블 (계층 구조 + 프로그램 연결)';

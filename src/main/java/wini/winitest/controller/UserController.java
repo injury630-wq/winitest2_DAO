@@ -179,7 +179,7 @@ public class UserController {
         Map<String, Object> result = new HashMap<>();
         try {
             Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
-            param.put("modUser", loginUser.get("userNo"));
+            param.put("modUser", loginUser.get("userNo")); // 현재 수정자
             return userService.updateUser(loginUser, param);
         } catch (Exception e) {
             result.put("result", "error");

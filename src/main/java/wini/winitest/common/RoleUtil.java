@@ -34,6 +34,13 @@ public class RoleUtil {
         String myRole = String.valueOf(loginUser.get("role"));
         return getLevel(myRole) > getLevel(targetRole);
     }
+    
+    // 삭제 가능 여부(대상보다 높은 권한)
+    public static boolean canDeleteUser(Map<String, Object> loginUser, int targetNo, String targetRole) {
+    	if(loginUser == null) return false;
+    	String myRole = String.valueOf(loginUser.get("role"));
+    	return getLevel(myRole) > getLevel(targetRole);
+    }
 
     // 권한 변경 가능 여부 (대상과 새 권한 모두 나보다 낮아야)
     public static boolean canChangeRole(Map<String, Object> loginUser, String currentRole, String newRole) {

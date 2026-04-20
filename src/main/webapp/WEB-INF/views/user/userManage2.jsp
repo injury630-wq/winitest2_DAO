@@ -176,7 +176,7 @@
 
 <script>
     /* ===================== 상태 변수 ===================== */
-    let selectedUserNo = null;   // 현재 선택된 사용자 userNo
+    let selectedUserNo = 0;   // 현재 선택된 사용자 userNo
     let selectedRow    = null;   // 현재 선택된 목록 행 (jQuery 객체)
 
     /* ===================== 초기화 ===================== */
