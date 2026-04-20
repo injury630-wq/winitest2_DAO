@@ -49,6 +49,13 @@ public class UserController {
                             HttpServletRequest request, Model model) throws Exception {
         Map<String, Object> loginUser = userService.selectLoginInfo(param);
         if (loginUser != null && loginUser.get("userId") != null) {
+            // DISABLED 계정 로그인 차단
+            if ("DISABLED".equals(loginUser.get("status"))) {
+                param.put("error", "disabled");
+                param.put("bridgeUrl", "user/login.do");
+                model.addAttribute("param", param);
+                return "bridge";
+            }
             // 세션에 로그인 정보 저장
             request.getSession().setAttribute("loginUser", loginUser);
             EgovHttpSessionBindingListener listener = new EgovHttpSessionBindingListener();

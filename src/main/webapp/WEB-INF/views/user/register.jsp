@@ -1,25 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-<style>
-    /* placeholder 색상 연하게 */
-    ::placeholder { color: #bbb; opacity: 1; }
-
-    /* 언어 힌트 뱃지 */
-    .lang-badge {
-        display: inline-block;
-        font-size: 10px;
-        padding: 1px 5px;
-        border-radius: 3px;
-        margin-left: 4px;
-        vertical-align: middle;
-        font-weight: bold;
-        letter-spacing: 0.5px;
-    }
-    .lang-badge.en { background: #e8f0fe; color: #1a73e8; }
-    .lang-badge.ko { background: #fce8e6; color: #d93025; }
-</style>
-
 <div class="d-flex justify-content-center align-items-center py-5" style="min-height:100vh;">
     <div class="bg-white border p-4" style="width:520px;">
         <h2 class="mb-1" style="font-size:20px;">회원정보 입력</h2>
@@ -30,7 +11,6 @@
                 <tr>
                     <td style="width:120px; padding:8px 5px; font-size:14px; vertical-align:top; padding-top:12px;">
                         <span class="text-danger me-1">*</span>아이디
-                        <span class="lang-badge en">EN</span>
                     </td>
                     <td style="padding:8px 5px;">
                         <div class="input-group">
@@ -71,7 +51,6 @@
                 <tr>
                     <td style="width:120px; padding:8px 5px; font-size:14px; vertical-align:top; padding-top:12px;">
                         <span class="text-danger me-1">*</span>이름
-                        <span class="lang-badge ko">한글</span>
                     </td>
                     <td style="padding:8px 5px;">
                         <input type="text" name="userName" id="userName" class="form-control"
@@ -93,20 +72,7 @@
     var idRegex = /^[a-zA-Z0-9]{5,15}$/;
     var pwRegex = /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=\[\]{}|;':",.<>?])[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{}|;':",.<>?]{10,25}$/;
 
-    /* ---- 아이디: 포커스 시 영문 모드 유도, 한글 즉시 제거 ---- */
-    var userIdInput = document.querySelector("#userId");
-
-    userIdInput.addEventListener("focus", function() {
-        // 영문 전용 임시 input 에 포커스를 줬다가 다시 원래 input 으로 돌아오면
-        // 브라우저/OS 가 영문 상태로 돌아오는 경우가 있음
-        var dummy = document.getElementById("_dummyEn");
-        dummy.focus();
-        dummy.blur();
-        this.focus();
-    });
-
-    userIdInput.addEventListener("input", function() {
-        // 한글·특수문자 즉시 제거 (IME 조합 중인 문자 포함)
+    document.querySelector("#userId").addEventListener("input", function() {
         var cleaned = this.value.replace(/[^a-zA-Z0-9]/g, "");
         if (this.value !== cleaned) this.value = cleaned;
 
@@ -123,22 +89,10 @@
         }
     });
 
-    // IME 조합 완료 시점에도 한 번 더 제거 (compositionend: 한글 확정 순간)
-    userIdInput.addEventListener("compositionend", function() {
+    document.querySelector("#userId").addEventListener("compositionend", function() {
         this.value = this.value.replace(/[^a-zA-Z0-9]/g, "");
     });
 
-    /* ---- 이름: 포커스 시 한글 유도 ---- */
-    document.querySelector("#userName").addEventListener("focus", function() {
-        // 한글 전용 임시 input 에 포커스를 줬다가 돌아오면
-        // 브라우저/OS 가 한글 상태로 돌아오는 경우가 있음
-        var dummy = document.getElementById("_dummyKo");
-        dummy.focus();
-        dummy.blur();
-        this.focus();
-    });
-
-    /* ---- 비밀번호 ---- */
     document.querySelector("#userPw").addEventListener("input", function() {
         var pw  = this.value.trim();
         var msg = document.querySelector("#pwMsg");
@@ -219,25 +173,15 @@
         var userName = document.querySelector("#userName").value.replace(/\s/g, "");
         var idMsg    = document.querySelector("#idMsg").innerText;
 
-        if (!userId)                              { alert("아이디를 입력하세요.");           return false; }
-        if (!idRegex.test(userId))                { alert("아이디 형식이 올바르지 않습니다."); return false; }
-        if (idMsg !== "사용 가능한 아이디입니다.") { alert("아이디 중복확인을 해주세요.");     return false; }
-        if (!userPw)                              { alert("비밀번호를 입력하세요.");          return false; }
+        if (!userId)                              { alert("아이디를 입력하세요.");              return false; }
+        if (!idRegex.test(userId))                { alert("아이디 형식이 올바르지 않습니다.");  return false; }
+        if (idMsg !== "사용 가능한 아이디입니다.") { alert("아이디 중복확인을 해주세요.");       return false; }
+        if (!userPw)                              { alert("비밀번호를 입력하세요.");             return false; }
         if (!pwRegex.test(userPw))                { alert("비밀번호 형식이 올바르지 않습니다."); return false; }
-        if (userPw !== pwCheck)                   { alert("비밀번호가 일치하지 않습니다.");   return false; }
-        if (!userName)                            { alert("이름을 입력해주세요.");            return false; }
+        if (userPw !== pwCheck)                   { alert("비밀번호가 일치하지 않습니다.");      return false; }
+        if (!userName)                            { alert("이름을 입력해주세요.");               return false; }
 
         document.querySelector("#userName").value = userName;
         return true;
     }
 </script>
-
-<%-- 언어 유도용 더미 input (화면에 보이지 않음) --%>
-<%-- _dummyEn: lang="en" → 포커스 시 영문 IME 유도 --%>
-<%-- _dummyKo: lang="ko" → 포커스 시 한글 IME 유도 --%>
-<input id="_dummyEn" type="text" lang="en"
-       style="position:fixed; top:-999px; left:-999px; width:1px; height:1px; opacity:0;"
-       tabindex="-1" aria-hidden="true"/>
-<input id="_dummyKo" type="text" lang="ko"
-       style="position:fixed; top:-999px; left:-999px; width:1px; height:1px; opacity:0;"
-       tabindex="-1" aria-hidden="true"/>

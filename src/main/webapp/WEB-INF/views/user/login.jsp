@@ -8,6 +8,9 @@
         <c:if test="${error == '1'}">
             <p class="text-danger text-center small mb-3">아이디 또는 비밀번호가 틀렸습니다.</p>
         </c:if>
+        <c:if test="${error == 'disabled'}">
+            <p class="text-danger text-center small mb-3">사용이 중지된 계정입니다. 관리자에게 문의하세요.</p>
+        </c:if>
         <c:if test="${join == '1'}">
             <p class="text-success text-center small mb-3">회원가입이 완료됐습니다. 로그인해주세요.</p>
         </c:if>

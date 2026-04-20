@@ -1,38 +1,3 @@
--- winitest.file_master definition
-
-CREATE TABLE `file_master` (
-  `file_no` int NOT NULL AUTO_INCREMENT COMMENT '파일 PK',
-  `group_id` varchar(32) NOT NULL COMMENT '파일 묶음 ID (UUID, 게시글 등과 연결)',
-  `file_path` varchar(300) DEFAULT NULL COMMENT '파일 저장 경로 (디렉토리 포함)',
-  `file_name` varchar(200) DEFAULT NULL COMMENT '서버 저장 파일명 (UUID 기반)',
-  `org_name` varchar(200) DEFAULT NULL COMMENT '원본 파일명 (사용자 업로드 이름)',
-  `file_ext` varchar(20) DEFAULT NULL COMMENT '파일 확장자 (jpg, png, pdf 등)',
-  `file_size` bigint DEFAULT NULL COMMENT '파일 크기 (byte 단위)',
-  `file_order` int DEFAULT '0' COMMENT '파일 정렬 순서',
-  `is_thumb` char(1) DEFAULT 'N' COMMENT '대표 이미지 여부 (Y/N)',
-  `reg_user` varchar(50) DEFAULT NULL COMMENT '등록자',
-  `reg_date` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '등록일자',
-  PRIMARY KEY (`file_no`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-
--- winitest.image_board definition
-
-CREATE TABLE `image_board` (
-  `board_no` int NOT NULL AUTO_INCREMENT COMMENT '게시글 PK',
-  `title` varchar(200) NOT NULL COMMENT '제목',
-  `content` text COMMENT '내용',
-  `file_group_id` varchar(32) DEFAULT NULL COMMENT '파일 그룹 ID (FILE_MASTER.GROUP_ID 연결)',
-  `hit` int DEFAULT '0' COMMENT '조회수',
-  `status` varchar(3) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'Y' COMMENT '삭제여부 (Y, N)',
-  `reg_date` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
-  `reg_user` int DEFAULT NULL COMMENT '등록자 USERS.USER_NO',
-  `mod_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
-  `mod_user` int DEFAULT NULL COMMENT '수정자 USERS.USER_NO',
-  PRIMARY KEY (`board_no`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='이미지 게시판';
-
-
 -- winitest.program definition
 
 CREATE TABLE `program` (
@@ -52,27 +17,27 @@ CREATE TABLE `program` (
 
 CREATE TABLE `users` (
   `user_no` int NOT NULL AUTO_INCREMENT,
-  `user_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `user_pw` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `user_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_pw` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_name` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
   `reg_date` datetime DEFAULT CURRENT_TIMESTAMP,
   `reg_user` int DEFAULT NULL COMMENT '최초 등록자 user_no',
-  `mod_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `mod_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '최종 수정일시',
   `mod_user` int DEFAULT NULL COMMENT '최종 수정자 user_no',
-  `role` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT 'USER' COMMENT 'SYSTEM / ADMIN / USER',
+  `role` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'USER' COMMENT 'SYSTEM / ADMIN / USER',
   `status` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'ACTIVE' COMMENT 'ACTIVE / DISABLED',
   PRIMARY KEY (`user_no`),
   UNIQUE KEY `uk_user_id` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=417 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=110 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- winitest.board definition
 
 CREATE TABLE `board` (
   `board_no` int NOT NULL AUTO_INCREMENT,
-  `title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `writer_pw` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `title` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `content` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `writer_pw` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
   `ref` int DEFAULT '0',
   `re_lev` int DEFAULT '0',
   `hit` int DEFAULT '0',
@@ -80,13 +45,13 @@ CREATE TABLE `board` (
   `re_seq` int DEFAULT '0',
   `modi_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `parent_no` int DEFAULT NULL,
-  `user_no` int NOT NULL,
+  `user_no` int DEFAULT NULL,
   PRIMARY KEY (`board_no`),
   KEY `fk_board_parent` (`parent_no`),
   KEY `fk_board_user` (`user_no`),
   CONSTRAINT `fk_board_parent` FOREIGN KEY (`parent_no`) REFERENCES `board` (`board_no`) ON DELETE CASCADE,
-  CONSTRAINT `fk_board_user` FOREIGN KEY (`user_no`) REFERENCES `users` (`user_no`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=261 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  CONSTRAINT `fk_board_user` FOREIGN KEY (`user_no`) REFERENCES `users` (`user_no`)
+) ENGINE=InnoDB AUTO_INCREMENT=404 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- winitest.board_file definition
@@ -101,6 +66,47 @@ CREATE TABLE `board_file` (
   KEY `board_no` (`board_no`),
   CONSTRAINT `board_file_ibfk_1` FOREIGN KEY (`board_no`) REFERENCES `board` (`board_no`)
 ) ENGINE=InnoDB AUTO_INCREMENT=88 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- winitest.file_master definition
+
+CREATE TABLE `file_master` (
+  `file_no` int NOT NULL AUTO_INCREMENT COMMENT '파일 PK',
+  `group_id` varchar(32) NOT NULL COMMENT '파일 묶음 ID (UUID, 게시글 등과 연결)',
+  `file_path` varchar(300) DEFAULT NULL COMMENT '파일 저장 경로 (디렉토리 포함)',
+  `file_name` varchar(200) DEFAULT NULL COMMENT '서버 저장 파일명 (UUID 기반)',
+  `org_name` varchar(200) DEFAULT NULL COMMENT '원본 파일명 (사용자 업로드 이름)',
+  `file_ext` varchar(20) DEFAULT NULL COMMENT '파일 확장자 (jpg, png, pdf 등)',
+  `file_size` bigint DEFAULT NULL COMMENT '파일 크기 (byte 단위)',
+  `file_order` int DEFAULT '0' COMMENT '파일 정렬 순서',
+  `is_thumb` char(1) DEFAULT 'N' COMMENT '대표 이미지 여부 (Y/N)',
+  `reg_user` int DEFAULT NULL COMMENT '등록자',
+  `reg_date` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '등록일자',
+  PRIMARY KEY (`file_no`),
+  KEY `fk_file_master_user` (`reg_user`),
+  CONSTRAINT `fk_file_master_user` FOREIGN KEY (`reg_user`) REFERENCES `users` (`user_no`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- winitest.image_board definition
+
+CREATE TABLE `image_board` (
+  `board_no` int NOT NULL AUTO_INCREMENT COMMENT '게시글 PK',
+  `title` varchar(200) NOT NULL COMMENT '제목',
+  `content` text COMMENT '내용',
+  `file_group_id` varchar(32) DEFAULT NULL COMMENT '파일 그룹 ID (FILE_MASTER.GROUP_ID 연결)',
+  `hit` int DEFAULT '0' COMMENT '조회수',
+  `status` varchar(3) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'Y' COMMENT '삭제여부 (Y, N)',
+  `reg_date` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+  `reg_user` int DEFAULT NULL COMMENT '등록자 USERS.USER_NO',
+  `mod_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '수정일시',
+  `mod_user` int DEFAULT NULL COMMENT '수정자 USERS.USER_NO',
+  PRIMARY KEY (`board_no`),
+  KEY `fk_image_board_mod_user` (`mod_user`),
+  KEY `fk_image_board_reg_user` (`reg_user`),
+  CONSTRAINT `fk_image_board_mod_user` FOREIGN KEY (`mod_user`) REFERENCES `users` (`user_no`),
+  CONSTRAINT `fk_image_board_reg_user` FOREIGN KEY (`reg_user`) REFERENCES `users` (`user_no`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='이미지 게시판';
 
 
 -- winitest.menu definition
@@ -121,3 +127,23 @@ CREATE TABLE `menu` (
   KEY `menu_program_FK` (`pro_no`),
   CONSTRAINT `menu_program_FK` FOREIGN KEY (`pro_no`) REFERENCES `program` (`pro_no`)
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='메뉴 관리 테이블 (계층 구조 + 프로그램 연결)';
+
+
+
+
+
+
+
+
+=========================================================================================
+ALTER TABLE image_board
+ADD CONSTRAINT fk_image_board_reg_user
+FOREIGN KEY (reg_user) REFERENCES users(user_no);
+
+ALTER TABLE image_board
+ADD CONSTRAINT fk_image_board_mod_user
+FOREIGN KEY (mod_user) REFERENCES users(user_no);
+
+ALTER TABLE file_master
+ADD CONSTRAINT fk_file_master_user
+FOREIGN KEY (reg_user) REFERENCES users(user_no);

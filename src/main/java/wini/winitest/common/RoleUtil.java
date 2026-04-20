@@ -35,11 +35,12 @@ public class RoleUtil {
         return getLevel(myRole) > getLevel(targetRole);
     }
     
-    // 삭제 가능 여부(대상보다 높은 권한)
-    public static boolean canDeleteUser(Map<String, Object> loginUser, int targetNo, String targetRole) {
-    	if(loginUser == null) return false;
-    	String myRole = String.valueOf(loginUser.get("role"));
-    	return getLevel(myRole) > getLevel(targetRole);
+    // 비활성화 가능 여부 (본인 불가, 자신보다 낮은 권한의 사용자만)
+    public static boolean canDeleteUser(Map<String, Object> loginUser, int targetUserNo, String targetRole) {
+        if (loginUser == null) return false;
+        if (isSelf(loginUser, targetUserNo)) return false; // 본인 비활성화 불가
+        String myRole = String.valueOf(loginUser.get("role"));
+        return getLevel(myRole) > getLevel(targetRole);
     }
 
     // 권한 변경 가능 여부 (대상과 새 권한 모두 나보다 낮아야)

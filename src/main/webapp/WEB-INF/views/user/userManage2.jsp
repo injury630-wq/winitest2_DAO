@@ -164,17 +164,21 @@
 
     <!-- 5. 버튼 영역 -->
     <div class="d-flex justify-content-center gap-2 mb-4">
-        <button type="button" class="btn btn-info px-4" id="btnReset">초기화</button>
-        <button type="button" class="btn btn-primary px-4"    id="btnRegist">등록</button>
-        <button type="button" class="btn btn-warning px-4"    id="btnUpdate">수정</button>
-        <button type="button" class="btn btn-danger px-4"     id="btnDelete">삭제</button>
-        <!-- <button type="button" class="btn btn-outline-secondary px-4" id="btnClose">닫기</button> -->
-         <!-- 닫기 버튼은 아직 사용하지 않음 건들지 마셈 -->
+        <button type="button" class="btn btn-info px-4"            id="btnReset">초기화</button>
+        <button type="button" class="btn btn-primary px-4"         id="btnRegist">등록</button>
+        <button type="button" class="btn btn-warning px-4"         id="btnUpdate">수정</button>
+        <button type="button" class="btn btn-danger px-4"          id="btnDelete">삭제</button>
+        <button type="button" class="btn btn-outline-secondary px-4" onclick="goPost('board/list.do')">닫기</button>
     </div>
 
 </div>
 
 <script>
+    /* ===================== 로그인 사용자 정보 (세션에서 주입) ===================== */
+    var LOGIN_USER_NO   = ${sessionScope.loginUser.userNo};
+    var LOGIN_USER_ROLE = '${sessionScope.loginUser.role}';
+    var IS_ADMIN = (LOGIN_USER_ROLE === 'ADMIN' || LOGIN_USER_ROLE === 'SYSTEM');
+
     /* ===================== 상태 변수 ===================== */
     let selectedUserNo = 0;   // 현재 선택된 사용자 userNo
     let selectedRow    = null;   // 현재 선택된 목록 행 (jQuery 객체)
@@ -319,16 +323,16 @@
                 success  : function (result) {
                     if (result.result === 'success') {
                         alert('수정되었습니다.');
-                        // 선택된 목록 행 in-place 갱신
                         updateListRow(selectedRow, result.user);
-                        // 폼도 최신 데이터로 갱신
                         setUpdateMode(result.user);
+                    } else if (result.result === 'forbidden') {
+                        alert('권한이 없습니다.');
                     } else {
                         alert('수정 중 오류가 발생하였습니다.');
                     }
                 },
                 error    : function () {
-                    alert('권한이 없습니다.');
+                    alert('서버 오류가 발생하였습니다.');
                 }
             });
         });
@@ -348,6 +352,8 @@
                         alert('사용 불가 처리되었습니다.');
                         updateListRow(selectedRow, result.user);
                         setUpdateMode(result.user);
+                    } else if (result.result === 'forbidden') {
+                        alert('권한이 없습니다.');
                     } else {
                         alert('처리 중 오류가 발생하였습니다.');
                     }
@@ -384,13 +390,24 @@
         // 가이드 메시지 초기화
         $('#userIdMsg, #userPwMsg').text('').css('color', '');
 
-        // 버튼 상태
-        $('#btnRegist').prop('disabled', false)
-                       .removeClass('btn-secondary').addClass('btn-primary');
-        $('#btnUpdate').prop('disabled', true)
-                       .removeClass('btn-warning').addClass('btn-secondary');
-        $('#btnDelete').prop('disabled', true)
-                       .removeClass('btn-danger').addClass('btn-secondary');
+        // 버튼 상태 (권한에 따라 분기)
+        // [롤백] IS_ADMIN 조건 제거하고 아래 3줄만 남기면 원래대로:
+        // $('#btnRegist').prop('disabled', false).removeClass('btn-secondary').addClass('btn-primary');
+        // $('#btnUpdate').prop('disabled', true).removeClass('btn-warning').addClass('btn-secondary');
+        // $('#btnDelete').prop('disabled', true).removeClass('btn-danger').addClass('btn-secondary');
+        if (IS_ADMIN) {
+            // 관리자: 등록 활성, 수정·삭제 비활성 (등록 모드 기본 상태)
+            $('#btnReset').prop('disabled', false).removeClass('btn-secondary').addClass('btn-info');
+            $('#btnRegist').prop('disabled', false).removeClass('btn-secondary').addClass('btn-primary');
+            $('#btnUpdate').prop('disabled', true).removeClass('btn-warning').addClass('btn-secondary');
+            $('#btnDelete').prop('disabled', true).removeClass('btn-danger').addClass('btn-secondary');
+        } else {
+            // 일반 사용자: 초기화·등록·삭제 비활성 (수정만 가능 - 행 선택 후 활성화)
+            $('#btnReset').prop('disabled', true).removeClass('btn-info').addClass('btn-secondary');
+            $('#btnRegist').prop('disabled', true).removeClass('btn-primary').addClass('btn-secondary');
+            $('#btnUpdate').prop('disabled', true).removeClass('btn-warning').addClass('btn-secondary');
+            $('#btnDelete').prop('disabled', true).removeClass('btn-danger').addClass('btn-secondary');
+        }
     }
 
     /* 수정 모드: 조회 데이터 폼에 채우기 + 수정·삭제 버튼 활성 / 등록 비활성 */
@@ -414,13 +431,22 @@
         // 가이드 메시지 초기화
         $('#userIdMsg, #userPwMsg').text('').css('color', '');
 
-        // 버튼 상태
-        $('#btnRegist').prop('disabled', true)
-                       .removeClass('btn-primary').addClass('btn-secondary');
-        $('#btnUpdate').prop('disabled', false)
-                       .removeClass('btn-secondary').addClass('btn-warning');
-        $('#btnDelete').prop('disabled', false)
-                       .removeClass('btn-secondary').addClass('btn-danger');
+        // 버튼 상태 (권한 + 본인 여부에 따라 분기)
+        // [롤백] IS_ADMIN/본인 조건 제거하고 아래 3줄만 남기면 원래대로:
+        // $('#btnRegist').prop('disabled', true).removeClass('btn-primary').addClass('btn-secondary');
+        // $('#btnUpdate').prop('disabled', false).removeClass('btn-secondary').addClass('btn-warning');
+        // $('#btnDelete').prop('disabled', false).removeClass('btn-secondary').addClass('btn-danger');
+        var isSelf = (user.userNo == LOGIN_USER_NO);
+        $('#btnRegist').prop('disabled', true).removeClass('btn-primary').addClass('btn-secondary');
+        if (IS_ADMIN) {
+            // 관리자: 수정·삭제 활성. 단, 본인 삭제 불가
+            $('#btnUpdate').prop('disabled', false).removeClass('btn-secondary').addClass('btn-warning');
+            $('#btnDelete').prop('disabled', isSelf).removeClass('btn-secondary btn-danger').addClass(isSelf ? 'btn-secondary' : 'btn-danger');
+        } else {
+            // 일반 사용자: 본인만 수정 가능, 삭제 불가
+            $('#btnUpdate').prop('disabled', !isSelf).removeClass('btn-secondary btn-warning').addClass(isSelf ? 'btn-warning' : 'btn-secondary');
+            $('#btnDelete').prop('disabled', true).removeClass('btn-danger').addClass('btn-secondary');
+        }
     }
 
     /* ===================== 목록 행 in-place 갱신 ===================== */

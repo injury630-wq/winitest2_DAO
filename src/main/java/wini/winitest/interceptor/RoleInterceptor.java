@@ -25,11 +25,10 @@ public class RoleInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public boolean preHandle(HttpServletRequest request,
                              HttpServletResponse response,
                              Object handler) throws Exception {
-
+    		// 로그인 인터셉터 -> 로그인 사용자 권한 가져오기
         Map<String, Object> loginUser = (Map<String, Object>) request.getSession().getAttribute("loginUser");
         String myRole = String.valueOf(loginUser.get("role"));
 
