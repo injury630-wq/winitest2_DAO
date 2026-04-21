@@ -9,7 +9,7 @@
     <div class="collapse show" id="menuBoard">
       <ul class="nav flex-column ps-3">
         <li><button type="button" class="btn px-4 w-100 text-start" onclick="goPost('board/list.do')">일반 게시판</button></li>
-        <li><button type="button" class="btn px-4 w-100 text-start" disabled>이미지 게시판</button></li>
+        <li><button type="button" class="btn px-4 w-100 text-start" onclick="goPost('gallery/list.do')">이미지 게시판</button></li>
       </ul>
     </div>
   </li>

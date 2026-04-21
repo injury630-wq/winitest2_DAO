@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import egovframework.com.utl.slm.EgovHttpSessionBindingListener;
+import wini.winitest.common.RoleUtil;
 import wini.winitest.service.UserService;
 
 @Controller
@@ -143,16 +144,13 @@ public class UserController {
     @ResponseBody
     @RequestMapping(value = "/user/userSelect2.do", method = RequestMethod.POST)
     public Map<String, Object> userDetail(@RequestBody Map<String, Object> param) throws Exception {
-    	Map<String, Object> result = new HashMap<>();
-    	try {
-            int userNo = Integer.parseInt(String.valueOf(param.get("userNo")));
-            Map<String, Object> user = userService.selectUserDetail(userNo);
-            result.put("user", user);
-            result.put("message", "success");
-	    } catch (Exception e) {
-            result.put("message", "fail");
-            result.put("error", e.getMessage());
-	    }
+    	int userNo = Integer.parseInt(String.valueOf(param.get("userNo")));
+    	Map<String, Object> result = userService.selectUserDetail(userNo);
+    	if("success".equals(result.get("message"))) {
+    		result.put("message", "success");
+    	}else {
+    		result.put("message", "fail");
+    	}
     	return result;
     }
 
@@ -187,10 +185,33 @@ public class UserController {
         try {
             Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
             param.put("modUser", loginUser.get("userNo")); // 현재 수정자
-            return userService.updateUser(loginUser, param);
+            result = userService.updateUser(loginUser, param);
+            if ("success".equals(result.get("result"))) {
+
+              int loginUserNo = (int) loginUser.get("userNo");
+              int targetUserNo = Integer.parseInt(String.valueOf(param.get("userNo")));
+
+              // 본인 수정인지 확인
+              if (loginUserNo == targetUserNo) {
+	
+	              Map<String, Object> updatedUser =
+	                  (Map<String, Object>) result.get("user");
+	
+	              String oldRole = String.valueOf(loginUser.get("role"));
+	              String newRole = String.valueOf(updatedUser.get("role"));
+	
+	              // 본인 권한 낮췄을때
+	              if (RoleUtil.getLevel(newRole) < RoleUtil.getLevel(oldRole)) {
+	                  // 강제 로그아웃 
+	                  session.invalidate();
+	                  result.put("result", "relogin");
+	                  return result;
+	              }
+              }
+            }
+            return result;
         } catch (Exception e) {
             result.put("result", "error");
-            result.put("error", e.getMessage());
             return result;
         }
     }

@@ -30,18 +30,18 @@ public class UserDAO extends EgovComAbstractDAO {
 	}
 
   /** 사용자 등록 (관리자) */
-  public void insertUser(Map<String, Object> param) throws Exception {
-      insert("userDAO.insertUser", param);
+  public int insertUser(Map<String, Object> param) throws Exception {
+      return insert("userDAO.insertUser", param);
   }
 
   /** 사용자 수정 (관리자) */
-  public void updateUser(Map<String, Object> param) throws Exception {
-      update("userDAO.updateUser", param);
+  public int updateUser(Map<String, Object> param) throws Exception {
+      return update("userDAO.updateUser", param);
   }
 
   /** 사용자 비활성화 (관리자 - 실제 삭제 X) */
-  public void disableUser(Map<String, Object> param) throws Exception {
-      update("userDAO.disableUser", param);
+  public int disableUser(Map<String, Object> param) throws Exception {
+      return update("userDAO.disableUser", param);
   }
 
   /** 로그인 정보 단건 조회 */
@@ -60,8 +60,8 @@ public class UserDAO extends EgovComAbstractDAO {
   }
 
   /** 최초 등록자 자기 자신으로 업데이트 (회원가입 INSERT 직후 호출) */
-  public void updateRegUser(Map<String, Object> param) throws Exception {
-      update("userDAO.updateRegUser", param);
+  public int updateRegUser(Map<String, Object> param) throws Exception {
+      return update("userDAO.updateRegUser", param);
   }
 
 }

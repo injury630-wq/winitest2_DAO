@@ -86,7 +86,7 @@ const UserValid = {
     },
 
     /* ===== 최종 제출 검사 ===== */
-    checkAll: function () {
+     checkAll = function () {
         const id = $('#userId').val();
         const pw = $('#userPw').val();
         const name = $('#userName').val();

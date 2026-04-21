@@ -23,7 +23,7 @@ public class UserServiceImpl extends EgovAbstractServiceImpl implements UserServ
 	@Resource(name = "userDAO")
 	private UserDAO userDAO;
 
-	/** 사용자 정보 목록 조회(페이징,검색조건) 예외처리 언제해야하는지 모르겠음. */
+	/** 사용자 정보 목록 조회(페이징,검색조건) */
 	@Override
 	public Map<String, Object> getUserList(Map<String, Object> params) throws Exception {// params => 검색조건, 현페이지번호
 		Map<String, Object> result = new HashMap<>();
@@ -56,9 +56,19 @@ public class UserServiceImpl extends EgovAbstractServiceImpl implements UserServ
 	/** 사용자 상세 조회 */
 	@Override
 	public Map<String, Object> selectUserDetail(int userNo) throws Exception {
-		Map<String, Object> user = userDAO.selectUserDetail(userNo);
+		Map<String, Object> result = new HashMap<>();
+		try {
+			Map<String, Object> user = userDAO.selectUserDetail(userNo);
+			if(user == null) {
+				result.put("message", "fail");
+			}
+			result.put("user", user);
+			result.put("message", "success");
+		} catch (Exception e) {
+			result.put("messsage", "error");
+		}
 
-		return user;
+		return result;
 	}
 
 	/** 사용자 등록 (관리자) - 등록할 역할이 본인보다 낮아야 함 */
@@ -88,13 +98,7 @@ public class UserServiceImpl extends EgovAbstractServiceImpl implements UserServ
 //      String currentStatus = String.valueOf(targetUser.get("status"));
       String newRole = String.valueOf(param.get("role"));
       String newStatus = String.valueOf(param.get("status"));
-      
 
-      // DISABLED 사용자는 수정 불가
-//      if ("DISABLED".equals(currentStatus)) {
-//          result.put("result", "forbidden");
-//          return result;
-//      }
 
       if (RoleUtil.isSelf(loginUser, targetUserNo)) { // 선택 - 본인
           // 본인: 자신의 권한을 올리는 것만 불가
@@ -106,7 +110,6 @@ public class UserServiceImpl extends EgovAbstractServiceImpl implements UserServ
           	result.put("result", "forbidden");
           	return result;
           }
-          
       } else {
           // 타인: 자신보다 낮은 권한의 사용자만 수정, 부여 권한도 나보다 낮아야
           if (!RoleUtil.canEditUser(loginUser, targetUserNo, currentRole)) {
@@ -119,9 +122,11 @@ public class UserServiceImpl extends EgovAbstractServiceImpl implements UserServ
           }
       }
 
-      userDAO.updateUser(param);
-      result.put("result", "success");
-      result.put("user", userDAO.selectUserDetail(targetUserNo));
+      int count = userDAO.updateUser(param);
+      if(count > 0 ) {
+      	result.put("result", "success");
+      	result.put("user", userDAO.selectUserDetail(targetUserNo));
+      }
       return result;
   }
 
@@ -132,13 +137,6 @@ public class UserServiceImpl extends EgovAbstractServiceImpl implements UserServ
 		int targetUserNo = Integer.parseInt(String.valueOf(param.get("userNo")));
 		Map<String, Object> targetUser = userDAO.selectUserDetail(targetUserNo);
 		String targetRole = String.valueOf(targetUser.get("role"));
-		// String targetStatus = String.valueOf(targetUser.get("status"));
-
-		// 이미 비활성화된 사용자는 처리 불가
-		// if ("DISABLED".equals(targetStatus)) {
-		// result.put("result", "forbidden");
-		// return result;
-		// }
 
 		// 본인이거나 자신보다 낮은 권한의 사용자만 삭제 가능
 		// if (!RoleUtil.canEditUser(loginUser, targetUserNo, targetRole)) {

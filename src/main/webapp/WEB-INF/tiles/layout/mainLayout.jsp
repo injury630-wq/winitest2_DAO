@@ -25,7 +25,7 @@ uri="http://egovframework.gov/ctl/ui"%>
       referrerpolicy="no-referrer"
     ></script>
     <%-- 사용자 등록 공통 유효성 JS --%>
-    <script src="resources/js/userValidation.js"></script>
+    <!-- <script src="resources/js/userValidation.js"></script> -->
     <style>
       body {
         font-family: "맑은 고딕", sans-serif;
