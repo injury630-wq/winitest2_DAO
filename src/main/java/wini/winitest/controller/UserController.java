@@ -118,12 +118,12 @@ public class UserController {
     }
     
     // 사용자 목록 조회
-    @RequestMapping(value = "/user/userManage.do", method = RequestMethod.POST)
-    public String userList(@RequestParam Map<String, Object> params, Model model) throws Exception{
-    	Map<String, Object> userList = userService.getUserList(params); // 수정요함  list, search, pagination
-    	model.addAttribute("userList", userList);
-    	return "user/userManage";
-    }
+//    @RequestMapping(value = "/user/userManage.do", method = RequestMethod.POST)
+//    public String userList(@RequestParam Map<String, Object> params, Model model) throws Exception{
+//    	Map<String, Object> userList = userService.getUserList(params); // 수정요함  list, search, pagination
+//    	model.addAttribute("userList", userList);
+//    	return "user/userManage";
+//    }
 
     // 사용자 목록 조회 
     @RequestMapping(value = "/user/userManage2.do", method = RequestMethod.POST)
@@ -135,7 +135,7 @@ public class UserController {
     		model.addAttribute("search", result.get("search"));
     		model.addAttribute("paginationInfo", result.get("paginationInfo"));
     	}else {
-    		model.addAttribute("message", "error");
+    		model.addAttribute("message", "error"); //메시지 리절트에서 바로 받아서 넣기
     	}
       return "user/userManage2";
     }
@@ -154,7 +154,7 @@ public class UserController {
     	return result;
     }
 
-    // 사용자 등록 (관리자 - Ajax)
+    /** 사용자 등록 (관리자 - Ajax) 백업용*/
     @ResponseBody
     @RequestMapping(value = "/user/userRegist2.do", method = RequestMethod.POST)
     public Map<String, Object> userRegist2(@RequestParam Map<String, Object> param,
@@ -171,12 +171,27 @@ public class UserController {
             return userService.insertUser(loginUser, param);
         } catch (Exception e) {
             result.put("result", "error");
-            result.put("error", e.getMessage());
             return result;
         }
     }
+    /** 사용자 등록 */
+//    @ResponseBody
+//    @RequestMapping(value = "/user/userRegist2.do", method = RequestMethod.POST)
+//    public Map<String, Object> userRegist2(@RequestParam Map<String, Object> param,
+//    		HttpSession session) throws Exception {
+//    	Map<String, Object> result = new HashMap<>();
+//    	Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
+//    	param.put("regUser", loginUser.get("userNo"));
+//    	result = userService.insertUser(loginUser, param);
+//    	
+//    	if("success".equals(String.valueOf(result.get("result")))){
+//    		
+//    	}
+//    	return ;
+//    }
 
-    // 사용자 수정 (관리자 - Ajax)
+    @SuppressWarnings("finally")
+		// 사용자 수정 (관리자 - Ajax)
     @ResponseBody
     @RequestMapping(value = "/user/userUpdate2.do", method = RequestMethod.POST)
     public Map<String, Object> userUpdate2(@RequestParam Map<String, Object> param,
@@ -209,11 +224,11 @@ public class UserController {
 	              }
               }
             }
-            return result;
         } catch (Exception e) {
             result.put("result", "error");
-            return result;
-        }
+        } finally {
+					return result;
+				}
     }
 
     // 사용자 비활성화 (관리자 - Ajax, 실제 삭제 X)
@@ -228,7 +243,6 @@ public class UserController {
             return userService.disableUser(loginUser, param);
         } catch (Exception e) {
             result.put("result", "error");
-            result.put("error", e.getMessage());
             return result;
         }
     }

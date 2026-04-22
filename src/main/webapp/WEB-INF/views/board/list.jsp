@@ -59,7 +59,7 @@
                             <td class="title">
                                 <div class="d-flex align-items-center gap-1">
                                     <span class="text-truncate re-lev${board.reLev}">
-                                        <c:if test="${board.reLev > 0}">ㄴ </c:if>${board.title}
+                                        <c:if test="${board.reLev > 0}">ㄴ </c:if><c:out value="${board.title}"></c:out>
                                     </span>
                                 </div>
                             </td>

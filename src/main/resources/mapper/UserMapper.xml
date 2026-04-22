@@ -159,11 +159,11 @@
 			, u.user_id AS userId																			<!-- 사용자 아이디 -->
 			, LENGTH(u.user_pw) AS userPwLen													<!-- 사용자 비밀번호 길이 -->
 			, u.user_name AS userName																	<!-- 사용자 이름 -->
-			, DATE_FORMAT(u.reg_date, '%Y-%m-%d') AS regDate					<!-- 등록일 -->
+			, DATE_FORMAT(u.reg_date, '%Y-%m-%d') AS regDate					<!-- 등록일시 -->
 			, ru.user_name AS regUserName															<!-- 최초 등록자 -->
 			, DATE_FORMAT(u.mod_date, '%Y-%m-%d') AS modDate					<!-- 수정일 -->
 			, IFNULL(mu.user_name, '--') AS modUserName								<!-- 수정자 -->
-			, u.`role`									 AS role															<!-- 사용자 권한 SYSTEM/ADMIN/USER -->
+			, u.role									 AS role															<!-- 사용자 권한 SYSTEM/ADMIN/USER -->
 			, u.status									 AS	status														<!-- 계정 상태 	ACTIVE/DISABLED -->
 		FROM
 			users u

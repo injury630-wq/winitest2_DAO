@@ -13,14 +13,14 @@ public class GalleryController {
 	//다오 빈 주입
 	
 	// 이미지 게시글 목록 이동
-	@RequestMapping(name = "/gallery/list.do", method = RequestMethod.POST)
+	@RequestMapping(value = "/gallery/list.do", method = RequestMethod.POST)
 	public String list(@RequestParam Map<String, Object> param, Model model) throws Exception{
 		return "gallery/list";
 	}
 	
 	// 이미지 게시글 작성폼 이동
-	@RequestMapping(name = "/gallery/write.do", method = RequestMethod.POST)
-	public String wirteP() throws Exception{
+	@RequestMapping(value = "/gallery/write.do", method = RequestMethod.POST)
+	public String writeP() throws Exception{
 		return "gallery/write";
 	}
 }

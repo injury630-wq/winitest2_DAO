@@ -18,7 +18,7 @@
 												${search.searchType eq 'userId' ? 'selected' : ''}>아이디</option>
 										<option value="userName"
 												${search.searchType eq 'userName' ? 'selected' : ''}>이름</option>
-								</select> <input type="text" name="searchKeyword" class="form-control"
+								</select> <input type="text" name="searchKeyword" class="form-control" id="searchKeyword"
 										value="${search.searchKeyword}" placeholder="검색어를 입력하세요."
 										maxlength="100" />
 						</div>
@@ -58,8 +58,8 @@
 												<td class="text-center">${paginationInfo.totalRecordCount
                                 - (paginationInfo.currentPageNo - 1) * paginationInfo.recordCountPerPage
                                 - status.index}</td>
-												<td class="text-center">${user.userId}</td>
-												<td class="text-center">${user.userName }</td>
+												<td class="text-center text-truncate" style="max-width: 100px"><c:out value="${user.userId}"/></td>
+												<td class="text-center text-truncate" style="max-width: 100px"><c:out value="${user.userName }"/></td>
 												<td class="text-center"><span
 														class="badge p-2 ${user.status eq 'ACTIVE' ? 'bg-success' : 'bg-danger'}">
 																${user.status eq 'ACTIVE' ? '사용가능' : '사용불가'} </span></td>
@@ -104,18 +104,24 @@
 										</tr>
 										<tr>
 												<th class="table-light align-middle">비밀번호</th>
-												<td>
+												<td colspan="2">
 														<%-- 등록 모드: 새 비밀번호 입력 (필수) --%>
 														<div id="pwRegistDiv">
+																<div class="input-group">
 																<input type="password" id="userPw" maxlength="25"
 																		class="form-control form-control-sm"
 																		placeholder="숫자+영문+특수문자 조합 10~25자" required />
+																		<button type="button" class="btn btn-outline-secondary" onclick="togglePw('userPw', this)">표시</button>
+																</div>
 																<p id="userPwMsg" class="guide-msg"></p>
 														</div>
 														<%-- 수정 모드: 현재 비밀번호(마스킹) 미입력시 비밀번호 업데이트 x --%>
                         <div id="pwUpdateDiv" style="display:none;" class="row g-2">
                           <div class="text-muted mb-1">비밀번호 (미입력 시 변경 안함)</div>
+                          <div class="input-group">
                           <input type="password" id="userPwView" onfocus="this.select()" class="form-control form-control-sm" maxlength="25"/>
+                          <button type="button" class="btn btn-outline-secondary" onclick="togglePw('userPwView', this)">표시</button>
+                          </div>
                           <p id="userPwMsg2" class="guide-msg"></p>
                           <input type="password" id="userPwChange" maxlength="25"
                                  class="form-control form-control-sm visually-hidden"/>
@@ -178,9 +184,8 @@
 	/* ===== 정규식 ===== */
 	let idRegex = /^[a-zA-Z0-9]{5,15}$/;
 	// 영문 + 숫자 + 특수문자 포함, 10~25자
-	//let pwRegex = /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=\[\]{}|;':",.<>?]).{10,25}$/;
 	let pwRegex = /^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=\[\]{}|;':",.<>?])[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{}|;':",.<>?]{10,25}$/;
-	let nameRegex = /^[가-힣a-zA-Z0-9]+$/;
+	let nameRegex = /^[가-힣a-zA-Z0-9]{2,30}$/; //한글+영어+숫자 2~30만 가능
 	/*  로그인 사용자 정보 */
 	let loginUserNo = ${sessionScope.loginUser.userNo};
 	let loginUserRole = '${sessionScope.loginUser.role}';
@@ -188,7 +193,7 @@
 
 	/* 상태 변수  */
 	let selectedUserNo = 0; // 현재 선택된 사용자 userNo
-	let selectedRow = null; // 현재 선택된 목록 행 (jQuery 객체)
+	let $selectedRow = null; // 현재 선택된 목록 행 (jQuery 객체)
 
 	/* 초기화  */
 	$(function() {
@@ -246,7 +251,7 @@
 			$('.user-row').removeClass('table-active');
 			$(this).addClass('table-active');
 
-			selectedRow = $(this);
+			$selectedRow = $(this);
 			selectedUserNo = $(this).data('userNo');
 
 			$.ajax({
@@ -327,6 +332,7 @@
 						alert('등록되었습니다.');
 						// 1페이지로 이동하여 새 사용자 확인
 						$('#currentPageNo').val(1);
+						$("#searchKeyword").val("");
 						$('#searchForm').submit();
 					} else {
 						alert('등록 중 오류가 발생하였습니다.');
@@ -336,6 +342,11 @@
 					alert('서버 오류가 발생하였습니다.');
 				}
 			});
+		});
+		
+		/* 수정 모드 비밀번호 view -> 비밀번호 change 변경 이벤트 */
+		$('#userPwView').on('input', function(){
+			$('#userPwChange').val($(this).val());
 		});
 
 		/* ---- 수정 버튼 ---- */
@@ -378,7 +389,7 @@
 				success : function(result) {
 					if (result.result === 'success') {
 						alert('수정되었습니다.');
-						updateListRow(selectedRow, result.user);
+						updateListRow($selectedRow, result.user);
 						setUpdateMode(result.user);
 					} else if (result.result === 'forbidden') {
 						alert('권한이 없습니다.');
@@ -414,7 +425,7 @@
 				success : function(result) {
 					if (result.result === 'success') {
 						alert('사용 불가 처리되었습니다.');
-						updateListRow(selectedRow, result.user);
+						updateListRow($selectedRow, result.user);
 						setUpdateMode(result.user);
 					} else if (result.result === 'forbidden') {
 						alert('권한이 없습니다.');
@@ -434,7 +445,7 @@
 	/* 등록 모드: 폼 초기화 + 등록 버튼 활성 / 수정·삭제 비활성 */
 	function setRegistMode() {
 		selectedUserNo = null;
-		selectedRow = null;
+		$selectedRow = null;
 		$('.user-row').removeClass('table-active');
 
 		// 폼 초기화
@@ -478,7 +489,7 @@
 		}
 	}
 
-	/* 수정 모드: 조회 데이터 폼에 채우기 + 수정·삭제 버튼 활성 / 등록 비활성 */
+	/* 수정 모드: 조회 데이터 폼에 채우기 + 수정/삭제 버튼 활성 / 등록 비활성 */
 	function setUpdateMode(user) {
 		$('#userNo').val(user.userNo);
 		$('#userId').val(user.userId).prop('disabled', true); // 아이디 변경 불가
@@ -497,7 +508,7 @@
 		$('#userPwChange').val('');
 
 		// 가이드 메시지 초기화
-		$('#userIdMsg, #userPwMsg').text('').css('color', '');
+		$('#userIdMsg, #userPwMsg2').text('').css('color', '');
 
 		// 버튼 상태 (권한 + 본인 여부에 따라 분기)
 		let isSelf = (user.userNo == loginUserNo);
@@ -540,7 +551,7 @@
 	
 	/* ===== 비밀번호 온오프 === */
 	function togglePw(id, btn) {
-	  var input = document.querySelector("#" + id);
+	  let input = document.querySelector("#" + id);
 	  if (input.type === "password") {
 	      input.type = "text";
 	      btn.innerText = "숨김";
@@ -549,4 +560,5 @@
 	      btn.innerText = "표시";
 	  }
 	}
+	
 </script>

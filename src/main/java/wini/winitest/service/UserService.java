@@ -10,9 +10,9 @@ import org.apache.ibatis.annotations.Param;
  */
 public interface UserService {
 	/** ======== 사용자 관리 ========*/
-	// 사용자 목록 조회(페이징, 검색조건)
+	/** 사용자 목록 조회(페이징, 검색조건) */
 	Map<String, Object> getUserList(Map<String, Object> params) throws Exception;
-	// 사용자 목록 전체건수(검색조건)
+	/** 사용자 목록 전체건수(검색조건)*/
 	int selectUserTotalCount(Map<String, Object> params) throws Exception;
 	/**사용자 상세 조회*/
 	Map<String, Object> selectUserDetail(int userNo) throws Exception;
