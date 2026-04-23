@@ -21,7 +21,7 @@
     </button>
     <div class="collapse show" id="menuUser">
       <ul class="nav flex-column ps-3">
-        <li><button type="button" class="btn px-4 w-100 text-start" onclick="goPost('user/userManage2.do')">사용자 목록</button></li>
+        <li><button type="button" class="btn px-4 w-100 text-start" onclick="goPost('user/userManage.do')">사용자 목록</button></li>
       </ul>
     </div>
   </li>

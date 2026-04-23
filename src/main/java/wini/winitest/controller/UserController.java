@@ -118,31 +118,23 @@ public class UserController {
     }
     
     // 사용자 목록 조회
-//    @RequestMapping(value = "/user/userManage.do", method = RequestMethod.POST)
-//    public String userList(@RequestParam Map<String, Object> params, Model model) throws Exception{
-//    	Map<String, Object> userList = userService.getUserList(params); // 수정요함  list, search, pagination
-//    	model.addAttribute("userList", userList);
-//    	return "user/userManage";
-//    }
-
-    // 사용자 목록 조회 
-    @RequestMapping(value = "/user/userManage2.do", method = RequestMethod.POST)
-    public String userManageTest(@RequestParam Map<String, Object> params, Model model) throws Exception {
-    	Map<String, Object> result = new HashMap<>();
-			result = userService.getUserList(params); // list, search, pagination
-    	if(result.get("message").equals("success")){
-    		model.addAttribute("list", result.get("list"));
-    		model.addAttribute("search", result.get("search"));
-    		model.addAttribute("paginationInfo", result.get("paginationInfo"));
-    	}else {
-    		model.addAttribute("message", "error"); //메시지 리절트에서 바로 받아서 넣기
-    	}
-      return "user/userManage2";
+    @RequestMapping(value = "/user/userManage.do", method = RequestMethod.POST)
+    public String userManage(@RequestParam Map<String, Object> params, Model model) throws Exception {
+        Map<String, Object> result = userService.getUserList(params);
+        if (result.get("message").equals("success")) {
+            model.addAttribute("list", result.get("list"));
+            model.addAttribute("search", result.get("search"));
+            model.addAttribute("paginationInfo", result.get("paginationInfo"));
+        } else {
+            model.addAttribute("message", "error");
+        }
+        model.addAttribute("roleList", userService.selectRoleList());
+        return "user/userManage";
     }
     
     // 사용자 상세조회 (ajax)
     @ResponseBody
-    @RequestMapping(value = "/user/userSelect2.do", method = RequestMethod.POST)
+    @RequestMapping(value = "/user/userSelect.do", method = RequestMethod.POST)
     public Map<String, Object> userDetail(@RequestBody Map<String, Object> param) throws Exception {
     	int userNo = Integer.parseInt(String.valueOf(param.get("userNo")));
     	Map<String, Object> result = userService.selectUserDetail(userNo);
@@ -154,11 +146,11 @@ public class UserController {
     	return result;
     }
 
-    /** 사용자 등록 (관리자 - Ajax) 백업용*/
+    // 사용자 등록 (관리자 - Ajax)
     @ResponseBody
-    @RequestMapping(value = "/user/userRegist2.do", method = RequestMethod.POST)
-    public Map<String, Object> userRegist2(@RequestParam Map<String, Object> param,
-                                            HttpSession session) throws Exception {
+    @RequestMapping(value = "/user/userRegist.do", method = RequestMethod.POST)
+    public Map<String, Object> userRegist(@RequestParam Map<String, Object> param,
+                                           HttpSession session) throws Exception {
         Map<String, Object> result = new HashMap<>();
         try {
             int dupCount = userService.idCheck(param);
@@ -174,27 +166,12 @@ public class UserController {
             return result;
         }
     }
-    /** 사용자 등록 */
-//    @ResponseBody
-//    @RequestMapping(value = "/user/userRegist2.do", method = RequestMethod.POST)
-//    public Map<String, Object> userRegist2(@RequestParam Map<String, Object> param,
-//    		HttpSession session) throws Exception {
-//    	Map<String, Object> result = new HashMap<>();
-//    	Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
-//    	param.put("regUser", loginUser.get("userNo"));
-//    	result = userService.insertUser(loginUser, param);
-//    	
-//    	if("success".equals(String.valueOf(result.get("result")))){
-//    		
-//    	}
-//    	return ;
-//    }
 
+    // 사용자 수정 (관리자 - Ajax)
     @SuppressWarnings("finally")
-		// 사용자 수정 (관리자 - Ajax)
     @ResponseBody
-    @RequestMapping(value = "/user/userUpdate2.do", method = RequestMethod.POST)
-    public Map<String, Object> userUpdate2(@RequestParam Map<String, Object> param,
+    @RequestMapping(value = "/user/userUpdate.do", method = RequestMethod.POST)
+    public Map<String, Object> userUpdate(@RequestParam Map<String, Object> param,
                                             HttpSession session) throws Exception {
         Map<String, Object> result = new HashMap<>();
         try {
@@ -233,8 +210,8 @@ public class UserController {
 
     // 사용자 비활성화 (관리자 - Ajax, 실제 삭제 X)
     @ResponseBody
-    @RequestMapping(value = "/user/userDelete2.do", method = RequestMethod.POST)
-    public Map<String, Object> userDelete2(@RequestParam Map<String, Object> param,
+    @RequestMapping(value = "/user/userDelete.do", method = RequestMethod.POST)
+    public Map<String, Object> userDelete(@RequestParam Map<String, Object> param,
                                             HttpSession session) throws Exception {
         Map<String, Object> result = new HashMap<>();
         try {

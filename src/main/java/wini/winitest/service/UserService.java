@@ -34,4 +34,7 @@ public interface UserService {
 
     /** 회원가입 처리 */
     int register(Map<String, Object> param) throws Exception;
+
+    /** 역할 목록 조회 (콤보박스용) */
+    List<Map<String, Object>> selectRoleList() throws Exception;
 }

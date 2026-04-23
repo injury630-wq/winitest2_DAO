@@ -35,14 +35,14 @@
     <!-- 게시글 목록 조회 (페이징 + 검색) -->
     <!-- **BoardDAO.selectBoardList -->
     <select id="selectBoardList" parameterType="map" resultType="map">
-        SELECT b.board_no                           AS boardNo      -- 글번호
+SELECT b.board_no                           AS boardNo      -- 글번호
              , b.title                              AS title        -- 글제목
              , u.user_name                          AS writerName   -- 작성자이름
              , b.hit                                AS hit          -- 조회수
              , DATE_FORMAT(b.reg_date, '%Y-%m-%d')  AS regDate      -- 작성일
              , b.ref                                AS ref          -- 그룹
              , b.re_lev                             AS reLev        -- 그룹내깊이
-             , b.re_seq                             AS reSeq        -- 그룹내순서
+             , b.sort_ord                             AS sortOrd        -- 그룹내순서
              , (
                  SELECT COUNT(*)
                  FROM   board_file bf
@@ -69,9 +69,9 @@
             </if>
         </where>
         ORDER BY ref    DESC
-               , re_seq ASC
+               , sort_ord ASC
         LIMIT #{firstIndex}, #{recordCountPerPage}
-    </select>
+</select>
 
     <!-- 게시글 전체 건수 (페이징용) -->
     <!-- **BoardDAO.selectBoardTotalCount -->
@@ -93,7 +93,7 @@
              , b.hit                                 AS hit         -- 조회수
              , b.ref                                 AS ref         -- 그룹
              , b.re_lev                              AS reLev       -- 그룹내깊이
-             , b.re_seq                              AS reSeq       -- 그룹순서
+             , b.sort_ord                              AS sortOrd       -- 그룹순서
              , b.parent_no                           AS parentNo    -- 부모글번호(원글시null)
              , DATE_FORMAT(b.reg_date, '%Y-%m-%d')   AS regDate     -- 작성일
              , b.modi_date                           AS modiDate    -- 수정일
@@ -124,7 +124,7 @@
         , writer_pw  -- 글 비밀번호
         , ref        -- 글 그룹
         , re_lev     -- 그룹 깊이
-        , re_seq     -- 그룹 순서
+        , sort_ord     -- 그룹 순서
         , hit        -- 조회수
         , parent_no  -- 부모글 번호(원글일시 NULL)
         , reg_date   -- 등록일
@@ -137,7 +137,7 @@
         , #{writerPw}
         , #{ref}
         , #{reLev}
-        , #{reSeq}
+        , #{sortOrd}
         , 0
         , #{parentNo}
         , NOW()
@@ -189,12 +189,12 @@
     </select>
 
     <!-- 답변글 순서 밀기 (같은 ref 내 새 답글 위치 이후 항목 +1) -->
-    <!-- **BoardDAO.updateReSeq -->
-    <update id="updateReSeq" parameterType="map">
+    <!-- **BoardDAO.updatesortOrd -->
+    <update id="updatesortOrd" parameterType="map">
         UPDATE board
-        SET    re_seq = re_seq + 1
+        SET    sort_ord = sort_ord + 1
         WHERE  ref    = #{ref}
-          AND  re_seq > #{reSeq}
+          AND  sort_ord > #{sortOrd}
     </update>
 
     <!-- ===== 첨부파일 ===== -->

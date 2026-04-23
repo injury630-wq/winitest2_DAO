@@ -191,15 +191,21 @@ public class UserServiceImpl extends EgovAbstractServiceImpl implements UserServ
 		return userDAO.idCheck(param);
 	}
 
-	/** 회원가입 처리 - INSERT 후 reg_user 를 자기 자신(userNo)으로 UPDATE */
+	/** 회원가입 처리 - INSERT 후 reg_user/mod_user 를 자기 자신(userNo)으로 UPDATE */
 	@Override
 	public int register(Map<String, Object> param) throws Exception {
 		int result = userDAO.register(param);
-		// useGeneratedKeys 로 param 에 userNo 가 채워진 후 자기 자신을 등록자로 세팅
+		// useGeneratedKeys 로 param 에 userNo 가 채워진 후 자기 자신을 등록자/수정자로 세팅
 		if (result > 0) {
 			userDAO.updateRegUser(param);
 		}
 		return result;
+	}
+
+	/** 역할 목록 조회 (콤보박스용) */
+	@Override
+	public List<Map<String, Object>> selectRoleList() throws Exception {
+		return userDAO.selectRoleList();
 	}
 
 }

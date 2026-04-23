@@ -64,4 +64,9 @@ public class UserDAO extends EgovComAbstractDAO {
       return update("userDAO.updateRegUser", param);
   }
 
+  /** 역할 목록 조회 (콤보박스용) */
+  public List<Map<String, Object>> selectRoleList() throws Exception {
+      return selectList("userDAO.selectRoleList");
+  }
+
 }

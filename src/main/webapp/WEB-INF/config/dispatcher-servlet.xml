@@ -80,9 +80,9 @@
    </mvc:interceptor>
 
    <!-- 2. 권한 인터셉터 - 등록만 ADMIN 이상 (수정/삭제는 본인도 가능하므로 서비스에서 판단) -->
-	<!-- 새로운 관리 기능이 생기면 mvc:mapping 을 추가한다 -->
+   <!-- 새로운 관리 기능이 생기면 mvc:mapping 을 추가한다 -->
    <mvc:interceptor>
-       <mvc:mapping path="/user/userRegist2.do"/>
+       <mvc:mapping path="/user/userRegist.do"/>
        <mvc:mapping path="/user/ajaxTest.do"/>
        <bean class="wini.winitest.interceptor.RoleInterceptor">
            <constructor-arg name="requiredRole" value="ADMIN"/>
