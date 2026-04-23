@@ -6,7 +6,7 @@
         <a class="site-title" href="${pageContext.request.contextPath}/">Home</a>
         <div class="header-user">
             <c:if test="${not empty sessionScope.loginUser}">
-                <span class="">(${sessionScope.loginUser.role})</span>
+                <span class="">(${sessionScope.loginUser.roleName})</span>
                 <span class="user-name">${sessionScope.loginUser.userName} 님</span>
                 <form action="user/logout.do" method="post" style="margin:0">
                     <button type="submit" class="btn btn-outline-light btn-sm">로그아웃</button>

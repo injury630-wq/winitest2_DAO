@@ -27,8 +27,8 @@ public class LoginInterceptor implements HandlerInterceptor {
         }
         // 비활성 계정시 차단(세션종료)
         if(loginUser != null) {
-        	String status = String.valueOf(loginUser.get("status"));
-        	if ("DISABLED".equals(status)) {
+        	String status = String.valueOf(loginUser.get("useYn"));
+        	if ("N".equals(status)) {
         	    request.getSession().invalidate();
         	    response.sendRedirect(request.getContextPath() + "/user/login.do");
         	    return false;

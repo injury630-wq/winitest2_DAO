@@ -51,7 +51,7 @@ public class UserController {
         Map<String, Object> loginUser = userService.selectLoginInfo(param);
         if (loginUser != null && loginUser.get("userId") != null) {
             // DISABLED 계정 로그인 차단
-            if ("DISABLED".equals(loginUser.get("status"))) {
+            if ("N".equals(loginUser.get("useYn"))) {
                 param.put("error", "disabled");
                 param.put("bridgeUrl", "user/login.do");
                 model.addAttribute("param", param);

@@ -22,16 +22,18 @@
     <!-- 로그인 정보 조회 -->
     <!-- **UserDAO.selectLoginInfo -->
     <select id="selectLoginInfo" parameterType="map" resultType="map">
-        SELECT user_no                             AS userNo
-             , user_id                            AS userId
-             , user_pw                            AS userPw
-             , user_name                          AS userName
-             , role                               AS role
-             , status                             AS status
-             , DATE_FORMAT(reg_date, '%Y-%m-%d')  AS regDate
-        FROM   users
-        WHERE  user_id = LOWER(#{userId})
-          AND  user_pw = #{userPw}
+        SELECT u.user_no                             AS userNo <!-- 사용자 번호(PK) -->
+             , u.user_id                            AS userId		<!-- 사용자 아이디(UK) -->
+             , u.user_pw                            AS userPw		<!-- 사용자 비밀번호 -->
+             , u.user_name                          AS userName		<!-- 사용자 이름 -->
+             , DATE_FORMAT(u.reg_date, '%Y-%m-%d')  AS regDate		<!-- 등록일시 -->
+             , DATE_FORMAT(u.mod_date, '%Y-%m-%d')  AS modDate		<!-- 수정일시 -->
+             , u.role_no                               AS roleNo	<!-- 사용자 권한 관련 user_role.user_no FK -->
+             , u.use_yn                             AS useYn			<!-- 사용 여부 Y/N -->
+             , (SELECT role_name FROM user_role ur WHERE ur.role_no = u.role_no ) AS roleName <!-- 사용자 역할 이름  -->
+        FROM   users u
+        WHERE  u.user_id = LOWER(#{userId})
+          AND  u.user_pw = #{userPw}
     </select>
 
     <!-- 아이디 중복확인 (0: 사용가능, 1이상: 중복) -->
