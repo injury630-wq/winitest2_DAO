@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="menuDAO">
+
+    <!-- 사이드바 메뉴 목록 조회 (2단계 계층) -->
+    <select id="selectMenuList" resultType="map">
+        SELECT m.menu_no                           AS menuNo
+             , m.menu_name                         AS menuName
+             , m.parent_no                         AS parentNo
+             , m.menu_lev                          AS menuLev
+             , m.sort_ord                          AS sortOrd
+             , TRIM(LEADING '/' FROM p.pro_path)   AS proPath
+        FROM  menu m
+        LEFT JOIN program p ON m.pro_no = p.pro_no AND p.use_yn = 'Y'
+        WHERE m.use_yn = 'Y'
+        ORDER BY
+              CASE WHEN m.menu_lev = 0 THEN m.menu_no ELSE m.parent_no END
+            , m.menu_lev
+            , m.sort_ord
+    </select>
+
+</mapper>

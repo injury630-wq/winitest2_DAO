@@ -88,6 +88,21 @@
            <constructor-arg name="requiredRole" value="ADMIN"/>
        </bean>
    </mvc:interceptor>
+
+   <!--
+   3. 메뉴 인터셉터 - DB에서 사이드바 메뉴 목록 로드 후 request 속성 주입
+   <mvc:interceptor>
+       <mvc:mapping path="/**/*.do"/>
+       <mvc:exclude-mapping path="/user/login.do"/>
+       <mvc:exclude-mapping path="/user/loginProc.do"/>
+       <mvc:exclude-mapping path="/user/register.do"/>
+       <mvc:exclude-mapping path="/user/registerProc.do"/>
+       <mvc:exclude-mapping path="/user/idCheck.do"/>
+       <bean class="wini.winitest.interceptor.MenuInterceptor">
+           <property name="menuDAO" ref="menuDAO"/>
+       </bean>
+   </mvc:interceptor>
+   -->
 </mvc:interceptors>
 
 
