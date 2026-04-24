@@ -31,14 +31,9 @@
              , u.role_no                            AS roleNo    <!-- user_role FK -->
              , u.use_yn                             AS useYn     <!-- 사용여부 Y/N -->
              , ur.role_name                         AS roleName  <!-- 역할명 -->
-             , CASE c.code_no
-                   WHEN 70030 THEN 'SYSTEM'
-                   WHEN 70020 THEN 'ADMIN'
-                   ELSE            'USER'
-               END                                  AS role      <!-- RoleUtil 비교용 문자열 -->
+             , ur.code_no 													AS codeNo 	 <!-- 권한레벨 이것으로 권한비교 -->
         FROM   users u
         LEFT JOIN user_role ur ON ur.role_no = u.role_no
-        LEFT JOIN code      c  ON c.code_no  = ur.code_no
         WHERE  u.user_id = LOWER(#{userId})
           AND  u.user_pw = #{userPw}
     </select>

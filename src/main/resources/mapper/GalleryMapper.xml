@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+    namespace = "galleryDAO" → galleryDAO.java에서 "galleryDAO.{queryId}"로 호출
+    모든 파라미터/결과는 Map 기반 사용 (vo 미사용)
+-->
+<mapper namespace="galleryDAO">
+	
+	<!-- 갤러리 목록 조회 -->
+	<!-- galleryDAO.selectGalleryList -->
+	<select id="selectGalleryList" parameterType="map" resultType="map">
+	SELECT 
+	      fm.file_path                          AS filePath 				<!-- 파일 저장 경로 (디렉토리 포함) -->
+	    , ib.board_no                           AS boardNo					<!-- 글 번호 -->
+	    , ib.title                              AS title						<!-- 글 제목 -->
+	    , u.user_name                           AS regUser				  <!-- 작성자(최초등록자로) -->
+	    , DATE_FORMAT(ib.reg_date, '%Y-%m-%d')  AS regDate					<!-- 작성일시(최초작성일로) -->
+	    , ib.hit                                AS hit							<!-- 조회수 -->		
+	FROM image_board ib		
+	JOIN file_master fm 
+	  ON ib.thumb_file_no = fm.file_no   <!-- 썸네일 항상 존재 -->	
+	JOIN users u 
+	  ON ib.reg_user = u.user_no
+	<where>
+	    <if test="searchKeyword != null and searchKeyword != ''">
+	        AND (
+	            ib.title LIKE CONCAT('%', #{searchKeyword}, '%')
+	            OR u.user_name LIKE CONCAT('%', #{searchKeyword}, '%')
+	        )
+	    </if>
+	</where>	
+	ORDER BY ib.board_no DESC
+	LIMIT #{firstIndex}, #{recordCountPerPage}
+	</select>
+	
+	<!-- 갤러리 단건 조회 -->
+	<!-- galleryDAO.selectGalleryList -->
+	<insert id="insertGallery" parameterType="map">
+	INSERT INTO image_board
+	(
+	board_no						<!-- 글 번호 시퀀스로 가져와서  넣음 -->
+	, title							<!-- 글 제목 -->
+	, content						<!-- 글 내용 -->
+	, file_group_id			<!-- 파일 묶음 file_master.group_id -->
+	, thumb_file_no			<!-- 대표 이미지 file_master.file_no -->
+	, hit								<!-- 조회수 -->
+	, use_yn						<!-- 사용여부 글 등록 초기 'Y' -->
+	, reg_date					<!-- 등록일시 -->
+	, reg_user					<!-- 등록자 users.user_no -->
+	, mod_date					<!-- 수정일시 초기 NULL -->
+	, mod_user					<!-- 수정자 초기 NULL -->
+	)
+	VALUES
+	(
+	, #{boardNo}
+	, #{title}
+	, #{content}
+	, #{fileGroupId}
+	, #{thumbFileNo}
+	, #{hit}
+	, 'Y'
+	, NOW()
+	, #{regUser}
+	, NULL
+	, NULL
+	);
+	</insert>
+</mapper>

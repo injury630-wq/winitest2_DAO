@@ -24,7 +24,7 @@ public class UserController {
 
     @Resource(name = "userService")
     private UserService userService;
-
+    
     // 로그인 페이지 (GET: 로그인 인터셉터용, POST: bridge.jsp 에서 redirect 된 경우)
     @RequestMapping(value = "/user/login.do",
                     method = {RequestMethod.GET, RequestMethod.POST})

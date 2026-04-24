@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
 import wini.winitest.service.BoardService;
+import wini.winitest.service.MenuService;
 
 @Controller
 public class BoardController {

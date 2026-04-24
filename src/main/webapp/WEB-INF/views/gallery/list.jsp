@@ -213,7 +213,7 @@
 			
     <!-- 5. 버튼 영역 -->
     <div class="text-end mt-2">
-        <button type="button" class="btn btn-danger">글쓰기</button>
+        <button type="button" class="btn btn-danger" onclick="goPost('gallery/form.do')">글쓰기</button>
     </div>
 
 </div>

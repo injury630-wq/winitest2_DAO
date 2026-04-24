@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
+<!-- 등록/수정 공용 폼  -->
 <div class="container">
     <h2>이미지 게시글 등록</h2>
     <form action="" method="post" enctype="multipart/form-data">
@@ -22,7 +23,8 @@
             <tr>
                 <th><span class="required">*</span>내용</th>
                 <td colspan="3">
-                    <textarea name="content" class="form-control" rows="8" placeholder="내용 입력" maxlength="2800" required></textarea>
+                	<div contenteditable="true" id="editor" style="min-height: 200px; border: 1px solid #ccc; min-height: 300px;max-height: 600px; overflow-y: auto;"></div>
+                	<input type="hidden" name="content" class="form-control" placeholder="내용 입력" maxlength="5000"/>
                 </td>
             </tr>
             <tr>
@@ -43,6 +45,7 @@
             <button type="submit" class="btn btn-danger" onclick="return validate()">저장</button>
         </div>
     </form>
+    
 </div>
 
 <script>

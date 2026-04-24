@@ -181,3 +181,4 @@ CREATE TABLE `image_board` (
 
 ---------------게시판 전체 pk용---------------
 select nextval('BOARD_COMMON_SEQ') from dual;
+데이터베이스 기본값 : utf8mb4_0900_ai_ci

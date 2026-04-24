@@ -18,9 +18,16 @@ public class GalleryController {
 		return "gallery/list";
 	}
 	
-	// 이미지 게시글 작성폼 이동
-	@RequestMapping(value = "/gallery/write.do", method = RequestMethod.POST)
-	public String writeP() throws Exception{
-		return "gallery/write";
+	// 이미지 게시글 작성/수정폼 이동
+	@RequestMapping(value = "/gallery/form.do", method = RequestMethod.POST)
+	public String form(@RequestParam Map<String, Object> param, Model model) throws Exception{
+		return "gallery/form";
+	}
+	
+	//이미지 게시글 작성/수정 처리
+	@RequestMapping(value = "/gallery/save.do", method = RequestMethod.POST)
+	public String save(@RequestParam Map<String, Object> param, Model model) throws Exception{
+		
+		return "gallery/list";
 	}
 }

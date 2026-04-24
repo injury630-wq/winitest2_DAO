@@ -5,7 +5,7 @@
 <mapper namespace="menuDAO">
 
     <!-- 사이드바 메뉴 목록 조회 (2단계 계층) -->
-    <select id="selectMenuList" resultType="map">
+    <select id="selectMenuListTest" resultType="map">
         SELECT m.menu_no                           AS menuNo
              , m.menu_name                         AS menuName
              , m.parent_no                         AS parentNo
@@ -20,5 +20,69 @@
             , m.menu_lev
             , m.sort_ord
     </select>
+    
+   <select id="selectMenuList" resultType="map">
+WITH RECURSIVE menu_tree AS (
+    
+    SELECT 
+        m.menu_no        AS menuNo,
+        m.menu_name      AS menuName,
+        m.parent_no      AS parentNo,
+        m.menu_lev       AS menuLev,
+        m.sort_ord       AS sortOrd,
+        m.pro_no         AS proNo,
+        CAST(m.menu_no AS CHAR(200)) AS path
+    FROM menu m
+    WHERE (m.parent_no IS NULL OR m.parent_no = 0)
+      AND m.use_yn = 'Y'
+
+    UNION ALL
+
+    SELECT 
+        m.menu_no        AS menuNo,
+        m.menu_name      AS menuName,
+        m.parent_no      AS parentNo,
+        m.menu_lev       AS menuLev,
+        m.sort_ord       AS sortOrd,
+        m.pro_no         AS proNo,
+        CONCAT(mt.path, '/', m.menu_no)
+    FROM menu m
+    JOIN menu_tree mt 
+      ON m.parent_no = mt.menuNo
+    WHERE m.use_yn = 'Y'
+)
+
+SELECT
+    mt.menuNo,
+    mt.menuName,
+    mt.parentNo,
+    mt.menuLev,
+    mt.sortOrd,
+    mt.proNo,
+    mt.path,
+
+    p.pro_path        AS proPath,
+    p.use_yn          AS proUseYn,
+
+    CASE 
+        WHEN p.pro_path IS NOT NULL AND p.use_yn = 'Y'
+        THEN 'Y'
+        ELSE 'N'
+    END AS clickable,
+
+    CASE 
+        WHEN EXISTS (
+            SELECT 1 FROM menu c
+            WHERE c.parent_no = mt.menuNo
+              AND c.use_yn = 'Y'
+        ) THEN 'Y'
+        ELSE 'N'
+    END AS hasChild
+
+FROM menu_tree mt
+LEFT JOIN program p ON mt.proNo = p.pro_no
+
+ORDER BY mt.path;
+</select>
 
 </mapper>
