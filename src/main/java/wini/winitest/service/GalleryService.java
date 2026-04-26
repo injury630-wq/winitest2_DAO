@@ -11,9 +11,8 @@ public interface GalleryService {
 
     Map<String, Object> getGalleryDetail(Map<String, Object> param) throws Exception;
 
-    /* ===== Ajax 임시업로드 방식 추가 ===== */
+    /** [Ajax 임시업로드] 파일 즉시 저장 후 fileNo 목록 반환 (use_yn='N') */
     List<Map<String, Object>> saveTempFiles(List<MultipartFile> files, Object regUser) throws Exception;
-    /* ===== Ajax 임시업로드 방식 끝 ===== */
 
     Map<String, Object> saveGallery(Map<String, Object> param, List<MultipartFile> files) throws Exception;
 

@@ -2,23 +2,31 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
+<!--
+    namespace = "galleryDAO" → GalleryDAO.java에서 "galleryDAO.{queryId}"로 호출
+    모든 파라미터/결과는 Map 기반 사용 (vo 미사용)
+-->
 <mapper namespace="galleryDAO">
 
     <!-- ===== 시퀀스 ===== -->
 
+    <!-- 게시글 번호 채번 (BOARD_COMMON_SEQ) -->
+    <!-- **GalleryDAO.selectNextBoardNo -->
     <select id="selectNextBoardNo" resultType="int">
         SELECT nextval('BOARD_COMMON_SEQ') FROM DUAL
     </select>
 
     <!-- ===== 목록 조회 ===== -->
 
+    <!-- 이미지 게시글 목록 조회 (페이징 + 검색) -->
+    <!-- **GalleryDAO.selectGalleryList -->
     <select id="selectGalleryList" parameterType="map" resultType="map">
-        SELECT ib.board_no                          AS boardNo
-             , ib.title                             AS title
-             , u.user_name                          AS regUserName
-             , DATE_FORMAT(ib.reg_date, '%Y-%m-%d') AS regDate
-             , ib.hit                               AS hit
-             , ib.thumb_file_no                     AS thumbFileNo
+        SELECT ib.board_no                          AS boardNo      -- 게시글번호
+             , ib.title                             AS title        -- 제목
+             , u.user_name                          AS regUserName  -- 작성자이름
+             , DATE_FORMAT(ib.reg_date, '%Y-%m-%d') AS regDate      -- 등록일
+             , ib.hit                               AS hit          -- 조회수
+             , ib.thumb_file_no                     AS thumbFileNo  -- 썸네일파일번호
         FROM  image_board ib
         JOIN  users u ON ib.reg_user = u.user_no
         WHERE ib.use_yn = 'Y'
@@ -42,6 +50,8 @@
         LIMIT #{firstIndex}, #{recordCountPerPage}
     </select>
 
+    <!-- 이미지 게시글 전체 건수 (페이징용) -->
+    <!-- **GalleryDAO.selectGalleryTotalCount -->
     <select id="selectGalleryTotalCount" parameterType="map" resultType="int">
         SELECT COUNT(*)
         FROM  image_board ib
@@ -67,17 +77,19 @@
 
     <!-- ===== 단건 조회 ===== -->
 
+    <!-- 이미지 게시글 단건 상세 조회 -->
+    <!-- **GalleryDAO.selectGalleryDetail -->
     <select id="selectGalleryDetail" parameterType="map" resultType="map">
-        SELECT ib.board_no                          AS boardNo
-             , ib.title                             AS title
-             , ib.content                           AS content
-             , ib.reg_user                          AS regUser
-             , ru.user_name                         AS regUserName
-             , DATE_FORMAT(ib.reg_date, '%Y-%m-%d') AS regDate
-             , ib.hit                               AS hit
-             , ib.thumb_file_no                     AS thumbFileNo
-             , mu.user_name                         AS modUserName
-             , DATE_FORMAT(ib.mod_date, '%Y-%m-%d') AS modDate
+        SELECT ib.board_no                          AS boardNo      -- 게시글번호
+             , ib.title                             AS title        -- 제목
+             , ib.content                           AS content      -- 내용(HTML)
+             , ib.reg_user                          AS regUser      -- 작성자번호
+             , ru.user_name                         AS regUserName  -- 작성자이름
+             , DATE_FORMAT(ib.reg_date, '%Y-%m-%d') AS regDate      -- 등록일
+             , ib.hit                               AS hit          -- 조회수
+             , ib.thumb_file_no                     AS thumbFileNo  -- 썸네일파일번호
+             , mu.user_name                         AS modUserName  -- 수정자이름
+             , DATE_FORMAT(ib.mod_date, '%Y-%m-%d') AS modDate      -- 수정일
         FROM  image_board ib
         JOIN  users ru ON ib.reg_user = ru.user_no
         LEFT JOIN users mu ON ib.mod_user = mu.user_no
@@ -87,15 +99,37 @@
 
     <!-- ===== 등록 ===== -->
 
+    <!-- 이미지 게시글 등록 -->
+    <!-- **GalleryDAO.insertGallery -->
     <insert id="insertGallery" parameterType="map">
         INSERT INTO image_board
-        ( board_no,   title,    content,    thumb_file_no,    hit, use_yn, reg_date, reg_user  )
+        (
+          board_no      -- 시퀀스 채번
+        , title         -- 제목
+        , content       -- 내용(HTML)
+        , thumb_file_no -- 썸네일 파일번호
+        , hit           -- 조회수
+        , use_yn        -- 사용여부
+        , reg_date      -- 등록일
+        , reg_user      -- 등록자
+        )
         VALUES
-        ( #{boardNo}, #{title}, #{content}, #{thumbFileNo},   0,   'Y',    NOW(),   #{regUser} )
+        (
+          #{boardNo}
+        , #{title}
+        , #{content}
+        , #{thumbFileNo}
+        , 0
+        , 'Y'
+        , NOW()
+        , #{regUser}
+        )
     </insert>
 
     <!-- ===== 수정 ===== -->
 
+    <!-- 이미지 게시글 수정 -->
+    <!-- **GalleryDAO.updateGallery -->
     <update id="updateGallery" parameterType="map">
         UPDATE image_board
         SET    title         = #{title}
@@ -108,6 +142,8 @@
 
     <!-- ===== 논리 삭제 ===== -->
 
+    <!-- 이미지 게시글 논리 삭제 (use_yn 'Y'→'N') -->
+    <!-- **GalleryDAO.logicalDeleteGallery -->
     <update id="logicalDeleteGallery" parameterType="map">
         UPDATE image_board
         SET    use_yn   = 'N'
@@ -118,6 +154,8 @@
 
     <!-- ===== 조회수 ===== -->
 
+    <!-- 조회수 증가 -->
+    <!-- **GalleryDAO.updateHit -->
     <update id="updateHit" parameterType="map">
         UPDATE image_board
         SET    hit = hit + 1
@@ -126,59 +164,109 @@
 
     <!-- ===== 파일 ===== -->
 
-    <!-- ===== 임시 파일 등록 (Ajax 업로드용 - use_yn='N', board_no=0) ===== -->
+    <!-- 임시 파일 등록 (Ajax 업로드 직후 - use_yn='N', board_no=0으로 임시 저장) -->
+    <!-- **GalleryDAO.insertTempFile -->
     <insert id="insertTempFile" parameterType="map" useGeneratedKeys="true" keyProperty="fileNo">
         INSERT INTO file_master
-        ( board_no, file_path, file_name, org_name, file_ext, file_size, sort_ord, use_yn, reg_user )
+        (
+          board_no   -- 임시: 0 (게시글 저장 시 activateFiles로 확정)
+        , file_path  -- 파일 저장 경로
+        , file_name  -- 서버 저장 파일명 (UUID 기반)
+        , org_name   -- 원본 파일명
+        , file_ext   -- 파일 확장자
+        , file_size  -- 파일 크기 (bytes)
+        , sort_ord   -- 정렬 순서
+        , use_yn     -- 임시: 'N' (게시글 저장 시 'Y'로 변경)
+        , reg_user   -- 등록자
+        )
         VALUES
-        ( 0, #{filePath}, #{fileName}, #{orgName}, #{fileExt}, #{fileSize}, #{sortOrd}, 'N', #{regUser} )
+        (
+          0
+        , #{filePath}
+        , #{fileName}
+        , #{orgName}
+        , #{fileExt}
+        , #{fileSize}
+        , #{sortOrd}
+        , 'N'
+        , #{regUser}
+        )
     </insert>
 
-    <!-- ===== 파일 활성화 (게시글 저장 시 use_yn 'N'→'Y', board_no 확정) ===== -->
+    <!-- 파일 활성화 (게시글 저장 시 use_yn 'N'→'Y', board_no 확정) -->
+    <!-- **GalleryDAO.activateFiles -->
     <update id="activateFiles" parameterType="map">
         UPDATE file_master
-        SET    use_yn   = 'Y'
-             , board_no = #{boardNo}
+        SET    use_yn   = 'Y'        -- 임시 → 활성
+             , board_no = #{boardNo} -- 게시글 번호 확정
         WHERE  file_no IN
         <foreach collection="fileNos" item="no" open="(" separator="," close=")">
             #{no}
         </foreach>
     </update>
 
+    <!-- 파일 등록 (직접 저장 방식 - 구방식 롤백용) -->
+    <!-- **GalleryDAO.insertGalleryFile -->
     <insert id="insertGalleryFile" parameterType="map" useGeneratedKeys="true" keyProperty="fileNo">
         INSERT INTO file_master
-        ( board_no,   file_path,   file_name,   org_name,   file_ext,   file_size,   sort_ord,   use_yn, reg_user  )
+        (
+          board_no   -- 게시글번호
+        , file_path  -- 파일 저장 경로
+        , file_name  -- 서버 저장 파일명 (UUID 기반)
+        , org_name   -- 원본 파일명
+        , file_ext   -- 파일 확장자
+        , file_size  -- 파일 크기 (bytes)
+        , sort_ord   -- 정렬 순서
+        , use_yn     -- 사용여부
+        , reg_user   -- 등록자
+        )
         VALUES
-        ( #{boardNo}, #{filePath}, #{fileName}, #{orgName}, #{fileExt}, #{fileSize}, #{sortOrd}, 'Y',   #{regUser} )
+        (
+          #{boardNo}
+        , #{filePath}
+        , #{fileName}
+        , #{orgName}
+        , #{fileExt}
+        , #{fileSize}
+        , #{sortOrd}
+        , 'Y'
+        , #{regUser}
+        )
     </insert>
 
+    <!-- 파일 목록 조회 (게시글번호 기준, 활성 파일만) -->
+    <!-- **GalleryDAO.selectGalleryFiles -->
     <select id="selectGalleryFiles" parameterType="map" resultType="map">
-        SELECT file_no   AS fileNo
-             , board_no  AS boardNo
-             , file_path AS filePath
-             , file_name AS fileName
-             , org_name  AS orgName
-             , file_ext  AS fileExt
-             , file_size AS fileSize
-             , sort_ord  AS sortOrd
+        SELECT file_no   AS fileNo    -- 파일번호
+             , board_no  AS boardNo   -- 게시글번호
+             , file_path AS filePath  -- 파일 저장 경로
+             , file_name AS fileName  -- 서버 저장 파일명
+             , org_name  AS orgName   -- 원본 파일명
+             , file_ext  AS fileExt   -- 파일 확장자
+             , file_size AS fileSize  -- 파일 크기 (bytes)
+             , sort_ord  AS sortOrd   -- 정렬 순서
         FROM   file_master
         WHERE  board_no = #{boardNo}
           AND  use_yn   = 'Y'
         ORDER BY sort_ord ASC, file_no ASC
     </select>
 
+    <!-- 파일 단건 조회 (imgView 다운로드용 - use_yn 조건 없음, 임시파일 포함) -->
+    <!-- **GalleryDAO.selectGalleryFileDetail -->
     <select id="selectGalleryFileDetail" parameterType="map" resultType="map">
-        SELECT file_no   AS fileNo
-             , board_no  AS boardNo
-             , file_path AS filePath
-             , file_name AS fileName
-             , org_name  AS orgName
-             , file_ext  AS fileExt
-             , file_size AS fileSize
+        SELECT file_no   AS fileNo    -- 파일번호
+             , board_no  AS boardNo   -- 게시글번호
+             , file_path AS filePath  -- 파일 저장 경로
+             , file_name AS fileName  -- 서버 저장 파일명
+             , org_name  AS orgName   -- 원본 파일명
+             , file_ext  AS fileExt   -- 파일 확장자
+             , file_size AS fileSize  -- 파일 크기 (bytes)
         FROM   file_master
         WHERE  file_no = #{fileNo}
     </select>
 
+    <!-- 파일 논리 삭제 (use_yn 'Y'→'N') -->
+    <!-- **GalleryDAO.logicalDeleteFile -->
     <update id="logicalDeleteFile" parameterType="map">
         UPDATE file_master
         SET    use_yn = 'N'
