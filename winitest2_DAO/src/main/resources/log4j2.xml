@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn">
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss} %5p [%c] %m%n"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+
+        <!-- 실행된 SQL (파라미터 바인딩 포함) -->
+        <Logger name="jdbc.sqlonly"        level="INFO"  additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+
+        <!-- SQL + 실행시간 -->
+        <Logger name="jdbc.sqltiming"      level="INFO"  additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+
+        <!-- 쿼리 결과 (테이블 형식) -->
+        <Logger name="jdbc.resultsettable" level="INFO"  additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+
+        <!-- 아래는 노이즈가 많아 OFF 유지 -->
+        <Logger name="jdbc.audit"          level="OFF"   additivity="false"/>
+        <Logger name="jdbc.resultset"      level="OFF"   additivity="false"/>
+        <Logger name="jdbc.connection"     level="OFF"   additivity="false"/>
+
+        <!-- 전체 기본 레벨 (프레임워크 INFO 이상 필요시 WARN → INFO로 변경) -->
+        <Root level="ERROR">
+            <AppenderRef ref="console"/>
+        </Root>
+
+    </Loggers>
+</Configuration>
