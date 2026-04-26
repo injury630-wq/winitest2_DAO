@@ -31,8 +31,14 @@
         <tr>
             <th>내용</th>
             <td colspan="3">
+                <%-- [신방식] Ajax 임시업로드: 실제 imgView URL이 저장되므로 c:out으로 바로 렌더링 --%>
+                <div class="content-area gallery-content">
+                    <c:out value="${gallery.content}" escapeXml="false"/>
+                </div>
+                <%-- [구방식 롤백용] blob URL → __IMG_N__ 방식 사용 시 아래로 교체
                 <div id="savedContent" style="display:none">${gallery.content}</div>
                 <div id="contentDisplay" class="content-area gallery-content"></div>
+                --%>
             </td>
         </tr>
     </table>
@@ -75,8 +81,10 @@
 </form>
 
 <script>
+/* [구방식 롤백용] blob URL → __IMG_N__ 방식 사용 시 주석 해제
 document.getElementById('contentDisplay').innerHTML =
     document.getElementById('savedContent').innerHTML;
+*/
 
 function confirmDelete() {
     if (!confirm('삭제하시겠습니까?')) return;
