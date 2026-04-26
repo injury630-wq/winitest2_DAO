@@ -1,5 +1,6 @@
 package wini.winitest.service.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,24 +40,63 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
         return galleryDAO.selectGalleryDetail(param);
     }
 
+    /* ===== Ajax 임시업로드 방식 추가 ===== */
+    @Override
+    public List<Map<String, Object>> saveTempFiles(List<MultipartFile> files,
+                                                    Object regUser) throws Exception {
+        List<Map<String, Object>> savedFiles = FileUploadUtil.saveImages(files, uploadPath, regUser);
+        for (Map<String, Object> fp : savedFiles) {
+            fp.put("boardNo", 0);
+            galleryDAO.insertTempFile(fp);
+        }
+        return savedFiles;
+    }
+
+    private void activateNewFiles(Map<String, Object> param, int boardNo) throws Exception {
+        @SuppressWarnings("unchecked")
+        List<String> activeFileNos = (List<String>) param.get("activeFileNos");
+        if (activeFileNos == null || activeFileNos.isEmpty()) return;
+        List<Integer> fileNoInts = new ArrayList<>();
+        for (String s : activeFileNos) fileNoInts.add(Integer.parseInt(s.trim()));
+        Map<String, Object> ap = new HashMap<>();
+        ap.put("boardNo", boardNo);
+        ap.put("fileNos", fileNoInts);
+        galleryDAO.activateFiles(ap);
+    }
+
+    private void resolveThumbDirect(Map<String, Object> param) {
+        String thumbStr = param.get("thumbFileNo") != null
+                          ? String.valueOf(param.get("thumbFileNo")) : "";
+        if (!thumbStr.isEmpty() && !"null".equals(thumbStr) && !"0".equals(thumbStr)) {
+            param.put("thumbFileNo", Integer.parseInt(thumbStr));
+        } else {
+            param.put("thumbFileNo", null);
+        }
+    }
+    /* ===== Ajax 임시업로드 방식 끝 ===== */
+
     @Transactional
     @Override
     public Map<String, Object> saveGallery(Map<String, Object> param,
                                             List<MultipartFile> files) throws Exception {
-        Object regUser = param.get("regUser");
-
         // 1. boardNo 채번
         int boardNo = galleryDAO.selectNextBoardNo();
         param.put("boardNo", boardNo);
 
-        // 2. 이미지 파일 저장 + file_master 삽입 (useGeneratedKeys → fileNo 채워짐)
+        /* ===== [신방식] Ajax 임시업로드 활성화 =====
+         * 파일은 업로드 시점에 이미 file_master(use_yn='N')에 저장됨.
+         * board_no 확정 + use_yn='Y' 로 변경만 수행. */
+        activateNewFiles(param, boardNo);
+        resolveThumbDirect(param);
+        /* ===== [신방식] 끝 ===== */
+
+        /* ===== [구방식 - 롤백용 주석] __IMG_N__ 치환 방식 =====
+        Object regUser = param.get("regUser");
         List<Map<String, Object>> savedFiles = FileUploadUtil.saveImages(files, uploadPath, regUser);
         for (Map<String, Object> fp : savedFiles) {
             fp.put("boardNo", boardNo);
             galleryDAO.insertGalleryFile(fp);
         }
-
-        // 3. 내용 내 __IMG_{idx}__ 를 실제 imgView URL 로 치환
         String content = (String) param.get("content");
         if (content != null) {
             for (int i = 0; i < savedFiles.size(); i++) {
@@ -67,11 +107,10 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
             }
         }
         param.put("content", content);
-
-        // 4. 썸네일 결정
         resolveThumb(param, savedFiles);
+        ===== [구방식] 끝 ===== */
 
-        // 5. 게시글 저장
+        // 2. 게시글 저장
         galleryDAO.insertGallery(param);
 
         Map<String, Object> result = new HashMap<>();
@@ -84,10 +123,9 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
     @Override
     public Map<String, Object> editGallery(Map<String, Object> param,
                                             List<MultipartFile> files) throws Exception {
-        int boardNo   = Integer.parseInt(param.get("boardNo").toString());
-        Object modUser = param.get("modUser");
+        int boardNo = Integer.parseInt(param.get("boardNo").toString());
 
-        // 기존 파일 논리 삭제
+        // 기존 파일 논리 삭제 (구방식·신방식 공통)
         @SuppressWarnings("unchecked")
         List<String> deleteFileNos = (List<String>) param.get("deleteFileNos");
         if (deleteFileNos != null) {
@@ -98,14 +136,18 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
             }
         }
 
-        // 1. 신규 이미지 파일 저장 + file_master 삽입
+        /* ===== [신방식] Ajax 임시업로드 활성화 ===== */
+        activateNewFiles(param, boardNo);
+        resolveThumbDirect(param);
+        /* ===== [신방식] 끝 ===== */
+
+        /* ===== [구방식 - 롤백용 주석] __IMG_N__ 치환 방식 =====
+        Object modUser = param.get("modUser");
         List<Map<String, Object>> savedFiles = FileUploadUtil.saveImages(files, uploadPath, modUser);
         for (Map<String, Object> fp : savedFiles) {
             fp.put("boardNo", boardNo);
             galleryDAO.insertGalleryFile(fp);
         }
-
-        // 2. 내용 내 __IMG_{idx}__ 치환
         String content = (String) param.get("content");
         if (content != null) {
             for (int i = 0; i < savedFiles.size(); i++) {
@@ -116,11 +158,10 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
             }
         }
         param.put("content", content);
-
-        // 3. 썸네일 결정
         resolveThumb(param, savedFiles);
+        ===== [구방식] 끝 ===== */
 
-        // 4. 게시글 수정
+        // 게시글 수정
         galleryDAO.updateGallery(param);
 
         Map<String, Object> result = new HashMap<>();
@@ -173,6 +214,7 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
         return board != null ? ((Number) board.get("hit")).intValue() : 0;
     }
 
+    /* ===== [구방식 - 롤백용 주석] resolveThumb =====
     private void resolveThumb(Map<String, Object> param, List<Map<String, Object>> savedFiles) {
         String thumbFileNoStr = param.get("thumbFileNo") != null
                                 ? String.valueOf(param.get("thumbFileNo")) : "";
@@ -192,4 +234,5 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
         }
         param.put("thumbFileNo", savedFiles.isEmpty() ? null : savedFiles.get(0).get("fileNo"));
     }
+    ===== [구방식] 끝 ===== */
 }

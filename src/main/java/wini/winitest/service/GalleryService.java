@@ -11,6 +11,10 @@ public interface GalleryService {
 
     Map<String, Object> getGalleryDetail(Map<String, Object> param) throws Exception;
 
+    /* ===== Ajax 임시업로드 방식 추가 ===== */
+    List<Map<String, Object>> saveTempFiles(List<MultipartFile> files, Object regUser) throws Exception;
+    /* ===== Ajax 임시업로드 방식 끝 ===== */
+
     Map<String, Object> saveGallery(Map<String, Object> param, List<MultipartFile> files) throws Exception;
 
     Map<String, Object> editGallery(Map<String, Object> param, List<MultipartFile> files) throws Exception;

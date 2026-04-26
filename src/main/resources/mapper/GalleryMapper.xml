@@ -23,10 +23,20 @@
         JOIN  users u ON ib.reg_user = u.user_no
         WHERE ib.use_yn = 'Y'
         <if test="searchKeyword != null and searchKeyword != ''">
-            AND (
-                ib.title    LIKE CONCAT('%', #{searchKeyword}, '%')
-                OR u.user_name LIKE CONCAT('%', #{searchKeyword}, '%')
-            )
+            <choose>
+                <when test="searchType == 'title'">
+                    AND ib.title LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <when test="searchType == 'writer'">
+                    AND u.user_name LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <otherwise>
+                    AND (
+                        ib.title    LIKE CONCAT('%', #{searchKeyword}, '%')
+                        OR u.user_name LIKE CONCAT('%', #{searchKeyword}, '%')
+                    )
+                </otherwise>
+            </choose>
         </if>
         ORDER BY ib.board_no DESC
         LIMIT #{firstIndex}, #{recordCountPerPage}
@@ -38,10 +48,20 @@
         JOIN  users u ON ib.reg_user = u.user_no
         WHERE ib.use_yn = 'Y'
         <if test="searchKeyword != null and searchKeyword != ''">
-            AND (
-                ib.title    LIKE CONCAT('%', #{searchKeyword}, '%')
-                OR u.user_name LIKE CONCAT('%', #{searchKeyword}, '%')
-            )
+            <choose>
+                <when test="searchType == 'title'">
+                    AND ib.title LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <when test="searchType == 'writer'">
+                    AND u.user_name LIKE CONCAT('%', #{searchKeyword}, '%')
+                </when>
+                <otherwise>
+                    AND (
+                        ib.title    LIKE CONCAT('%', #{searchKeyword}, '%')
+                        OR u.user_name LIKE CONCAT('%', #{searchKeyword}, '%')
+                    )
+                </otherwise>
+            </choose>
         </if>
     </select>
 
@@ -106,6 +126,25 @@
 
     <!-- ===== 파일 ===== -->
 
+    <!-- ===== 임시 파일 등록 (Ajax 업로드용 - use_yn='N', board_no=0) ===== -->
+    <insert id="insertTempFile" parameterType="map" useGeneratedKeys="true" keyProperty="fileNo">
+        INSERT INTO file_master
+        ( board_no, file_path, file_name, org_name, file_ext, file_size, sort_ord, use_yn, reg_user )
+        VALUES
+        ( 0, #{filePath}, #{fileName}, #{orgName}, #{fileExt}, #{fileSize}, #{sortOrd}, 'N', #{regUser} )
+    </insert>
+
+    <!-- ===== 파일 활성화 (게시글 저장 시 use_yn 'N'→'Y', board_no 확정) ===== -->
+    <update id="activateFiles" parameterType="map">
+        UPDATE file_master
+        SET    use_yn   = 'Y'
+             , board_no = #{boardNo}
+        WHERE  file_no IN
+        <foreach collection="fileNos" item="no" open="(" separator="," close=")">
+            #{no}
+        </foreach>
+    </update>
+
     <insert id="insertGalleryFile" parameterType="map" useGeneratedKeys="true" keyProperty="fileNo">
         INSERT INTO file_master
         ( board_no,   file_path,   file_name,   org_name,   file_ext,   file_size,   sort_ord,   use_yn, reg_user  )
@@ -138,7 +177,6 @@
              , file_size AS fileSize
         FROM   file_master
         WHERE  file_no = #{fileNo}
-          AND  use_yn  = 'Y'
     </select>
 
     <update id="logicalDeleteFile" parameterType="map">

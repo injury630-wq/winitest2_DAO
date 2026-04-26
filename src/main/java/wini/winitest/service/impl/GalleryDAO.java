@@ -43,6 +43,16 @@ public class GalleryDAO extends EgovComAbstractDAO {
         return update("galleryDAO.logicalDeleteGallery", param);
     }
 
+    /* ===== Ajax 임시업로드 방식 추가 ===== */
+    public int insertTempFile(Map<String, Object> param) throws Exception {
+        return insert("galleryDAO.insertTempFile", param);
+    }
+
+    public int activateFiles(Map<String, Object> param) throws Exception {
+        return update("galleryDAO.activateFiles", param);
+    }
+    /* ===== Ajax 임시업로드 방식 끝 ===== */
+
     public int insertGalleryFile(Map<String, Object> param) throws Exception {
         return insert("galleryDAO.insertGalleryFile", param);
     }

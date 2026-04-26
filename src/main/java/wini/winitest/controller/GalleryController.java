@@ -17,6 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -83,6 +84,27 @@ public class GalleryController {
         return "gallery/detail";
     }
 
+    // ===== Ajax 임시업로드 방식 추가 =====
+    // 파일 선택 즉시 서버 저장 (use_yn='N') → fileNo 반환 → 에디터에 실제 URL 표시
+    @ResponseBody
+    @RequestMapping(value = "/gallery/uploadTempFile.do", method = RequestMethod.POST)
+    public Map<String, Object> uploadTempFile(MultipartHttpServletRequest mreq,
+                                               HttpSession session) throws Exception {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
+            List<MultipartFile> files = mreq.getFiles("uploadFile");
+            List<Map<String, Object>> saved = galleryService.saveTempFiles(files, loginUser.get("userNo"));
+            result.put("msg",   "S");
+            result.put("files", saved);
+        } catch (Exception e) {
+            result.put("msg", "E");
+        }
+        return result;
+    }
+    // ===== Ajax 임시업로드 방식 끝 =====
+
     // 조회수 증가 (AJAX)
     @RequestMapping(value = "/gallery/updateHitAjax.do", method = RequestMethod.POST)
     public void updateHitAjax(@RequestParam Map<String, Object> param,
@@ -119,8 +141,16 @@ public class GalleryController {
             return "redirect:/gallery/list.do";
         }
 
+        @SuppressWarnings("unchecked")
         Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
         List<MultipartFile> files = mreq.getFiles("uploadFile");
+
+        // ===== [신방식] 활성화할 fileNo 목록 수집 =====
+        String[] activeNos = mreq.getParameterValues("activeFileNo");
+        if (activeNos != null && activeNos.length > 0) {
+            param.put("activeFileNos", Arrays.asList(activeNos));
+        }
+        // ===== [신방식] 끝 =====
 
         String boardNoStr = (String) param.get("boardNo");
         if (boardNoStr == null || boardNoStr.trim().isEmpty()) {
@@ -135,7 +165,7 @@ public class GalleryController {
             }
             galleryService.editGallery(param, files);
             redirectAttributes.addFlashAttribute("boardNo", boardNoStr.trim());
-            redirectAttributes.addFlashAttribute("noHit", "Y"); // 수정 후 조회수 증가 방지
+            redirectAttributes.addFlashAttribute("noHit", "Y");
         }
 
         return "redirect:/gallery/detail.do";
