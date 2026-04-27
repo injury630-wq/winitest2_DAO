@@ -25,6 +25,7 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
     @Value("${gallery.upload.path}")
     private String uploadPath;
 
+    /** 목록 + 전체 건수를 Map 하나로 묶어 반환 */
     @Override
     public Map<String, Object> getGalleryList(Map<String, Object> param) throws Exception {
         List<Map<String, Object>> list = galleryDAO.selectGalleryList(param);
@@ -35,6 +36,7 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
         return result;
     }
 
+    /** DAO 위임 */
     @Override
     public Map<String, Object> getGalleryDetail(Map<String, Object> param) throws Exception {
         return galleryDAO.selectGalleryDetail(param);
@@ -53,6 +55,7 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
         return savedFiles;
     }
 
+    /** board_no 채번 -> 파일 활성화 -> 썸네일 확정 -> 게시글 Insert */
     @Transactional
     @Override
     public Map<String, Object> saveGallery(Map<String, Object> param) throws Exception {
@@ -68,6 +71,7 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
         return result;
     }
 
+    /** 삭제 파일 논리삭제 -> 신규 파일 활성화 -> 썸네일 재설정 -> 게시글 Update */
     @Transactional
     @Override
     public Map<String, Object> editGallery(Map<String, Object> param) throws Exception {
@@ -91,6 +95,7 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
         return result;
     }
 
+    /** 연결 파일 전체 논리삭제 후 게시글 논리삭제 */
     @Transactional
     @Override
     public Map<String, Object> deleteGallery(Map<String, Object> param) throws Exception {
@@ -110,21 +115,25 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
         return result;
     }
 
+    /** DAO 위임 */
     @Override
     public List<Map<String, Object>> getGalleryFiles(Map<String, Object> param) throws Exception {
         return galleryDAO.selectGalleryFiles(param);
     }
 
+    /** DAO 위임 */
     @Override
     public void logicalDeleteFile(Map<String, Object> param) throws Exception {
         galleryDAO.logicalDeleteFile(param);
     }
 
+    /** DAO 위임 */
     @Override
     public Map<String, Object> selectFileDetail(Map<String, Object> param) throws Exception {
         return galleryDAO.selectGalleryFileDetail(param);
     }
 
+    /** 조회수 1 증가 후 갱신된 조회수 반환 */
     @Override
     public int updateHit(Map<String, Object> param) throws Exception {
         galleryDAO.updateHit(param);

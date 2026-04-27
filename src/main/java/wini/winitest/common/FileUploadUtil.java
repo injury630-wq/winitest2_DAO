@@ -25,10 +25,9 @@ public class FileUploadUtil {
 
     /**
      * 이미지 파일들을 서버 디렉토리에 저장하고, 그 정보를 리스트로 반환함.
-     * * @param files     사용자가 업로드한 파일 객체 리스트
-     * @param uploadDir 파일이 저장될 서버의 물리적 경로
-     * @param regUser   등록자 식별 정보 (보통 세션의 사용자 ID)
-     * @return List<Map> DB의 File 테이블에 Insert하기 위해 가공된 데이터 리스트
+     *  files     사용자가 업로드한 파일 객체 리스트
+     *  uploadDir 파일이 저장될 서버의 물리적 경로
+     * List<Map> DB의 File 테이블에 Insert하기 위해 가공된 데이터 리스트 return
      */
     public static List<Map<String, Object>> saveImages(
             List<MultipartFile> files, String uploadDir) throws Exception {
@@ -51,17 +50,17 @@ public class FileUploadUtil {
             int dotIdx = orgName != null ? orgName.lastIndexOf('.') : -1;
             String ext  = dotIdx >= 0 ? orgName.substring(dotIdx + 1).toLowerCase() : "";
 
-            // 5. 이미지 필터링: 허용되지 않은 확장자는 저장하지 않고 건너뜀 (보안 위협 방지)
+            // 이미지 필터링: 허용되지 않은 확장자는 저장하지 않고 건너뜀 (보안 위협 방지)
             if (!IMAGE_EXTS.contains(ext)) continue;
 
-            // 6. 파일명 암호화(UUID): 중복 방지 및 보안
+            // 파일명 암호화(UUID): 중복 방지 및 보안
             // 동일한 이름의 파일이 업로드되어 기존 파일이 덮어씌워지는 것을 방지함
             String fileName = UUID.randomUUID().toString() + "." + ext;
             
-            // 7. 물리적 저장 실행: 메모리에 있는 데이터를 서버 디스크로 이동
+            // 물리적 저장 실행: 메모리에 있는 데이터를 서버 디스크로 이동
             file.transferTo(new File(dir, fileName));
 
-            // 8. DB 삽입용 데이터 맵핑
+            // DB 삽입용 데이터 맵핑
             // 호출한 서비스 계층에서 바로 Mapper(MyBatis 등)로 전달할 수 있게 가공함
             Map<String, Object> m = new HashMap<>();
             m.put("filePath", uploadDir);   // 저장 경로
