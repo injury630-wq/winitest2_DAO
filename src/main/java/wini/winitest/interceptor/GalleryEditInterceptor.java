@@ -28,42 +28,23 @@ public class GalleryEditInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
                              Object handler) throws Exception {
         String boardNoStr = request.getParameter("boardNo");
-        if (boardNoStr == null || boardNoStr.trim().isEmpty()) {
-            return true;
-        }
+        if (boardNoStr == null || boardNoStr.trim().isEmpty()) return true; // 신규 등록
 
         @SuppressWarnings("unchecked")
         Map<String, Object> loginUser =
             (Map<String, Object>) request.getSession().getAttribute("loginUser");
-        if (loginUser == null) {
-            response.sendRedirect(request.getContextPath() + "/user/login.do");
-            return false;
-        }
 
-        if ("Y".equals(loginUser.get("adminYn"))) return true;
+        if ("Y".equals(loginUser.get("adminYn"))) return true; // 관리자 통과
 
         Map<String, Object> param = new HashMap<>();
         param.put("boardNo", Integer.parseInt(boardNoStr.trim()));
         Map<String, Object> board = galleryDAO.selectGalleryDetail(param);
 
-        if (board == null) {
-            response.sendRedirect(request.getContextPath() + "/gallery/list.do");
-            return false;
+        if (String.valueOf(loginUser.get("userNo")).equals(String.valueOf(board.get("regUser")))) {
+            return true; // 작성자 통과
         }
 
-        Object myNo      = loginUser.get("userNo");
-        Object boardUser = board.get("regUser");
-        if (myNo != null && String.valueOf(myNo).equals(String.valueOf(boardUser))) {
-            return true;
-        }
-
-        if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
-            response.setContentType("application/json;charset=UTF-8");
-            response.setStatus(403);
-            response.getWriter().write("{\"msg\":\"X\",\"desc\":\"수정 권한이 없습니다.\"}");
-        } else {
-            response.sendRedirect(request.getContextPath() + "/gallery/list.do");
-        }
+        response.sendRedirect(request.getContextPath() + "/gallery/list.do");
         return false;
     }
 

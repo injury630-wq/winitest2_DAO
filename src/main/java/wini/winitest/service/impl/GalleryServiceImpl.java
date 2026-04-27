@@ -40,77 +40,26 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
         return galleryDAO.selectGalleryDetail(param);
     }
 
-    /* ===== Ajax 임시업로드 방식 추가 ===== */
+    /** 임시 파일 저장 (Ajax 업로드 직후 - use_yn='N', board_no=0) */
     @Override
     public List<Map<String, Object>> saveTempFiles(List<MultipartFile> files,
                                                     Object regUser) throws Exception {
-        List<Map<String, Object>> savedFiles = FileUploadUtil.saveImages(files, uploadPath, regUser);
+        List<Map<String, Object>> savedFiles = FileUploadUtil.saveImages(files, uploadPath);
         for (Map<String, Object> fp : savedFiles) {
             fp.put("boardNo", 0);
+            fp.put("regUser", regUser);
             galleryDAO.insertTempFile(fp);
         }
         return savedFiles;
     }
 
-    private void activateNewFiles(Map<String, Object> param, int boardNo) throws Exception {
-        @SuppressWarnings("unchecked")
-        List<String> activeFileNos = (List<String>) param.get("activeFileNos");
-        if (activeFileNos == null || activeFileNos.isEmpty()) return;
-        List<Integer> fileNoInts = new ArrayList<>();
-        for (String s : activeFileNos) fileNoInts.add(Integer.parseInt(s.trim()));
-        Map<String, Object> ap = new HashMap<>();
-        ap.put("boardNo", boardNo);
-        ap.put("fileNos", fileNoInts);
-        galleryDAO.activateFiles(ap);
-    }
-
-    private void resolveThumbDirect(Map<String, Object> param) {
-        String thumbStr = param.get("thumbFileNo") != null
-                          ? String.valueOf(param.get("thumbFileNo")) : "";
-        if (!thumbStr.isEmpty() && !"null".equals(thumbStr) && !"0".equals(thumbStr)) {
-            param.put("thumbFileNo", Integer.parseInt(thumbStr));
-        } else {
-            param.put("thumbFileNo", null);
-        }
-    }
-    /* ===== Ajax 임시업로드 방식 끝 ===== */
-
     @Transactional
     @Override
-    public Map<String, Object> saveGallery(Map<String, Object> param,
-                                            List<MultipartFile> files) throws Exception {
-        // 1. boardNo 채번
+    public Map<String, Object> saveGallery(Map<String, Object> param) throws Exception {
         int boardNo = galleryDAO.selectNextBoardNo();
         param.put("boardNo", boardNo);
-
-        /* ===== [신방식] Ajax 임시업로드 활성화 =====
-         * 파일은 업로드 시점에 이미 file_master(use_yn='N')에 저장됨.
-         * board_no 확정 + use_yn='Y' 로 변경만 수행. */
-        activateNewFiles(param, boardNo);
-        resolveThumbDirect(param);
-        /* ===== [신방식] 끝 ===== */
-
-        /* ===== [구방식 - 롤백용 주석] __IMG_N__ 치환 방식 =====
-        Object regUser = param.get("regUser");
-        List<Map<String, Object>> savedFiles = FileUploadUtil.saveImages(files, uploadPath, regUser);
-        for (Map<String, Object> fp : savedFiles) {
-            fp.put("boardNo", boardNo);
-            galleryDAO.insertGalleryFile(fp);
-        }
-        String content = (String) param.get("content");
-        if (content != null) {
-            for (int i = 0; i < savedFiles.size(); i++) {
-                content = content.replace(
-                    "__IMG_" + i + "__",
-                    "gallery/imgView.do?fileNo=" + savedFiles.get(i).get("fileNo")
-                );
-            }
-        }
-        param.put("content", content);
-        resolveThumb(param, savedFiles);
-        ===== [구방식] 끝 ===== */
-
-        // 2. 게시글 저장
+        activateFiles(param, boardNo);
+        resolveThumb(param);
         galleryDAO.insertGallery(param);
 
         Map<String, Object> result = new HashMap<>();
@@ -121,12 +70,9 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
 
     @Transactional
     @Override
-    public Map<String, Object> editGallery(Map<String, Object> param,
-                                            List<MultipartFile> files) throws Exception {
+    public Map<String, Object> editGallery(Map<String, Object> param) throws Exception {
         int boardNo = Integer.parseInt(param.get("boardNo").toString());
 
-        // 기존 파일 논리 삭제 (구방식·신방식 공통)
-        @SuppressWarnings("unchecked")
         List<String> deleteFileNos = (List<String>) param.get("deleteFileNos");
         if (deleteFileNos != null) {
             for (String fn : deleteFileNos) {
@@ -136,32 +82,8 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
             }
         }
 
-        /* ===== [신방식] Ajax 임시업로드 활성화 ===== */
-        activateNewFiles(param, boardNo);
-        resolveThumbDirect(param);
-        /* ===== [신방식] 끝 ===== */
-
-        /* ===== [구방식 - 롤백용 주석] __IMG_N__ 치환 방식 =====
-        Object modUser = param.get("modUser");
-        List<Map<String, Object>> savedFiles = FileUploadUtil.saveImages(files, uploadPath, modUser);
-        for (Map<String, Object> fp : savedFiles) {
-            fp.put("boardNo", boardNo);
-            galleryDAO.insertGalleryFile(fp);
-        }
-        String content = (String) param.get("content");
-        if (content != null) {
-            for (int i = 0; i < savedFiles.size(); i++) {
-                content = content.replace(
-                    "__IMG_" + i + "__",
-                    "gallery/imgView.do?fileNo=" + savedFiles.get(i).get("fileNo")
-                );
-            }
-        }
-        param.put("content", content);
-        resolveThumb(param, savedFiles);
-        ===== [구방식] 끝 ===== */
-
-        // 게시글 수정
+        activateFiles(param, boardNo);
+        resolveThumb(param);
         galleryDAO.updateGallery(param);
 
         Map<String, Object> result = new HashMap<>();
@@ -172,19 +94,15 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
     @Transactional
     @Override
     public Map<String, Object> deleteGallery(Map<String, Object> param) throws Exception {
-        int boardNo = Integer.parseInt(param.get("boardNo").toString());
         Map<String, Object> boardParam = new HashMap<>();
-        boardParam.put("boardNo", boardNo);
+        boardParam.put("boardNo", Integer.parseInt(param.get("boardNo").toString()));
 
-        // 파일 논리 삭제
         List<Map<String, Object>> files = galleryDAO.selectGalleryFiles(boardParam);
         for (Map<String, Object> f : files) {
             Map<String, Object> fp = new HashMap<>();
             fp.put("fileNo", f.get("fileNo"));
             galleryDAO.logicalDeleteFile(fp);
         }
-
-        // 게시글 논리 삭제
         galleryDAO.logicalDeleteGallery(param);
 
         Map<String, Object> result = new HashMap<>();
@@ -211,28 +129,25 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
     public int updateHit(Map<String, Object> param) throws Exception {
         galleryDAO.updateHit(param);
         Map<String, Object> board = galleryDAO.selectGalleryDetail(param);
-        return (Integer)board.get("hit");
+        return board != null ? ((Number) board.get("hit")).intValue() : 0;
     }
 
-    /* ===== [구방식 - 롤백용 주석] resolveThumb =====
-    private void resolveThumb(Map<String, Object> param, List<Map<String, Object>> savedFiles) {
-        String thumbFileNoStr = param.get("thumbFileNo") != null
-                                ? String.valueOf(param.get("thumbFileNo")) : "";
-        String thumbIndexStr  = param.get("thumbIndex") != null
-                                ? String.valueOf(param.get("thumbIndex")) : "";
-
-        if (!thumbFileNoStr.isEmpty() && !thumbFileNoStr.equals("null")) {
-            param.put("thumbFileNo", Integer.parseInt(thumbFileNoStr));
-            return;
-        }
-        if (!thumbIndexStr.isEmpty() && !thumbIndexStr.equals("-1")) {
-            int idx = Integer.parseInt(thumbIndexStr);
-            if (idx >= 0 && idx < savedFiles.size()) {
-                param.put("thumbFileNo", savedFiles.get(idx).get("fileNo"));
-                return;
-            }
-        }
-        param.put("thumbFileNo", savedFiles.isEmpty() ? null : savedFiles.get(0).get("fileNo"));
+    /** 임시 파일 활성화 (use_yn 'N'→'Y', board_no 확정) */
+    private void activateFiles(Map<String, Object> param, int boardNo) throws Exception {
+        List<String> activeFileNos = (List<String>) param.get("activeFileNos");
+        if (activeFileNos == null || activeFileNos.isEmpty()) return;
+        List<Integer> fileNoInts = new ArrayList<>();
+        for (String s : activeFileNos) fileNoInts.add(Integer.parseInt(s.trim()));
+        Map<String, Object> ap = new HashMap<>();
+        ap.put("boardNo", boardNo);
+        ap.put("fileNos", fileNoInts);
+        galleryDAO.activateFiles(ap);
     }
-    ===== [구방식] 끝 ===== */
+
+    /** thumbFileNo 문자열 → Integer 변환 */
+    private void resolveThumb(Map<String, Object> param) {
+        String s = param.get("thumbFileNo") != null ? String.valueOf(param.get("thumbFileNo")) : "";
+        param.put("thumbFileNo", (!s.isEmpty() && !"null".equals(s) && !"0".equals(s))
+                                 ? Integer.parseInt(s) : null);
+    }
 }

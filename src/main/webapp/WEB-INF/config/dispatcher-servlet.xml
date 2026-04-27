@@ -89,10 +89,9 @@
        </bean>
    </mvc:interceptor>
 
-   <!-- 3. 갤러리 수정 접근 제어 - 작성자 또는 관리자만 허용 -->
+   <!-- 3. 갤러리 수정 폼 접근 제어 - 작성자 또는 관리자만 허용 (수정/삭제 저장은 컨트롤러에서 체크) -->
    <mvc:interceptor>
        <mvc:mapping path="/gallery/form.do"/>
-       <mvc:mapping path="/gallery/save.do"/>
        <bean class="wini.winitest.interceptor.GalleryEditInterceptor">
            <constructor-arg ref="galleryDAO"/>
        </bean>

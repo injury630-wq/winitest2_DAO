@@ -31,14 +31,9 @@
         <tr>
             <th>내용</th>
             <td colspan="3">
-                <%-- [신방식] Ajax 임시업로드: 실제 imgView URL이 저장되므로 c:out으로 바로 렌더링 --%>
                 <div class="content-area gallery-content">
                     <c:out value="${gallery.content}" escapeXml="false"/>
                 </div>
-                <%-- [구방식 롤백용] blob URL → __IMG_N__ 방식 사용 시 아래로 교체
-                <div id="savedContent" style="display:none">${gallery.content}</div>
-                <div id="contentDisplay" class="content-area gallery-content"></div>
-                --%>
             </td>
         </tr>
     </table>
@@ -76,41 +71,34 @@
 }
 </style>
 
-<form id="deleteForm" method="post" action="gallery/delete.do">
-    <input type="hidden" name="boardNo" value="${gallery.boardNo}"/>
-</form>
-
 <script>
-/* [구방식 롤백용] blob URL → __IMG_N__ 방식 사용 시 주석 해제
-document.getElementById('contentDisplay').innerHTML =
-    document.getElementById('savedContent').innerHTML;
-*/
-
 function confirmDelete() {
     if (!confirm('삭제하시겠습니까?')) return;
-    document.getElementById('deleteForm').submit();
+    $.ajax({
+        url: 'gallery/delete.do',
+        type: 'POST',
+        data: { boardNo: '${gallery.boardNo}' },
+        dataType: 'json',
+        success: function (res) {
+            if (res.msg === 'S') {
+                goPost('gallery/list.do');
+            } else if (res.msg === 'X') {
+                alert('삭제 권한이 없습니다.');
+            } else {
+                alert('삭제 중 오류가 발생하였습니다.');
+            }
+        },
+        error: function () { alert('서버 오류가 발생하였습니다.'); }
+    });
 }
 
-/* async function updateHit() {
-    try {
-        let res = await fetch('gallery/updateHitAjax.do', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: new URLSearchParams({boardNo: '${gallery.boardNo}'})
-        });
-        var hit = await res.text();
-        document.getElementById('hit').innerText = hit;
-    } catch (e) { console.error(e); }
-} */
 function updateHit() {
-  $.post('gallery/updateHitAjax.do', {
-      boardNo: '${gallery.boardNo}'
-  }, function(res) {
-      $('#hit').text(res.hit);
-  });
+    $.post('gallery/updateHitAjax.do', { boardNo: '${gallery.boardNo}' }, function (res) {
+        $('#hit').text(res.hit);
+    });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    if ('${noHit}' != 'Y') updateHit();
+document.addEventListener('DOMContentLoaded', function () {
+    if ('${noHit}' !== 'Y') updateHit();
 });
 </script>
