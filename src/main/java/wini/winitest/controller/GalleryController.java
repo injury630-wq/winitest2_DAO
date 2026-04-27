@@ -14,6 +14,7 @@ import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -50,7 +51,7 @@ public class GalleryController {
     // 갤러리 목록 (POST: 사용자 직접 이동 / GET: 삭제 후 redirect)
     @RequestMapping(value = "/gallery/list.do", method = {RequestMethod.GET, RequestMethod.POST})
     public String galleryList(@RequestParam Map<String, Object> param, Model model) throws Exception {
-        PaginationInfo paginationInfo = PagingUtil.create(param, 8, 5);
+        PaginationInfo paginationInfo = PagingUtil.create(param, 8, 10);
         Map<String, Object> result = galleryService.getGalleryList(param);
         int totalCount = (int) result.get("totalCount");
         paginationInfo.setTotalRecordCount(totalCount);
@@ -61,26 +62,17 @@ public class GalleryController {
     }
 
     // 갤러리 상세 (POST: 사용자 직접 이동 / GET: 저장·수정 후 redirect 전용)
-    @RequestMapping(value = "/gallery/detail.do", method = {RequestMethod.GET, RequestMethod.POST})
+    @RequestMapping(value = "/gallery/detail.do", method = RequestMethod.POST)
     public String galleryDetail(@RequestParam Map<String, Object> param,
                                  HttpServletRequest request, Model model) throws Exception {
-        if ("GET".equals(request.getMethod())) {
-            // GET은 redirect 전용. Flash Attribute 없으면 직접 URL 접근으로 간주 → 목록으로
-            // (?boardNo=3 같은 쿼리스트링 직접 입력도 여기서 차단)
-            if (!model.asMap().containsKey("boardNo")) {
-                return "redirect:/gallery/list.do";
-            }
-            param.clear();
-            param.put("boardNo", String.valueOf(model.asMap().get("boardNo")));
-        }
-        if (anyBlank(param, "boardNo")) {
-            return "redirect:/gallery/list.do";
-        }
+
         Map<String, Object> gallery = galleryService.getGalleryDetail(param);
-        if (gallery == null) {
+        if (gallery == null) {// 존재하지 않는 글 접근
             return "redirect:/gallery/list.do";
         }
         model.addAttribute("gallery", gallery);
+        model.addAttribute("noHit", param.get("noHit"));
+        
         return "gallery/detail";
     }
 
@@ -92,7 +84,6 @@ public class GalleryController {
                                                HttpSession session) throws Exception {
         Map<String, Object> result = new HashMap<>();
         try {
-            @SuppressWarnings("unchecked")
             Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
             List<MultipartFile> files = mreq.getFiles("uploadFile");
             List<Map<String, Object>> saved = galleryService.saveTempFiles(files, loginUser.get("userNo"));
@@ -106,12 +97,19 @@ public class GalleryController {
     // ===== Ajax 임시업로드 방식 끝 =====
 
     // 조회수 증가 (AJAX)
+//    @RequestMapping(value = "/gallery/updateHitAjax.do", method = RequestMethod.POST)
+//    public void updateHitAjax(@RequestParam Map<String, Object> param,
+//                               HttpServletResponse response) throws Exception {
+//        int hit = galleryService.updateHit(param);
+//        response.setContentType("text/plain;charset=UTF-8");
+//        response.getWriter().write(String.valueOf(hit));
+//    }
     @RequestMapping(value = "/gallery/updateHitAjax.do", method = RequestMethod.POST)
-    public void updateHitAjax(@RequestParam Map<String, Object> param,
-                               HttpServletResponse response) throws Exception {
-        int hit = galleryService.updateHit(param);
-        response.setContentType("text/plain;charset=UTF-8");
-        response.getWriter().write(String.valueOf(hit));
+    @ResponseBody
+    public Map<String, Object> updateHitAjax(@RequestParam Map<String, Object> param) throws Exception {
+    	Map<String, Object> result = new HashMap<>();
+    	result.put("hit", galleryService.updateHit(param));
+      return result;
     }
 
     // 등록/수정 폼 (POST only - 사용자가 버튼을 눌러 진입)
@@ -137,38 +135,97 @@ public class GalleryController {
                                MultipartHttpServletRequest mreq,
                                HttpSession session,
                                RedirectAttributes redirectAttributes) throws Exception {
-        if (anyBlank(param, "title")) {
-            return "redirect:/gallery/list.do";
-        }
+//        if (anyBlank(param, "title")) {
+//            return "redirect:/gallery/list.do";
+//        }
 
         @SuppressWarnings("unchecked")
         Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
         List<MultipartFile> files = mreq.getFiles("uploadFile");
 
-        // ===== [신방식] 활성화할 fileNo 목록 수집 =====
+        // ===== 활성화할 fileNo 목록 수집 =====
         String[] activeNos = mreq.getParameterValues("activeFileNo");
         if (activeNos != null && activeNos.length > 0) {
             param.put("activeFileNos", Arrays.asList(activeNos));
         }
-        // ===== [신방식] 끝 =====
+        // ===== 끝 =====
 
         String boardNoStr = (String) param.get("boardNo");
-        if (boardNoStr == null || boardNoStr.trim().isEmpty()) {
+        /* =============등록/수정 판별================*/
+        if (boardNoStr == null || boardNoStr.isEmpty()) {
             param.put("regUser", loginUser.get("userNo"));
             Map<String, Object> result = galleryService.saveGallery(param, files);
             redirectAttributes.addFlashAttribute("boardNo", result.get("boardNo"));
-        } else {
+        } else { //수정처리
             param.put("modUser", loginUser.get("userNo"));
             String[] deleteNos = mreq.getParameterValues("deleteFileNo");
             if (deleteNos != null && deleteNos.length > 0) {
                 param.put("deleteFileNos", Arrays.asList(deleteNos));
             }
             galleryService.editGallery(param, files);
-            redirectAttributes.addFlashAttribute("boardNo", boardNoStr.trim());
+            redirectAttributes.addFlashAttribute("boardNoStr", boardNoStr);
             redirectAttributes.addFlashAttribute("noHit", "Y");
         }
 
         return "redirect:/gallery/detail.do";
+    }
+ // ===== 수정/등록 처리 ajax =====
+    @ResponseBody
+    @RequestMapping(value = "/gallery/saveAjax.do", method = RequestMethod.POST)
+    public Map<String, Object> gallerySave(@RequestParam Map<String, Object> param,
+                                           MultipartHttpServletRequest mreq,
+                                           HttpSession session) throws Exception {
+
+        Map<String, Object> result = new HashMap<>();
+
+        Map<String, Object> loginUser =
+            (Map<String, Object>) session.getAttribute("loginUser");
+
+        List<MultipartFile> files = mreq.getFiles("uploadFile");
+
+        String boardNo = (String) param.get("boardNo");
+
+        // ===== 공통 파일 처리 =====
+        String[] activeNos = mreq.getParameterValues("activeFileNo");
+        if (activeNos != null && activeNos.length > 0) {
+            param.put("activeFileNos", Arrays.asList(activeNos));
+        }
+
+        // =========================
+        // 등록
+        // =========================
+        if (boardNo == null || boardNo.isEmpty()) {
+
+            param.put("regUser", loginUser.get("userNo"));
+
+            Map<String, Object> saveResult =
+                galleryService.saveGallery(param, files);
+
+            result.put("boardNo", saveResult.get("boardNo"));
+            result.put("mode", "insert");
+
+        }
+        // =========================
+        // 수정
+        // =========================
+        else {
+
+            param.put("modUser", loginUser.get("userNo"));
+
+            String[] deleteNos = mreq.getParameterValues("deleteFileNo");
+            if (deleteNos != null && deleteNos.length > 0) {
+                param.put("deleteFileNos", Arrays.asList(deleteNos));
+            }
+
+            galleryService.editGallery(param, files);
+
+            result.put("boardNo", boardNo);
+            result.put("mode", "update");
+        }
+
+        result.put("msg", "S");
+
+        return result;
     }
 
     // 삭제

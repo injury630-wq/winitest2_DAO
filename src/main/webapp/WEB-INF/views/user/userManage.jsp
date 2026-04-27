@@ -116,7 +116,10 @@
 														<%-- 수정 모드: 미입력 시 비밀번호 변경 안 함 --%>
 														<div id="pwUpdateDiv" style="display:none;" class="row g-2">
 																<div class="text-muted mb-1">비밀번호 (미입력 시 변경 안함)</div>
+																<div class="input-group">
 																<input type="password" id="userPwView" onfocus="this.select()" class="form-control form-control-sm" maxlength="25"/>
+		                            <button type="button" class="btn btn-outline-secondary" onclick="togglePw('userPwView', this)">표시</button>
+                        				</div>
 																<p id="userPwMsg2" class="guide-msg"></p>
 																<input type="password" id="userPwChange" maxlength="25"
 																		class="form-control form-control-sm visually-hidden"/>
@@ -243,6 +246,7 @@
 
 			selectedRow = $(this);
 			selectedUserNo = $(this).data('userNo');
+			console.log(selectedRow.data('userNo'));
 
 			$.ajax({
 				type : 'post',
@@ -430,7 +434,7 @@
 		$('#pwUpdateDiv').show();
 		$('#userPwView').val('*'.repeat(user.userPwLen || 0));
 		$('#userPwChange').val('');
-		$('#userIdMsg, #userPwMsg').text('').css('color', '');
+		$('#userIdMsg, #userPwMsg, #userPwMsg2').text('').css('color', '');
 
 		let isSelf = (user.userNo == loginUserNo);
 		$('#btnRegist').prop('disabled', true).removeClass('btn-primary').addClass('btn-secondary');

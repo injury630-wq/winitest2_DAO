@@ -84,7 +84,7 @@
 
         <div class="d-flex justify-content-center gap-2 mt-3">
             <button type="button" class="btn btn-outline-secondary" onclick="goCancel()">취소</button>
-            <button type="submit" id="btnSave" class="btn btn-danger" onclick="return validate()">저장</button>
+            <button type="button" id="btnSave" class="btn btn-danger" onclick="validateAndSave()">저장</button>
         </div>
     </form>
 </div>
@@ -287,6 +287,7 @@ function goCancel() {
     document.getElementById('cancelForm').submit();
 }
 
+// 컨트롤러에서 전부 처리 플래십
 function validate() {
     var title = document.getElementById('titleInput').value.trim();
     if (!title) { alert('제목을 입력하세요.'); return false; }
@@ -314,10 +315,77 @@ function validate() {
     /* content: 에디터 HTML 그대로 저장 (이미 실제 imgView URL 사용 중) */
     document.getElementById('contentInput').value =
         document.getElementById('editor').innerHTML.trim();
+    saveGallery();
     return true;
 }
+
+function validateAndSave() {
+  var title = document.getElementById('titleInput').value.trim();
+  if (!title) { alert('제목을 입력하세요.'); return false; }
+
+  var imgCount = document.getElementById('editor').querySelectorAll('img').length;
+  if (imgCount === 0) { alert('이미지를 최소 1개 등록해야 합니다.'); return false; }
+
+  if (!document.querySelector('input[name="thumbSelect"]:checked')) {
+      alert('썸네일을 선택해야 합니다.'); return false;
+  }
+
+  /* 이전 제출 시 추가된 activeFileNo 제거 (중복 방지) */
+  document.querySelectorAll('input[name="activeFileNo"]').forEach(function (el) { el.remove(); });
+
+  /* 활성화할 신규 파일 목록 hidden input으로 추가 */
+  var form = document.getElementById('galleryForm');
+  fileEntries.filter(function (e) { return !e.deleted; }).forEach(function (e) {
+      var inp = document.createElement('input');
+      inp.type  = 'hidden';
+      inp.name  = 'activeFileNo';
+      inp.value = e.fileNo;
+      form.appendChild(inp);
+  });
+
+  /* content: 에디터 HTML 그대로 저장 (이미 실제 imgView URL 사용 중) */
+  document.getElementById('contentInput').value =
+      document.getElementById('editor').innerHTML.trim();
+  saveGallery();
+}
+
 /* ===== [신방식] 끝 ===== */
 
+/* 등록/수정 ajax 요청 */
+function saveGallery() {
+
+   	let formData = new FormData($("#galleryForm")[0]);
+
+    $.ajax({
+        url: "gallery/saveAjax.do",
+        type: "POST",
+        data: formData,
+        processData: false, //문자열 변환금지
+        contentType: false, // 헤더 자동설정 금지 multipart 폼 데이터로 그대로 보내기
+        success: function(res) {
+
+            if (res.msg === "S") {
+
+                if (res.mode === "insert") {
+                    alert("등록되었습니다.");
+                } else {
+                    alert("수정되었습니다.");
+                }
+
+                goPost("gallery/detail.do", {
+                    boardNo: res.boardNo,
+                    noHit: "Y"
+                });
+
+            } else {
+                alert("처리 실패");
+            }
+        },
+        error: function() {
+            alert("서버 오류");
+        }
+    });
+}
 
 /* ===== [구방식 롤백용 주석] DataTransfer + blob URL + __IMG_N__ 방식 =====
 

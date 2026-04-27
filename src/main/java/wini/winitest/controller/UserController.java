@@ -1,6 +1,7 @@
 package wini.winitest.controller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import egovframework.com.utl.slm.EgovHttpSessionBindingListener;
 import wini.winitest.common.RoleUtil;
+import wini.winitest.service.MenuService;
 import wini.winitest.service.UserService;
 
 @Controller
@@ -24,6 +26,9 @@ public class UserController {
 
     @Resource(name = "userService")
     private UserService userService;
+    
+    @Resource(name = "menuService")
+    private MenuService menuService;
 
     /** param 맵에서 하나라도 null/빈값이면 true */
     private boolean anyBlank(Map<String, Object> param, String... keys) {
@@ -64,6 +69,9 @@ public class UserController {
                 return "bridge";
             }
             request.getSession().setAttribute("loginUser", loginUser);
+            // 메뉴 정보 세션에 저장
+            List<Map<String, Object>> menuList = menuService.selectMenuList();
+            request.getSession().setAttribute("menuList", menuList);
             EgovHttpSessionBindingListener listener = new EgovHttpSessionBindingListener();
             request.getSession().setAttribute((String) loginUser.get("userId"), listener);
             param.put("bridgeUrl", "board/list.do");
@@ -72,6 +80,8 @@ public class UserController {
         }
         param.put("error", "1");
         param.put("bridgeUrl", "user/login.do");
+        
+        
         model.addAttribute("param", param);
         return "bridge";
     }
@@ -167,7 +177,6 @@ public class UserController {
                 result.put("msg", "D");
                 return result;
             }
-            @SuppressWarnings("unchecked")
             Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
             int myCodeNo  = RoleUtil.getCodeNo(loginUser);
             int newCodeNo = Integer.parseInt(String.valueOf(param.get("codeNo")));
@@ -185,7 +194,6 @@ public class UserController {
     }
 
     // 사용자 수정 (관리자 - Ajax)
-    @SuppressWarnings("finally")
     @ResponseBody
     @RequestMapping(value = "/user/userUpdate.do", method = RequestMethod.POST)
     public Map<String, Object> userUpdate(@RequestParam Map<String, Object> param,
@@ -197,11 +205,9 @@ public class UserController {
                 result.put("desc", "필수 항목이 누락되었습니다.");
                 return result;
             }
-            @SuppressWarnings("unchecked")
             Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
             int targetUserNo = Integer.parseInt(String.valueOf(param.get("userNo")));
 
-            @SuppressWarnings("unchecked")
             Map<String, Object> targetUser = (Map<String, Object>) userService.selectUserDetail(targetUserNo).get("user");
             if (targetUser == null) {
                 result.put("msg", "F");

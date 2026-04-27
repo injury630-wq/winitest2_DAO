@@ -211,7 +211,7 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
     public int updateHit(Map<String, Object> param) throws Exception {
         galleryDAO.updateHit(param);
         Map<String, Object> board = galleryDAO.selectGalleryDetail(param);
-        return board != null ? ((Number) board.get("hit")).intValue() : 0;
+        return (Integer)board.get("hit");
     }
 
     /* ===== [구방식 - 롤백용 주석] resolveThumb =====

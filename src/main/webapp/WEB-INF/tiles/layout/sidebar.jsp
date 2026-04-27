@@ -21,15 +21,20 @@
 <c:forEach var="menu" items="${menuList}">
     <li class="nav-item">
         <c:choose>
-            <c:when test="${not empty menu.proPath}">
+            <c:when test="${not empty menu.proPath}"> <!-- 하위메뉴 + 연결된 프로그램 있음 -->
                 <button type="button" class="btn w-100 text-start"
                         style="padding-left: ${menu.menuLev * 20}px"
                         onclick="goPost('<c:out value="${menu.proPath}"/>')">
                     <c:out value="${menu.menuName}"/>
                 </button>
             </c:when>
-            <c:otherwise>
+            <c:when test="${empty menu.parentNo}"> <!-- 최상위 메뉴 -->
                 <div class="fw-bold px-2 py-1" style="padding-left: ${menu.menuLev * 20}px">
+                    <c:out value="${menu.menuName}"/>
+                </div>
+            </c:when>
+            <c:otherwise>	<!-- 하위메뉴 + 연결된 프로그램 없음 -->
+            	<div class="" style="padding-left: ${menu.menuLev * 20}px">
                     <c:out value="${menu.menuName}"/>
                 </div>
             </c:otherwise>

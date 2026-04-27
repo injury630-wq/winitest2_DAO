@@ -26,7 +26,7 @@
         </tr>
         <tr>
             <th>조회수</th>
-            <td colspan="3" id="hit">${gallery.hit}</td>
+            <td colspan="3" id="hit"><c:out value="${gallery.hit}"/></td>
         </tr>
         <tr>
             <th>내용</th>
@@ -91,9 +91,9 @@ function confirmDelete() {
     document.getElementById('deleteForm').submit();
 }
 
-async function updateHit() {
+/* async function updateHit() {
     try {
-        var res = await fetch('gallery/updateHitAjax.do', {
+        let res = await fetch('gallery/updateHitAjax.do', {
             method: 'POST',
             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
             body: new URLSearchParams({boardNo: '${gallery.boardNo}'})
@@ -101,9 +101,16 @@ async function updateHit() {
         var hit = await res.text();
         document.getElementById('hit').innerText = hit;
     } catch (e) { console.error(e); }
+} */
+function updateHit() {
+  $.post('gallery/updateHitAjax.do', {
+      boardNo: '${gallery.boardNo}'
+  }, function(res) {
+      $('#hit').text(res.hit);
+  });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    if ('${noHit}' !== 'Y') updateHit();
+    if ('${noHit}' != 'Y') updateHit();
 });
 </script>
