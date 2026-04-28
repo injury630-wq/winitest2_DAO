@@ -160,9 +160,9 @@ public class UserController {
                 return result;
             }
             Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
-            int myCodeNo  = RoleUtil.getCodeNo(loginUser);
-            int newCodeNo = Integer.parseInt(String.valueOf(param.get("codeNo")));
-            if (myCodeNo <= newCodeNo) {
+            int myRoleRank  = RoleUtil.getRoleRank(loginUser);
+            int newRoleRank = Integer.parseInt(String.valueOf(param.get("roleRank")));
+            if (myRoleRank <= newRoleRank) {
                 result.put("msg", "X");
                 result.put("desc", "등록하려는 사용자의 권한이 너무 높습니다.");
                 return result;
@@ -192,12 +192,12 @@ public class UserController {
                 return result;
             }
 
-            int currentCodeNo = RoleUtil.getCodeNo(targetUser);
-            int newCodeNo     = Integer.parseInt(String.valueOf(param.get("codeNo")));
-            String newUseYn   = String.valueOf(param.get("useYn"));
+            int currentRoleRank = RoleUtil.getRoleRank(targetUser);
+            int newRoleRank     = Integer.parseInt(String.valueOf(param.get("roleRank")));
+            String newUseYn     = String.valueOf(param.get("useYn"));
 
             if (RoleUtil.isSelf(loginUser, targetUserNo)) {
-                if (newCodeNo > currentCodeNo) {
+                if (newRoleRank > currentRoleRank) {
                     result.put("msg", "X");
                     result.put("desc", "본인의 권한을 상향할 수 없습니다.");
                     return result;
@@ -208,12 +208,12 @@ public class UserController {
                     return result;
                 }
             } else {
-                if (!RoleUtil.canEditUser(loginUser, targetUserNo, currentCodeNo)) {
+                if (!RoleUtil.canEditUser(loginUser, targetUserNo, currentRoleRank)) {
                     result.put("msg", "X");
                     result.put("desc", "대상 사용자의 권한이 본인과 같거나 높습니다.");
                     return result;
                 }
-                if (currentCodeNo != newCodeNo && !RoleUtil.canChangeRole(loginUser, currentCodeNo, newCodeNo)) {
+                if (currentRoleRank != newRoleRank && !RoleUtil.canChangeRole(loginUser, currentRoleRank, newRoleRank)) {
                     result.put("msg", "X");
                     result.put("desc", "변경하려는 권한이 허용 범위를 초과합니다.");
                     return result;
@@ -232,9 +232,8 @@ public class UserController {
             }
         } catch (Exception e) {
             result.put("msg", "E");
-        } finally {
-            return result;
         }
+        return result;
     }
 
     // 사용자 비활성화 (관리자 - Ajax)
@@ -254,7 +253,7 @@ public class UserController {
                 return result;
             }
 
-            int targetCodeNo = RoleUtil.getCodeNo(targetUser);
+            int targetCodeNo = RoleUtil.getRoleRank(targetUser);
             if (!RoleUtil.canDeleteUser(loginUser, targetUserNo, targetCodeNo)) {
                 result.put("msg", "X");
                 if (RoleUtil.isSelf(loginUser, targetUserNo)) {

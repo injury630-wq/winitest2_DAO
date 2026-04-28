@@ -8,19 +8,18 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * 권한 인터셉터 - 로그인 사용자의 codeNo 가 minCodeNo 미만이면 차단.
- * minCodeNo 는 dispatcher-servlet.xml 에서 주입 (예: 70020 = 관리자 이상).
- * DB의 code.code_no 값을 그대로 사용하므로 새 권한이 추가돼도 재배포 불필요.
+ * 권한 인터셉터 - 로그인 사용자의 roleRank 가 minRoleRank 미만이면 차단.
+ * minRoleRank 는 dispatcher-servlet.xml 에서 주입 (예: 70020 = 관리자 이상).
  *
- * AJAX 요청 → {"result":"forbidden"} JSON 반환
- * 일반 요청 → 로그인 페이지로 리다이렉트
+ * AJAX 요청 -> {"result":"forbidden"} JSON 반환
+ * 일반 요청 -> 로그인 페이지로 리다이렉트
  */
 public class RoleInterceptor implements HandlerInterceptor {
 
-    private final int minCodeNo;
+    private final int minRoleRank;
 
-    public RoleInterceptor(int minCodeNo) {
-        this.minCodeNo = minCodeNo;
+    public RoleInterceptor(int minRoleRank) {
+        this.minRoleRank = minRoleRank;
     }
 
     @Override
@@ -31,14 +30,14 @@ public class RoleInterceptor implements HandlerInterceptor {
         Map<String, Object> loginUser =
             (Map<String, Object>) request.getSession().getAttribute("loginUser");
 
-        int myCodeNo;
+        int myRoleRank;
         try {
-            myCodeNo = Integer.parseInt(String.valueOf(loginUser.get("codeNo")));
+            myRoleRank = Integer.parseInt(String.valueOf(loginUser.get("roleRank")));
         } catch (Exception e) {
-            myCodeNo = 0;
+            myRoleRank = 0;
         }
 
-        if (myCodeNo >= minCodeNo) {
+        if (myRoleRank >= minRoleRank) {
             return true;
         }
 

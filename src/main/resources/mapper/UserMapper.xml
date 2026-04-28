@@ -31,7 +31,7 @@
              , u.role_no                            AS roleNo    <!-- user_role FK -->
              , u.use_yn                             AS useYn     <!-- 사용여부 Y/N -->
              , ur.role_name                         AS roleName  <!-- 역할명 (헤더 표시용) -->
-             , ur.role_rank                           AS codeNo    <!-- 권한 레벨 (대소비교용) -->
+             , ur.role_rank                           AS roleRank  <!-- 권한 레벨 (대소비교용) -->
              , ur.admin_yn                          AS adminYn   <!-- 관리자 여부 Y/N -->
         FROM   users u
         LEFT JOIN user_role ur ON ur.role_no = u.role_no
@@ -57,7 +57,7 @@
         , user_pw    -- 비밀번호
         , user_name  -- 이름
         , use_yn     -- 사용여부 (기본 Y)
-        , role_no    -- 권한 (회원가입은 무조건 USER: code_no=70010)
+        , role_no    -- 권한 (회원가입은 무조건 일반사용자: role_no=1 고정)
         , reg_date   -- 최초등록일시
         , mod_date   -- 수정일시 (등록시 NULL, 수정 발생시 설정)
         )
@@ -67,7 +67,7 @@
         , #{userPw}
         , #{userName}
         , 'Y'
-        , (SELECT role_no FROM user_role WHERE code_no = 70010 LIMIT 1)
+        , 1
         , NOW()
         , NULL
         )
@@ -89,10 +89,9 @@
              , u.user_name                          AS userName  -- 사용자 이름
              , u.use_yn                             AS useYn     -- 사용여부 Y/N
              , ur.role_name                         AS roleName  -- 역할명
-             , c.code_no                       			AS codeNo      -- 권한번호 대소
+             , ur.role_rank                          AS roleRank    -- 권한 레벨 (대소비교용)
         FROM   users u
         LEFT JOIN user_role ur ON ur.role_no = u.role_no
-        LEFT JOIN code      c  ON c.code_no  = ur.code_no
         <include refid="searchCondition"/>
         ORDER BY u.user_no DESC
         LIMIT #{firstIndex}, #{recordCountPerPage}
@@ -116,7 +115,7 @@
         , user_pw    -- 비밀번호
         , user_name  -- 이름
         , use_yn     -- 사용여부 Y/N
-        , role_no    -- 권한 (codeNo → role_no 변환)
+        , role_no    -- 권한
         , reg_date   -- 최초등록일시
         , reg_user   -- 최초등록자 (로그인 사용자 userNo)
         , mod_date   -- 수정일시 (등록시 NULL)
@@ -171,7 +170,7 @@
              , u.use_yn                             AS useYn       <!-- 사용여부 Y/N -->
              , u.role_no                            AS roleNo      <!-- user_role FK -->
              , ur.role_name                         AS roleName    <!-- 역할명 -->
-             , ur.code_no                           AS codeNo      <!-- 권한 레벨 (대소비교용) -->
+             , ur.role_rank                         AS roleRank    <!-- 권한 레벨 (대소비교용) -->
              , ur.admin_yn                          AS adminYn     <!-- 관리자 여부 Y/N -->
              , DATE_FORMAT(u.reg_date, '%Y-%m-%d')  AS regDate     <!-- 등록일시 -->
              , ru.user_name                         AS regUserName <!-- 최초 등록자 -->
@@ -189,9 +188,9 @@
     <select id="selectRoleList" resultType="map">
         SELECT ur.role_no   AS roleNo    <!-- role PK -->
              , ur.role_name AS roleName  <!-- 표시 한글명 -->
-             , c.code_no    AS codeNo    <!-- 권한 레벨 (콤보박스 value로 사용) -->
+             , ur.role_rank AS roleRank  <!-- 권한 레벨 (대소비교용) -->
         FROM   user_role ur
-        JOIN   code c ON c.code_no = ur.code_no
+        JOIN   code c ON c.code_no = ur.role_rank
         ORDER BY c.sort_ord ASC
     </select>
 

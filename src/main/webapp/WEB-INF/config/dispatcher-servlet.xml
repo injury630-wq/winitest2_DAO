@@ -84,7 +84,7 @@
        <mvc:mapping path="/user/userRegist.do"/>
        <mvc:mapping path="/user/ajaxTest.do"/>
        <bean class="wini.winitest.interceptor.RoleInterceptor">
-           <constructor-arg name="minCodeNo" value="70020" type="int"/>
+           <constructor-arg name="minRoleRank" value="70020" type="int"/>
        </bean>
    </mvc:interceptor>
 

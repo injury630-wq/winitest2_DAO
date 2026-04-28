@@ -137,7 +137,7 @@
 												<td><select id="role" name="role"
 														class="form-select form-select-sm">
 																<c:forEach var="r" items="${roleList}">
-																	<option value="${r.roleNo}">${r.roleName} </option>
+																	<option value="${r.roleNo}" data-role-rank="${r.roleRank}">${r.roleName}</option>
 																</c:forEach>
 												</select></td>
 										</tr>
@@ -286,11 +286,12 @@
 				url : 'user/userRegist.do',
 				dataType : 'json',
 				data : {
-					userId   : userId,
-					userPw   : userPw,
-					userName : userName,
-					codeNo   : $('#role').val(),
-					useYn    : $('#useYn').val()
+					userId    : userId,
+					userPw    : userPw,
+					userName  : userName,
+					roleNo    : $('#role').val(),
+					roleRank  : $('#role option:selected').data('roleRank'),
+					useYn     : $('#useYn').val()
 				},
 				success : function(result) {
 					if (result.msg === 'D') {
@@ -333,11 +334,12 @@
 				url : 'user/userUpdate.do',
 				dataType : 'json',
 				data : {
-					userNo   : selectedUserNo,
-					userName : userName,
-					userPw   : userPwSend,
-					codeNo   : $('#role').val(),
-					useYn    : $('#useYn').val()
+					userNo    : selectedUserNo,
+					userName  : userName,
+					userPw    : userPwSend,
+					roleNo    : $('#role').val(),
+					roleRank  : $('#role option:selected').data('roleRank'),
+					useYn     : $('#useYn').val()
 				},
 				success : function(result) {
 					if (result.msg === 'S') {
@@ -424,7 +426,7 @@
 		$('#userId').val(user.userId).prop('disabled', true);
 		$('#userName').val(user.userName);
 		$('#useYn').val(user.useYn);
-		$('#role').val(user.codeNo);
+		$('#role').val(user.roleNo);
 		$('#regDate').val(user.regDate || '');
 		$('#regUserName').val(user.regUserName || '');
 		$('#modDate').val(user.modDate || '');
