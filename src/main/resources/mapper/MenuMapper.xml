@@ -15,7 +15,7 @@
               , m.menu_lev                     AS menuLev   -- 메뉴 depth (1=최상위)
               , m.sort_ord                     AS sortOrd   -- 같은 depth 내 정렬 순서
               , m.pro_no                       AS proNo     -- 연결된 프로그램 번호
-              , CAST(m.menu_no AS CHAR(200))   AS path			--  ORDER BY에 사용해 트리 순서(예: 1 -> 1/3 -> 1/3/7)로 정렬
+              , CAST(m.menu_no AS CHAR(200))   AS path			-- 트리 순서(예: 1 -> 1/3 -> 1/3/7)
               
             FROM menu m
             WHERE (m.parent_no IS NULL OR m.parent_no = 0)

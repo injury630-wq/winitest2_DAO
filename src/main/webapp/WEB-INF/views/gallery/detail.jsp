@@ -43,11 +43,11 @@
             <button class="btn btn-secondary" onclick="goPost('gallery/list.do')">목록</button>
         </div>
         <div class="d-flex gap-2">
+            <button class="btn btn-success"
+                    onclick="goPost('gallery/form.do', {boardNo:'${gallery.boardNo}'})">수정</button>
+            <button class="btn btn-danger" onclick="confirmDelete()">삭제</button>
             <c:if test="${sessionScope.loginUser.userNo == gallery.regUser
                           or sessionScope.loginUser.adminYn == 'Y'}">
-                <button class="btn btn-success"
-                        onclick="goPost('gallery/form.do', {boardNo:'${gallery.boardNo}'})">수정</button>
-                <button class="btn btn-danger" onclick="confirmDelete()">삭제</button>
             </c:if>
         </div>
     </div>

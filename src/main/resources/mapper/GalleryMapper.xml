@@ -10,7 +10,7 @@
 
     <!-- ===== 시퀀스 ===== -->
 
-    <!-- 게시글 번호 채번 (BOARD_COMMON_SEQ) -->
+    <!-- 게시글 번호 (BOARD_COMMON_SEQ) -->
     <!-- **GalleryDAO.selectNextBoardNo -->
     <select id="selectNextBoardNo" resultType="int">
         SELECT nextval('BOARD_COMMON_SEQ') FROM DUAL
@@ -110,8 +110,10 @@
         , thumb_file_no -- 썸네일 파일번호
         , hit           -- 조회수
         , use_yn        -- 사용여부
-        , reg_date      -- 등록일
+        , reg_date      -- 등록일시
         , reg_user      -- 등록자
+        , mod_date 			-- 수정일시
+        , mod_user			-- 수정자
         )
         VALUES
         (
@@ -123,6 +125,8 @@
         , 'Y'
         , NOW()
         , #{regUser}
+        , NULL
+        , NULL
         )
     </insert>
 
@@ -169,14 +173,14 @@
     <insert id="insertTempFile" parameterType="map" useGeneratedKeys="true" keyProperty="fileNo">
         INSERT INTO file_master
         (
-          board_no   -- 임시: 0 (게시글 저장 시 activateFiles로 확정)
+          board_no   -- 글 번호 0 (게시글 저장 시 확정)
         , file_path  -- 파일 저장 경로
         , file_name  -- 서버 저장 파일명 (UUID 기반)
         , org_name   -- 원본 파일명
         , file_ext   -- 파일 확장자
         , file_size  -- 파일 크기 (bytes)
         , sort_ord   -- 정렬 순서
-        , use_yn     -- 임시: 'N' (게시글 저장 시 'Y'로 변경)
+        , use_yn     -- 사용 여부 (저장시 변경)
         , reg_user   -- 등록자
         )
         VALUES
@@ -205,7 +209,7 @@
         </foreach>
     </update>
 
-    <!-- 파일 등록 (직접 저장 방식 - 구방식 롤백용) -->
+    <!-- 파일 등록 (직접 저장 방식 롤백용 사용x) -->
     <!-- **GalleryDAO.insertGalleryFile -->
     <insert id="insertGalleryFile" parameterType="map" useGeneratedKeys="true" keyProperty="fileNo">
         INSERT INTO file_master
@@ -251,7 +255,7 @@
         ORDER BY sort_ord ASC, file_no ASC
     </select>
 
-    <!-- 파일 단건 조회 (imgView 다운로드용 - use_yn 조건 없음, 임시파일 포함) -->
+    <!-- 파일 단건 조회 (imgView - use_yn 조건 없음) -->
     <!-- **GalleryDAO.selectGalleryFileDetail -->
     <select id="selectGalleryFileDetail" parameterType="map" resultType="map">
         SELECT file_no   AS fileNo    -- 파일번호

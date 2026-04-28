@@ -130,14 +130,14 @@
 												<th class="table-light align-middle">사용여부</th>
 												<td><select id="useYn" name="useYn"
 														class="form-select form-select-sm">
-																<option value="Y">Y (사용가능)</option>
-																<option value="N">N (사용불가)</option>
+																<option value="Y">사용가능</option>
+																<option value="N">사용불가</option>
 												</select></td>
 												<th class="table-light align-middle">사용자구분</th>
 												<td><select id="role" name="role"
 														class="form-select form-select-sm">
 																<c:forEach var="r" items="${roleList}">
-																		<option value="${r.codeNo}">${r.roleName}</option>
+																	<option value="${r.roleNo}">${r.roleName} </option>
 																</c:forEach>
 												</select></td>
 										</tr>
@@ -239,7 +239,7 @@
 			setRegistMode();
 		});
 
-		/* 목록 행 클릭 → 상세 조회 후 수정 모드 */
+		/* 목록 행 클릭 - 상세 조회 후 수정 모드 */
 		$('#userListBody').on('click', '.user-row', function() {
 			$('.user-row').removeClass('table-active');
 			$(this).addClass('table-active');

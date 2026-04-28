@@ -30,7 +30,6 @@ public class GalleryEditInterceptor implements HandlerInterceptor {
         String boardNoStr = request.getParameter("boardNo");
         if (boardNoStr == null || boardNoStr.trim().isEmpty()) return true; // 신규 등록
 
-        @SuppressWarnings("unchecked")
         Map<String, Object> loginUser =
             (Map<String, Object>) request.getSession().getAttribute("loginUser");
 
@@ -44,7 +43,15 @@ public class GalleryEditInterceptor implements HandlerInterceptor {
             return true; // 작성자 통과
         }
 
-        response.sendRedirect(request.getContextPath() + "/gallery/list.do");
+//        response.sendRedirect(request.getContextPath() + "/gallery/list.do");
+        response.setContentType("text/html; charset=UTF-8");
+        response.getWriter().write(
+            "<script>" +
+            "alert('수정 권한이 없습니다.');" +
+            "history.back();" +
+            "</script>"
+        );
+        response.getWriter().flush();
         return false;
     }
 

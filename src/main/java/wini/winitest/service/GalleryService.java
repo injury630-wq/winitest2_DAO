@@ -29,7 +29,7 @@ public interface GalleryService {
     /** 게시글에 연결된 파일 목록 조회 */
     List<Map<String, Object>> getGalleryFiles(Map<String, Object> param) throws Exception;
 
-    /** 파일 논리삭제 (use_yn 'Y'→'N') */
+    /** 파일 논리삭제 (use_yn 'Y'->'N') */
     void logicalDeleteFile(Map<String, Object> param) throws Exception;
 
     /** 파일 단건 조회 (이미지 스트리밍용) */

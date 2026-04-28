@@ -36,7 +36,7 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
         return result;
     }
 
-    /** DAO 위임 */
+    /** 게시글 단건 조회 */
     @Override
     public Map<String, Object> getGalleryDetail(Map<String, Object> param) throws Exception {
         return galleryDAO.selectGalleryDetail(param);
@@ -55,7 +55,7 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
         return savedFiles;
     }
 
-    /** board_no 채번 -> 파일 활성화 -> 썸네일 확정 -> 게시글 Insert */
+    /** board_no -> 파일 활성화 -> 썸네일 확정 -> 게시글 Insert */
     @Transactional
     @Override
     public Map<String, Object> saveGallery(Map<String, Object> param) throws Exception {
@@ -100,7 +100,7 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
     @Override
     public Map<String, Object> deleteGallery(Map<String, Object> param) throws Exception {
         Map<String, Object> boardParam = new HashMap<>();
-        boardParam.put("boardNo", Integer.parseInt(param.get("boardNo").toString()));
+        boardParam.put("boardNo", Integer.parseInt(String.valueOf(param.get("boardNo"))));
 
         List<Map<String, Object>> files = galleryDAO.selectGalleryFiles(boardParam);
         for (Map<String, Object> f : files) {
@@ -115,19 +115,18 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
         return result;
     }
 
-    /** DAO 위임 */
+    /**  */
     @Override
     public List<Map<String, Object>> getGalleryFiles(Map<String, Object> param) throws Exception {
         return galleryDAO.selectGalleryFiles(param);
     }
 
-    /** DAO 위임 */
+    /**  */
     @Override
     public void logicalDeleteFile(Map<String, Object> param) throws Exception {
         galleryDAO.logicalDeleteFile(param);
     }
 
-    /** DAO 위임 */
     @Override
     public Map<String, Object> selectFileDetail(Map<String, Object> param) throws Exception {
         return galleryDAO.selectGalleryFileDetail(param);
@@ -141,7 +140,7 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
         return board != null ? ((Number) board.get("hit")).intValue() : 0;
     }
 
-    /** 임시 파일 활성화 (use_yn 'N'→'Y', board_no 확정) */
+    /** 임시 파일 활성화 (use_yn 'N'-'Y', board_no 확정) */
     private void activateFiles(Map<String, Object> param, int boardNo) throws Exception {
         List<String> activeFileNos = (List<String>) param.get("activeFileNos");
         if (activeFileNos == null || activeFileNos.isEmpty()) return;
@@ -153,7 +152,7 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
         galleryDAO.activateFiles(ap);
     }
 
-    /** thumbFileNo 문자열 → Integer 변환 */
+    /** thumbFileNo 문자열 - Integer 변환 */
     private void resolveThumb(Map<String, Object> param) {
         String s = param.get("thumbFileNo") != null ? String.valueOf(param.get("thumbFileNo")) : "";
         param.put("thumbFileNo", (!s.isEmpty() && !"null".equals(s) && !"0".equals(s))

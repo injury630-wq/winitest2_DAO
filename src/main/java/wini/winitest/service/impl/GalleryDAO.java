@@ -45,7 +45,7 @@ public class GalleryDAO extends EgovComAbstractDAO {
         return update("galleryDAO.updateGallery", param);
     }
 
-    /** 이미지 게시글 논리 삭제 (use_yn 'Y'→'N') */
+    /** 이미지 게시글 논리 삭제 (use_yn 'Y'->'N') */
     public int logicalDeleteGallery(Map<String, Object> param) throws Exception {
         return update("galleryDAO.logicalDeleteGallery", param);
     }
@@ -55,7 +55,7 @@ public class GalleryDAO extends EgovComAbstractDAO {
         return insert("galleryDAO.insertTempFile", param);
     }
 
-    /** 파일 활성화 (게시글 저장 시 use_yn 'N'→'Y', board_no 확정) */
+    /** 파일 활성화 (게시글 저장 시 use_yn 'N'->'Y', board_no 확정) */
     public int activateFiles(Map<String, Object> param) throws Exception {
         return update("galleryDAO.activateFiles", param);
     }
@@ -75,7 +75,7 @@ public class GalleryDAO extends EgovComAbstractDAO {
         return (Map<String, Object>) selectOne("galleryDAO.selectGalleryFileDetail", param);
     }
 
-    /** 파일 논리 삭제 (use_yn 'Y'→'N') */
+    /** 파일 논리 삭제 (use_yn 'Y'->'N') */
     public int logicalDeleteFile(Map<String, Object> param) throws Exception {
         return update("galleryDAO.logicalDeleteFile", param);
     }

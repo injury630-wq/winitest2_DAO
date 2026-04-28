@@ -14,7 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 /**
  * [파일 업로드 공통 유틸리티]
- * 주로 이미지 파일의 서버 저장(물리 저장) 및 DB 기록을 위한 데이터 추출을 담당함.
+ * 이미지 파일의 서버 저장(물리 저장) 및 DB 기록을 위한 데이터 추출
  */
 public class FileUploadUtil {
 
@@ -27,7 +27,7 @@ public class FileUploadUtil {
      * 이미지 파일들을 서버 디렉토리에 저장하고, 그 정보를 리스트로 반환함.
      *  files     사용자가 업로드한 파일 객체 리스트
      *  uploadDir 파일이 저장될 서버의 물리적 경로
-     * List<Map> DB의 File 테이블에 Insert하기 위해 가공된 데이터 리스트 return
+     * DB의 File 테이블에 Insert하기 위해 가공된 데이터 리스트 return
      */
     public static List<Map<String, Object>> saveImages(
             List<MultipartFile> files, String uploadDir) throws Exception {
@@ -76,10 +76,9 @@ public class FileUploadUtil {
     }
 
     /**
-     * 물리적 파일 삭제
-     * DB 데이터는 삭제되었으나 서버 디스크에 파일이 남아 '좀비 파일'이 되는 것을 방지함.
-     * * @param filePath 저장된 폴더 경로
-     * @param fileName 저장된 파일명(UUID)
+     * 물리적 파일 삭제 (현재 논리삭제만 진행)
+     * filePath 저장된 폴더 경로
+     * fileName 저장된 파일명(UUID)
      */
     public static void deletePhysical(String filePath, String fileName) {
         File f = new File(filePath, fileName);
