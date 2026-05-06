@@ -7,36 +7,40 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
-import wini.winitest.common.RoleUtil;
-
 /**
- * 권한 인터셉터 - requiredRole 미만이면 요청 차단.
- * 로그인 체크는 LoginInterceptor가 담당하므로 여기서는 권한만 확인한다.
+ * 권한 인터셉터 - 로그인 사용자의 roleRank 가 minRoleRank 미만이면 차단.
+ * minRoleRank 는 dispatcher-servlet.xml 에서 주입 (예: 70020 = 관리자 이상).
  *
- * AJAX 요청 → {"result":"forbidden"} JSON 반환 (프론트에서 alert 처리)
- * 일반 요청 → 로그인 페이지로 리다이렉트
+ * AJAX 요청 -> {"result":"forbidden"} JSON 반환
+ * 일반 요청 -> 로그인 페이지로 리다이렉트
  */
 public class RoleInterceptor implements HandlerInterceptor {
 
-    private final String requiredRole;
+    private final int minRoleRank;
 
-    public RoleInterceptor(String requiredRole) {
-        this.requiredRole = requiredRole;
+    public RoleInterceptor(int minRoleRank) {
+        this.minRoleRank = minRoleRank;
     }
 
     @Override
     public boolean preHandle(HttpServletRequest request,
                              HttpServletResponse response,
                              Object handler) throws Exception {
-    		// 로그인 인터셉터 -> 로그인 사용자 권한 가져오기
-        Map<String, Object> loginUser = (Map<String, Object>) request.getSession().getAttribute("loginUser");
-        String myRole = String.valueOf(loginUser.get("role"));
+        @SuppressWarnings("unchecked")
+        Map<String, Object> loginUser =
+            (Map<String, Object>) request.getSession().getAttribute("loginUser");
 
-        if (RoleUtil.getLevel(myRole) >= RoleUtil.getLevel(requiredRole)) {
+        int myRoleRank;
+        try {
+            myRoleRank = Integer.parseInt(String.valueOf(loginUser.get("roleRank")));
+        } catch (Exception e) {
+            myRoleRank = 0;
+        }
+
+        if (myRoleRank >= minRoleRank) {
             return true;
         }
 
-        // AJAX 요청 → JSON 으로 거부 (프론트에서 alert 처리) 등록아작스 이외 추가되면 변경
         if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
             response.setContentType("application/json;charset=UTF-8");
             response.setStatus(403);

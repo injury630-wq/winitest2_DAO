@@ -4,13 +4,14 @@
 <div class="container">
     <h2>게시판 등록</h2>
     <form action="board/writeProc.do" method="post" enctype="multipart/form-data">
-        <input type="hidden" name="searchType"    value="${param.searchType}"/>
-        <input type="hidden" name="searchKeyword" value="${param.searchKeyword}"/>
+        <input type="hidden" name="searchType"    value="<c:out value="${param.searchType}"/>"/>
+        <input type="hidden" name="searchKeyword" value="<c:out value="${param.searchKeyword}"/>"/>
         <table>
             <tr>
                 <th><span class="required">*</span>작성자</th>
                 <td>
-                    <input type="text" name="writerId" class="form-control" value="${sessionScope.loginUser.userName}" readonly/>
+                    <input type="text" name="writerId" class="form-control"
+                           value="<c:out value="${sessionScope.loginUser.userName}"/>" readonly/>
                 </td>
                 <th><span class="required">*</span>비밀번호</th>
                 <td>
@@ -37,21 +38,28 @@
 					<div class="file-item file-item-temp" style="display:none;">
 					    <span class="file-name">파일이름[byte]</span>
 					</div>
-					<div id="fileList">
-					</div>
+					<div id="fileList"></div>
                 </td>
             </tr>
         </table>
         <div class="d-flex justify-content-center gap-2 mt-3">
-            <button type="button" class="btn btn-outline-secondary" onclick="goPost('board/list.do', {searchType:'${param.searchType}', searchKeyword:'${param.searchKeyword}'})">취소</button>
+            <button type="button" class="btn btn-outline-secondary" onclick="goCancel()">취소</button>
             <button type="submit" class="btn btn-danger" onclick="return validate()">저장</button>
         </div>
     </form>
 </div>
 
-<script>
+<%-- 취소 버튼용 폼: 검색 조건 유지하여 목록 복귀 --%>
+<form id="cancelForm" method="post" action="board/list.do">
+    <input type="hidden" name="searchType"    value="<c:out value="${param.searchType}"/>"/>
+    <input type="hidden" name="searchKeyword" value="<c:out value="${param.searchKeyword}"/>"/>
+</form>
 
-// 제목, 내용, 비밀번호 공백 체크
+<script>
+function goCancel() {
+    document.querySelector('#cancelForm').submit();
+}
+
 function validate() {
     let writerPw = document.querySelector("input[name=writerPw]").value.trim();
     let title    = document.querySelector("input[name=title]").value.trim();
@@ -64,30 +72,25 @@ function validate() {
 
 const fileInput = document.getElementById('fileInput');
 
-// 체크순서: 개수 5개 초과 - 개별 10MB 초과 - 합산 50MB 초과 - 통과 시 목록 표시
-// 파일 첨부 선택 시 개수/개별 용량/총 용량 제한 체크 및 목록 표시
 fileInput.addEventListener('change', function () {
     const MAX_COUNT      = 5;
-    const MAX_FILE_SIZE  = 10 * 1024 * 1024; // 파일 1개당 10MB
-    const MAX_TOTAL_SIZE = 50 * 1024 * 1024; // 전체 합산 50MB
+    const MAX_FILE_SIZE  = 10 * 1024 * 1024;
+    const MAX_TOTAL_SIZE = 50 * 1024 * 1024;
 
     let files    = this.files;
     let fileList = document.querySelector("#fileList");
     let template = document.querySelector(".file-item-temp");
 
-    // 목록 초기화
     fileList.innerHTML = "";
 
     if (!files || files.length === 0) return;
 
-    // 개수 체크
     if (files.length > MAX_COUNT) {
         alert("파일은 최대 " + MAX_COUNT + "개까지만 첨부할 수 있습니다.");
         this.value = "";
         return;
     }
 
-    // 개별 용량 및 총 용량 체크
     let totalSize = 0;
     for (const file of files) {
         if (file.size > MAX_FILE_SIZE) {
@@ -103,10 +106,9 @@ fileInput.addEventListener('change', function () {
         return;
     }
 
-    // 선택한 파일 목록 표시
     for (let i = 0; i < files.length; i++) {
         let file  = files[i];
-        let clone = template.cloneNode(true); // 자식까지 복사
+        let clone = template.cloneNode(true);
         clone.style.display = "block";
         clone.querySelector(".file-name").textContent =
             file.name + "  [" + file.size.toLocaleString() + " bytes]";

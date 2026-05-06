@@ -38,25 +38,38 @@ public class BoardDAOServiceImpl extends EgovAbstractServiceImpl implements Boar
         return path;
     }
 
-    // 첨부파일 저장 후 board_file 테이블에 등록
+    // 첨부파일 저장 후 file_master 테이블에 등록
     private void saveFiles(HttpServletRequest request, Object boardNo) throws Exception {
         if (!(request instanceof MultipartHttpServletRequest)) return;
         MultipartHttpServletRequest mr = (MultipartHttpServletRequest) request;
         List<MultipartFile> files = mr.getFiles("uploadFile");
-        String path = uploadPath(request);
+        String uploadDir = uploadPath(request);
 
+        Object regUser = null;
+        javax.servlet.http.HttpSession session = request.getSession(false);
+        if (session != null) {
+            java.util.Map<?, ?> loginUser = (java.util.Map<?, ?>) session.getAttribute("loginUser");
+            if (loginUser != null) regUser = loginUser.get("userNo");
+        }
+
+        int sortOrd = 0;
         for (MultipartFile file : files) {
             if (file.isEmpty()) continue;
-            String original = file.getOriginalFilename();
-            // UUID 로 파일명 중복 방지
-            String saved = UUID.randomUUID().toString() + "_" + original;
-            file.transferTo(new File(path, saved));
+            String orgName = file.getOriginalFilename();
+            int dotIdx = (orgName != null) ? orgName.lastIndexOf('.') : -1;
+            String ext = (dotIdx >= 0) ? orgName.substring(dotIdx + 1).toLowerCase() : "";
+            String fileName = UUID.randomUUID().toString() + (ext.isEmpty() ? "" : "." + ext);
+            file.transferTo(new File(uploadDir, fileName));
 
             Map<String, Object> fp = new HashMap<>();
             fp.put("boardNo",  boardNo);
-            fp.put("fileName", original);
-            fp.put("filePath", saved);
+            fp.put("filePath", uploadDir); // 저장 디렉터리
+            fp.put("fileName", fileName);  // 서버 저장 파일명 (UUID 기반)
+            fp.put("orgName",  orgName);   // 원본 파일명 (사용자 표시용)
+            fp.put("fileExt",  ext);
             fp.put("fileSize", file.getSize());
+            fp.put("sortOrd",  sortOrd++);
+            fp.put("regUser",  regUser);
             boardDAO.insertBoardFile(fp);
         }
     }

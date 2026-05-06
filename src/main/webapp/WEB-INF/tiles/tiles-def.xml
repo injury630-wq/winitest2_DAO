@@ -43,4 +43,9 @@
 	<definition name="gallery/*" extends="layout.main">
 	    <put-attribute name="content" value="/WEB-INF/views/gallery/{1}.jsp"/>
 	</definition>
+
+	<!-- 설문 -->
+	<definition name="survey/*" extends="layout.main">
+	    <put-attribute name="content" value="/WEB-INF/views/survey/{1}.jsp"/>
+	</definition>
 </tiles-definitions>

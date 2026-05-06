@@ -116,7 +116,10 @@
 														<%-- 수정 모드: 미입력 시 비밀번호 변경 안 함 --%>
 														<div id="pwUpdateDiv" style="display:none;" class="row g-2">
 																<div class="text-muted mb-1">비밀번호 (미입력 시 변경 안함)</div>
+																<div class="input-group">
 																<input type="password" id="userPwView" onfocus="this.select()" class="form-control form-control-sm" maxlength="25"/>
+		                            <button type="button" class="btn btn-outline-secondary" onclick="togglePw('userPwView', this)">표시</button>
+                        				</div>
 																<p id="userPwMsg2" class="guide-msg"></p>
 																<input type="password" id="userPwChange" maxlength="25"
 																		class="form-control form-control-sm visually-hidden"/>
@@ -127,14 +130,14 @@
 												<th class="table-light align-middle">사용여부</th>
 												<td><select id="useYn" name="useYn"
 														class="form-select form-select-sm">
-																<option value="Y">Y (사용가능)</option>
-																<option value="N">N (사용불가)</option>
+																<option value="Y">사용가능</option>
+																<option value="N">사용불가</option>
 												</select></td>
 												<th class="table-light align-middle">사용자구분</th>
 												<td><select id="role" name="role"
 														class="form-select form-select-sm">
 																<c:forEach var="r" items="${roleList}">
-																		<option value="${r.role}">${r.roleName}</option>
+																	<option value="${r.roleNo}" data-role-rank="${r.roleRank}">${r.roleName}</option>
 																</c:forEach>
 												</select></td>
 										</tr>
@@ -179,8 +182,7 @@
 
 	/* 로그인 사용자 정보 */
 	let loginUserNo = ${sessionScope.loginUser.userNo};
-	let loginUserRole = '${sessionScope.loginUser.role}';
-	let isAdmin = (loginUserRole === 'ADMIN' || loginUserRole === 'SYSTEM');
+	let isAdmin = ${sessionScope.loginUser.adminYn eq 'Y'};
 
 	/* 상태 변수 */
 	let selectedUserNo = 0;
@@ -237,13 +239,14 @@
 			setRegistMode();
 		});
 
-		/* 목록 행 클릭 → 상세 조회 후 수정 모드 */
+		/* 목록 행 클릭 - 상세 조회 후 수정 모드 */
 		$('#userListBody').on('click', '.user-row', function() {
 			$('.user-row').removeClass('table-active');
 			$(this).addClass('table-active');
 
 			selectedRow = $(this);
 			selectedUserNo = $(this).data('userNo');
+			console.log(selectedRow.data('userNo'));
 
 			$.ajax({
 				type : 'post',
@@ -252,11 +255,11 @@
 				dataType : 'json',
 				data : JSON.stringify({ userNo : selectedUserNo }),
 				success : function(result) {
-					if (result.message === 'success') {
+					if (result.msg === 'S') {
 						setUpdateMode(result.user);
 						$('#userId')[0].scrollIntoView({ behavior : 'smooth' });
 					} else {
-						alert('조회에 실패하였습니다.');
+						alert('조회에 실패하였습니다.' + (result.desc ? '\n' + result.desc : ''));
 					}
 				},
 				error : function() {
@@ -283,18 +286,19 @@
 				url : 'user/userRegist.do',
 				dataType : 'json',
 				data : {
-					userId   : userId,
-					userPw   : userPw,
-					userName : userName,
-					role     : $('#role').val(),
-					useYn    : $('#useYn').val()
+					userId    : userId,
+					userPw    : userPw,
+					userName  : userName,
+					roleNo    : $('#role').val(),
+					roleRank  : $('#role option:selected').data('roleRank'),
+					useYn     : $('#useYn').val()
 				},
 				success : function(result) {
-					if (result.result === 'duplicate') {
+					if (result.msg === 'D') {
 						alert('이미 사용 중인 아이디입니다.');
-					} else if (result.result === 'forbidden') {
-						alert('권한이 없습니다.');
-					} else if (result.result === 'success') {
+					} else if (result.msg === 'X') {
+						alert('권한이 없습니다.\n' + (result.desc || ''));
+					} else if (result.msg === 'S') {
 						alert('등록되었습니다.');
 						$('#currentPageNo').val(1);
 						$('#searchForm').submit();
@@ -312,12 +316,15 @@
 		$('#btnUpdate').on('click', function() {
 			if (!selectedUserNo) { alert('수정할 사용자를 선택하세요.'); return; }
 
-			let userName      = $('#userName').val().trim();
-			let userPwChange  = $('#userPwChange').val();
+			let userName   = $('#userName').val().trim();
+			let userPwRaw  = $('#userPwView').val();
+			/* 초기 표시용 별표(*) 또는 빈 값이면 비밀번호 변경 없음 */
+			let isPlaceholder = userPwRaw === '' || /^\*+$/.test(userPwRaw);
+			let userPwSend    = isPlaceholder ? '' : userPwRaw;
 
 			if (!userName)                 { alert('이름을 입력하세요.');              return; }
 			if (!nameRegex.test(userName)) { alert('이름 형식이 올바르지 않습니다.');    return; }
-			if (userPwChange && !pwRegex.test(userPwChange)) {
+			if (!isPlaceholder && !pwRegex.test(userPwSend)) {
 				alert('새 비밀번호 형식이 올바르지 않습니다.'); return;
 			}
 			if (!confirm('수정하시겠습니까?')) return;
@@ -327,22 +334,20 @@
 				url : 'user/userUpdate.do',
 				dataType : 'json',
 				data : {
-					userNo   : selectedUserNo,
-					userName : userName,
-					userPw   : userPwChange,
-					role     : $('#role').val(),
-					useYn    : $('#useYn').val()
+					userNo    : selectedUserNo,
+					userName  : userName,
+					userPw    : userPwSend,
+					roleNo    : $('#role').val(),
+					roleRank  : $('#role option:selected').data('roleRank'),
+					useYn     : $('#useYn').val()
 				},
 				success : function(result) {
-					if (result.result === 'success') {
+					if (result.msg === 'S') {
 						alert('수정되었습니다.');
 						updateListRow(selectedRow, result.user);
 						setUpdateMode(result.user);
-					} else if (result.result === 'forbidden') {
-						alert('권한이 없습니다.');
-					} else if (result.result === 'relogin') {
-						alert('권한이 변경되어 다시 로그인해야 합니다.');
-						location.href = 'user/login.do';
+					} else if (result.msg === 'X') {
+						alert('권한이 없습니다.\n' + (result.desc || ''));
 					} else {
 						alert('수정 중 오류가 발생하였습니다.');
 					}
@@ -364,12 +369,12 @@
 				dataType : 'json',
 				data : { userNo : selectedUserNo },
 				success : function(result) {
-					if (result.result === 'success') {
+					if (result.msg === 'S') {
 						alert('사용 불가 처리되었습니다.');
 						updateListRow(selectedRow, result.user);
 						setUpdateMode(result.user);
-					} else if (result.result === 'forbidden') {
-						alert('권한이 없습니다.');
+					} else if (result.msg === 'X') {
+						alert('권한이 없습니다.\n' + (result.desc || ''));
 					} else {
 						alert('처리 중 오류가 발생하였습니다.');
 					}
@@ -393,7 +398,7 @@
 		$('#userId').val('').prop('disabled', false);
 		$('#userName').val('');
 		$('#useYn').val('Y');
-		$('#role').val('USER');
+		$('#role').prop('selectedIndex', 0);
 		$('#regDate, #regUserName, #modDate, #modUserName').val('');
 
 		$('#pwRegistDiv').show();
@@ -421,7 +426,7 @@
 		$('#userId').val(user.userId).prop('disabled', true);
 		$('#userName').val(user.userName);
 		$('#useYn').val(user.useYn);
-		$('#role').val(user.role);
+		$('#role').val(user.roleNo);
 		$('#regDate').val(user.regDate || '');
 		$('#regUserName').val(user.regUserName || '');
 		$('#modDate').val(user.modDate || '');
@@ -431,7 +436,7 @@
 		$('#pwUpdateDiv').show();
 		$('#userPwView').val('*'.repeat(user.userPwLen || 0));
 		$('#userPwChange').val('');
-		$('#userIdMsg, #userPwMsg').text('').css('color', '');
+		$('#userIdMsg, #userPwMsg, #userPwMsg2').text('').css('color', '');
 
 		let isSelf = (user.userNo == loginUserNo);
 		$('#btnRegist').prop('disabled', true).removeClass('btn-primary').addClass('btn-secondary');

@@ -80,29 +80,22 @@
    </mvc:interceptor>
 
    <!-- 2. 권한 인터셉터 - 등록만 ADMIN 이상 (수정/삭제는 본인도 가능하므로 서비스에서 판단) -->
-   <!-- 새로운 관리 기능이 생기면 mvc:mapping 을 추가한다 -->
    <mvc:interceptor>
        <mvc:mapping path="/user/userRegist.do"/>
        <mvc:mapping path="/user/ajaxTest.do"/>
        <bean class="wini.winitest.interceptor.RoleInterceptor">
-           <constructor-arg name="requiredRole" value="ADMIN"/>
+           <constructor-arg name="minRoleRank" value="70020" type="int"/>
        </bean>
    </mvc:interceptor>
 
-   <!--
-   3. 메뉴 인터셉터 - DB에서 사이드바 메뉴 목록 로드 후 request 속성 주입
+   <!-- 3. 갤러리 수정 폼 접근 제어 - 작성자 또는 관리자만 허용 (수정/삭제 저장은 컨트롤러에서 체크) -->
    <mvc:interceptor>
-       <mvc:mapping path="/**/*.do"/>
-       <mvc:exclude-mapping path="/user/login.do"/>
-       <mvc:exclude-mapping path="/user/loginProc.do"/>
-       <mvc:exclude-mapping path="/user/register.do"/>
-       <mvc:exclude-mapping path="/user/registerProc.do"/>
-       <mvc:exclude-mapping path="/user/idCheck.do"/>
-       <bean class="wini.winitest.interceptor.MenuInterceptor">
-           <property name="menuDAO" ref="menuDAO"/>
+       <mvc:mapping path="/gallery/form.do"/>
+       <bean class="wini.winitest.interceptor.GalleryEditInterceptor">
+           <constructor-arg ref="galleryDAO"/>
        </bean>
    </mvc:interceptor>
-   -->
+
 </mvc:interceptors>
 
 

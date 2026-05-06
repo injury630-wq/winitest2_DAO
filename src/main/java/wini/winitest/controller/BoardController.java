@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import wini.winitest.common.MenuUtil;
 import wini.winitest.service.BoardService;
 import wini.winitest.service.MenuService;
 
@@ -31,6 +32,9 @@ public class BoardController {
 
     @Resource(name = "boardDAOService")
     private BoardService boardService;
+
+    @Resource(name = "menuService")
+    private MenuService menuService;
     
     private static final String path = "C:/upload/board/";
  // 업로드 디렉터리 경로 반환 (없으면 자동 생성)
@@ -39,15 +43,16 @@ public class BoardController {
         if (!dir.exists()) dir.mkdirs();
         return path;
     }
-    // 물리 파일 삭제
-    private void deletePhysicalFile(HttpServletRequest request, String filePath) {
-        File f = new File(uploadPath(request), filePath);
+    // 물리 파일 삭제 (filePath: 저장 디렉터리, fileName: UUID 기반 서버 파일명)
+    private void deletePhysicalFile(String filePath, String fileName) {
+        File f = new File(filePath, fileName);
         if (f.exists()) f.delete();
     }
     
     // 게시글 목록
     @RequestMapping(value = "/board/list.do", method = RequestMethod.POST)
     public String boardList(@RequestParam Map<String, Object> param, Model model) throws Exception {
+        MenuUtil.addMenu(model, menuService);
         try {
             // 전자정부 페이징 설정
             PaginationInfo paginationInfo = new PaginationInfo();
@@ -90,6 +95,7 @@ public class BoardController {
     // 게시글 상세
     @RequestMapping(value = "/board/detail.do", method = RequestMethod.POST)
     public String boardDetail(@RequestParam Map<String, Object> param, Model model) throws Exception {
+        MenuUtil.addMenu(model, menuService);
         try {
         		// 선택한 게시글 정보 조회
             	Map<String, Object> board = boardService.selectBoardDetail(param);
@@ -136,7 +142,8 @@ public class BoardController {
 
     // 게시글 작성 폼 (list -> write 검색 조건 전달)
     @RequestMapping(value = "/board/write.do", method = RequestMethod.POST)
-    public String writeView(@RequestParam Map<String, Object> param, Model model) {
+    public String writeView(@RequestParam Map<String, Object> param, Model model) throws Exception {
+        MenuUtil.addMenu(model, menuService);
         model.addAttribute("param", param);
         return "board/write";
     }
@@ -167,6 +174,7 @@ public class BoardController {
     // 게시글 수정 폼 (1.원글 수정/2.답글 수정 - 게시글작성자/비밀번호 확인(수정권한) - 수정페이지) 
     @RequestMapping(value = "/board/edit.do", method = RequestMethod.POST)
     public String editView(@RequestParam Map<String, Object> param, Model model, HttpSession session) throws Exception {
+        MenuUtil.addMenu(model, menuService);
         try {
         	Map<String, Object> board = boardService.selectBoardDetail(param);
         	if (board == null) { //게시글 없음: 목록조회
@@ -259,7 +267,7 @@ public class BoardController {
         	List<Map<String, Object>> fileList = (List<Map<String, Object>>) param.get("deleteFileList");
         	if (fileList != null) {
         		for (Map<String, Object> file : fileList) {
-        			deletePhysicalFile(request, (String) file.get("filePath"));
+        			deletePhysicalFile((String) file.get("filePath"), (String) file.get("fileName"));
         		}
         	}
         	
@@ -279,6 +287,7 @@ public class BoardController {
     // 답변 폼
     @RequestMapping(value = "/board/reply.do", method = RequestMethod.POST)
     public String replyView(@RequestParam Map<String, Object> param, Model model) throws Exception {
+        MenuUtil.addMenu(model, menuService);
         Map<String, Object> board = boardService.selectBoardDetail(param);
 
         // 같은 ref 그룹 내 답글 수 조회 (답글 5개 제한 체크용)
@@ -333,12 +342,12 @@ public class BoardController {
         Map<String, Object> file = boardService.selectBoardFileDetail(param); // {fileNo : ?}
         if (file == null) return; // DB에 파일 정보 없을때
 
-        File f = new File(uploadPath(request), (String) file.get("filePath"));
+        File f = new File((String) file.get("filePath"), (String) file.get("fileName"));
         if (!f.exists()) return;
 
         response.setContentType("application/octet-stream");
         response.setHeader("Content-Disposition",
-                "attachment; filename=\"" + URLEncoder.encode((String) file.get("fileName"), "UTF-8") + "\"");
+                "attachment; filename=\"" + URLEncoder.encode((String) file.get("orgName"), "UTF-8") + "\"");
         response.setContentLengthLong(f.length());
         Files.copy(f.toPath(), response.getOutputStream());
         response.getOutputStream().flush();
@@ -356,7 +365,7 @@ public class BoardController {
                 result.put("msg", "notFound");
                 return result;
             }
-            deletePhysicalFile(request, (String) file.get("filePath"));
+            deletePhysicalFile((String) file.get("filePath"), (String) file.get("fileName"));
             boardService.deleteBoardFile(param);
 
             // 삭제 후 남은 파일 목록 반환 (edit.jsp 에서 화면 갱신에 사용)

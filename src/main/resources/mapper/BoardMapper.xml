@@ -35,18 +35,18 @@
     <!-- 게시글 목록 조회 (페이징 + 검색) -->
     <!-- **BoardDAO.selectBoardList -->
     <select id="selectBoardList" parameterType="map" resultType="map">
-SELECT b.board_no                           AS boardNo      -- 글번호
+        SELECT b.board_no                           AS boardNo      -- 글번호
              , b.title                              AS title        -- 글제목
              , u.user_name                          AS writerName   -- 작성자이름
              , b.hit                                AS hit          -- 조회수
              , DATE_FORMAT(b.reg_date, '%Y-%m-%d')  AS regDate      -- 작성일
              , b.ref                                AS ref          -- 그룹
              , b.re_lev                             AS reLev        -- 그룹내깊이
-             , b.sort_ord                             AS sortOrd        -- 그룹내순서
+             , b.sort_ord                           AS sortOrd      -- 그룹내순서
              , (
                  SELECT COUNT(*)
-                 FROM   board_file bf
-                 WHERE  bf.board_no = b.board_no
+                 FROM   file_master fm
+                 WHERE  fm.board_no = b.board_no
                )                                    AS fileCount    -- 첨부파일수
         FROM  board b
         JOIN  users u ON b.user_no = u.user_no
@@ -68,10 +68,10 @@ SELECT b.board_no                           AS boardNo      -- 글번호
                 )
             </if>
         </where>
-        ORDER BY ref    DESC
+        ORDER BY ref      DESC
                , sort_ord ASC
         LIMIT #{firstIndex}, #{recordCountPerPage}
-</select>
+    </select>
 
     <!-- 게시글 전체 건수 (페이징용) -->
     <!-- **BoardDAO.selectBoardTotalCount -->
@@ -93,10 +93,10 @@ SELECT b.board_no                           AS boardNo      -- 글번호
              , b.hit                                 AS hit         -- 조회수
              , b.ref                                 AS ref         -- 그룹
              , b.re_lev                              AS reLev       -- 그룹내깊이
-             , b.sort_ord                              AS sortOrd       -- 그룹순서
+             , b.sort_ord                            AS sortOrd     -- 그룹내순서
              , b.parent_no                           AS parentNo    -- 부모글번호(원글시null)
              , DATE_FORMAT(b.reg_date, '%Y-%m-%d')   AS regDate     -- 작성일
-             , b.modi_date                           AS modiDate    -- 수정일
+             , DATE_FORMAT(b.mod_date, '%Y-%m-%d')   AS modDate     -- 수정일
              , b.user_no                             AS userNo      -- 사용자번호pk
         FROM  board b
         JOIN  users u ON b.user_no = u.user_no
@@ -113,25 +113,31 @@ SELECT b.board_no                           AS boardNo      -- 글번호
         WHERE  board_no = #{boardNo}
     </update>
 
-    <!-- 게시글 등록 -->
+    <!-- 게시글 등록 (board_no: BOARD_COMMON_SEQ 시퀀스 채번) -->
     <!-- **BoardDAO.insertBoard -->
-    <insert id="insertBoard" parameterType="map" useGeneratedKeys="true" keyProperty="boardNo">
+    <insert id="insertBoard" parameterType="map">
+        <selectKey keyProperty="boardNo" resultType="int" order="BEFORE">
+            SELECT nextval('BOARD_COMMON_SEQ') FROM DUAL
+        </selectKey>
         INSERT INTO board
         (
-          title      -- 제목
+          board_no   -- 시퀀스 채번
+        , title      -- 제목
         , content    -- 내용
         , user_no    -- 작성자
         , writer_pw  -- 글 비밀번호
         , ref        -- 글 그룹
         , re_lev     -- 그룹 깊이
-        , sort_ord     -- 그룹 순서
+        , sort_ord   -- 그룹 순서
         , hit        -- 조회수
         , parent_no  -- 부모글 번호(원글일시 NULL)
         , reg_date   -- 등록일
+        , mod_date   -- 수정일 (등록시 NULL)
         )
         VALUES
         (
-          #{title}
+          #{boardNo}
+        , #{title}
         , #{content}
         , #{userNo}
         , #{writerPw}
@@ -141,6 +147,7 @@ SELECT b.board_no                           AS boardNo      -- 글번호
         , 0
         , #{parentNo}
         , NOW()
+        , NULL
         )
     </insert>
 
@@ -156,9 +163,9 @@ SELECT b.board_no                           AS boardNo      -- 글번호
     <!-- **BoardDAO.updateBoard -->
     <update id="updateBoard" parameterType="map">
         UPDATE board
-        SET    title     = #{title}
-             , content   = #{content}
-             , modi_date = NOW()
+        SET    title    = #{title}
+             , content  = #{content}
+             , mod_date = NOW()
         WHERE  board_no = #{boardNo}
     </update>
 
@@ -189,32 +196,40 @@ SELECT b.board_no                           AS boardNo      -- 글번호
     </select>
 
     <!-- 답변글 순서 밀기 (같은 ref 내 새 답글 위치 이후 항목 +1) -->
-    <!-- **BoardDAO.updatesortOrd -->
-    <update id="updatesortOrd" parameterType="map">
+    <!-- **BoardDAO.updateReSeq -->
+    <update id="updateReSeq" parameterType="map">
         UPDATE board
         SET    sort_ord = sort_ord + 1
-        WHERE  ref    = #{ref}
+        WHERE  ref      = #{ref}
           AND  sort_ord > #{sortOrd}
     </update>
 
-    <!-- ===== 첨부파일 ===== -->
+    <!-- ===== 첨부파일 (file_master, board_no 기반) ===== -->
 
     <!-- 첨부파일 등록 -->
     <!-- **BoardDAO.insertBoardFile -->
     <insert id="insertBoardFile" parameterType="map">
-        INSERT INTO board_file
+        INSERT INTO file_master
         (
-          board_no   -- 게시글번호
-        , file_name  -- 원본파일명
-        , file_path  -- 저장파일명(UUID_원본명)
-        , file_size  -- 파일크기(bytes)
+          board_no   -- 게시글번호 (논리 FK)
+        , file_path  -- 파일 저장 경로
+        , file_name  -- 서버 저장 파일명 (UUID 기반)
+        , org_name   -- 원본 파일명
+        , file_ext   -- 파일 확장자
+        , file_size  -- 파일 크기 (bytes)
+        , sort_ord   -- 정렬 순서
+        , reg_user   -- 등록자
         )
         VALUES
         (
           #{boardNo}
-        , #{fileName}
         , #{filePath}
+        , #{fileName}
+        , #{orgName}
+        , #{fileExt}
         , #{fileSize}
+        , #{sortOrd}
+        , #{regUser}
         )
     </insert>
 
@@ -223,11 +238,15 @@ SELECT b.board_no                           AS boardNo      -- 글번호
     <select id="getBoardFileList" parameterType="map" resultType="map">
         SELECT file_no   AS fileNo
              , board_no  AS boardNo
-             , file_name AS fileName
              , file_path AS filePath
+             , file_name AS fileName
+             , org_name  AS orgName
+             , file_ext  AS fileExt
              , file_size AS fileSize
-        FROM   board_file
+             , sort_ord  AS sortOrd
+        FROM   file_master
         WHERE  board_no = #{boardNo}
+        ORDER BY sort_ord ASC, file_no ASC
     </select>
 
     <!-- 첨부파일 단건 조회 -->
@@ -235,17 +254,19 @@ SELECT b.board_no                           AS boardNo      -- 글번호
     <select id="getBoardFileDetail" parameterType="map" resultType="map">
         SELECT file_no   AS fileNo
              , board_no  AS boardNo
-             , file_name AS fileName
              , file_path AS filePath
+             , file_name AS fileName
+             , org_name  AS orgName
+             , file_ext  AS fileExt
              , file_size AS fileSize
-        FROM   board_file
+        FROM   file_master
         WHERE  file_no = #{fileNo}
     </select>
 
     <!-- 첨부파일 단건 삭제 -->
     <!-- **BoardDAO.deleteBoardFile -->
     <delete id="deleteBoardFile" parameterType="map">
-        DELETE FROM board_file
+        DELETE FROM file_master
         WHERE  file_no = #{fileNo}
     </delete>
 
@@ -254,10 +275,12 @@ SELECT b.board_no                           AS boardNo      -- 글번호
     <select id="selectFileListByIds" parameterType="map" resultType="map">
         SELECT file_no   AS fileNo
              , board_no  AS boardNo
-             , file_name AS fileName
              , file_path AS filePath
+             , file_name AS fileName
+             , org_name  AS orgName
+             , file_ext  AS fileExt
              , file_size AS fileSize
-        FROM   board_file
+        FROM   file_master
         WHERE  board_no IN
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
@@ -267,7 +290,7 @@ SELECT b.board_no                           AS boardNo      -- 글번호
     <!-- 첨부파일 복수 삭제 (계층 삭제용) -->
     <!-- **BoardDAO.deleteBoardFilesByBoardIds -->
     <delete id="deleteBoardFilesByBoardIds" parameterType="map">
-        DELETE FROM board_file
+        DELETE FROM file_master
         WHERE  board_no IN
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
