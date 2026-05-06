@@ -49,7 +49,7 @@
             <tbody>
                 <c:if test="${empty list}">
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-3">등록된 설문이 없습니다.</td>
+                        <td colspan="8" class="text-center text-muted py-3">등록된 설문이 없습니다.</td>
                     </tr>
                 </c:if>
                 <c:forEach var="s" items="${list}" varStatus="vs">
@@ -61,7 +61,7 @@
                         </td>
                         <td><c:out value="${s.title}"/></td>
                         <td class="text-center"><c:out value="${s.useYn}"/></td>
-                        <td class="text-center"><c:out value="${s.canEdit}"/></td>
+                        <td class="text-center"><c:out value="${s.resAvail}"/></td>
                         <td class="text-center">
                             <c:out value="${s.startDate}"/> ~ <c:out value="${s.endDate}"/>
                         </td>
