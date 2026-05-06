@@ -24,11 +24,14 @@
         , DATE_FORMAT(s.end_date,   '%Y-%m-%d')             AS endDate          <!-- 종료일 -->
         , CASE WHEN s.start_date > NOW()
                THEN 'Y' ELSE 'N' END                        AS canEdit          <!-- 수정가능여부(시작 전) -->
+        , CASE WHEN NOW() BETWEEN s.start_date AND s.end_date 
+        			 THEN 'Y' ELSE 'N' END												AS resAvail					<!-- 참여 가능 여부(설문기간 내) -->
         , u.user_name                                       AS regUserName      <!-- 등록자명 -->
         , DATE_FORMAT(s.reg_date, '%Y-%m-%d')               AS regDate          <!-- 등록일 -->
     FROM
         survey s
     JOIN users u ON u.user_no = s.reg_user
+    WHERE s.del_yn = 'N' 
     <include refid="searchCondition"/>
     ORDER BY s.survey_no DESC
     LIMIT #{firstIndex}, #{recordCountPerPage}
@@ -140,10 +143,14 @@
         q_no            <!-- 질문번호 (FK) -->
         , content       <!-- 보기 내용 -->
         , sort_ord      <!-- 정렬 순서 -->
+        , reg_user			<!-- 등록자 -->
+        , reg_date			<!-- 등록일시 -->
     ) VALUES (
         #{qNo}
         , #{content}
         , #{sortOrd}
+        , #{regUser}
+        , NOW()
     )
     </insert>
 

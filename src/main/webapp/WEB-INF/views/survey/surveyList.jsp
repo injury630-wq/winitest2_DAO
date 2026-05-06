@@ -58,8 +58,8 @@
                                       - (paginationInfo.currentPageNo - 1) * paginationInfo.recordCountPerPage
                                       - vs.index}
                                 </td>
-                                <td><c:out value="${s.title}"/></td>
-                                <td class="text-muted" style="white-space: pre-wrap; font-size: 13px;"><c:out value="${s.content}"/></td>
+                                <td class="text-center text-truncate" style="max-width: 100px"><c:out value="${s.title}"/></td>
+                                <td class="text-center text-truncate" style="max-width: 100px"><c:out value="${s.content}"/></td>
                                 <td class="text-center">
                                     <c:out value="${s.startDate}"/> ~ <c:out value="${s.endDate}"/>
                                 </td>

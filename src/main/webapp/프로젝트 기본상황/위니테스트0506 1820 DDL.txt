@@ -46,9 +46,9 @@ CREATE TABLE `program` (
 -- winitest.sequences definition
 
 CREATE TABLE `sequences` (
-  `name` varchar(32) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `currval` bigint unsigned DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='시퀀스용 테이블';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='시퀀스용 테이블';
 
 
 -- winitest.code_group_mid definition
@@ -107,10 +107,10 @@ CREATE TABLE `user_role` (
 
 CREATE TABLE `users` (
   `user_no` int NOT NULL AUTO_INCREMENT COMMENT '사용자 PK (AUTO)',
-  `user_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '로그인 아이디',
-  `user_pw` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '비밀번호 (암호화)',
-  `user_name` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '사용자명',
-  `use_yn` char(1) COLLATE utf8mb4_unicode_ci DEFAULT 'Y' COMMENT '사용여부 (Y:사용, N:미사용)',
+  `user_id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '로그인 아이디',
+  `user_pw` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '비밀번호 (암호화)',
+  `user_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '사용자명',
+  `use_yn` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'Y' COMMENT '사용여부 (Y:사용, N:미사용)',
   `role_no` int DEFAULT NULL COMMENT 'FK) user_role.role_no 사용자 역할',
   `reg_date` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
   `reg_user` int DEFAULT NULL COMMENT '등록자 (users.user_no)',
@@ -120,21 +120,21 @@ CREATE TABLE `users` (
   UNIQUE KEY `uk_user_id` (`user_id`),
   KEY `fk_users_role` (`role_no`),
   CONSTRAINT `fk_users_role` FOREIGN KEY (`role_no`) REFERENCES `user_role` (`role_no`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='사용자 테이블';
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='사용자 테이블';
 
 
 -- winitest.board definition
 
 CREATE TABLE `board` (
   `board_no` int NOT NULL COMMENT '게시글 PK (BOARD_SEQ 채번)',
-  `title` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '제목',
-  `content` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '내용',
-  `writer_pw` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '비밀번호 (비회원 작성용)',
+  `title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '제목',
+  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '내용',
+  `writer_pw` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '비밀번호 (비회원 작성용)',
   `ref` int DEFAULT '0' COMMENT '원글 그룹 번호 (답글 묶음)',
   `re_lev` int DEFAULT '0' COMMENT '답글 깊이 (depth)',
   `sort_ord` int DEFAULT '0' COMMENT '정렬 순서 (같은 ref 그룹 내)',
   `hit` int DEFAULT '0' COMMENT '조회수',
-  `use_yn` char(1) COLLATE utf8mb4_unicode_ci DEFAULT 'Y' COMMENT '사용여부 (Y:사용, N:미사용)',
+  `use_yn` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'Y' COMMENT '사용여부 (Y:사용, N:미사용)',
   `user_no` int NOT NULL COMMENT 'FK) users.user_no 작성자',
   `parent_no` int DEFAULT NULL COMMENT '부모 게시글 번호 (답글인 경우)',
   `reg_date` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
@@ -205,6 +205,10 @@ CREATE TABLE `menu_role_perm` (
   `ins_yn` char(1) DEFAULT 'N' COMMENT '등록 권한',
   `upd_yn` char(1) DEFAULT 'N' COMMENT '수정 권한',
   `del_yn` char(1) DEFAULT 'N' COMMENT '삭제 권한',
+  `reg_user` int DEFAULT NULL COMMENT 'FK) 등록자 users.user_no',
+  `reg_date` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+  `mod_user` int DEFAULT NULL COMMENT 'FK) 수정자 users.user_no',
+  `mod_date` datetime DEFAULT NULL COMMENT '수정일시',
   PRIMARY KEY (`perm_no`),
   UNIQUE KEY `uq_menu_role` (`menu_no`,`role_no`),
   KEY `fk_perm_role` (`role_no`),
@@ -226,21 +230,22 @@ CREATE TABLE `survey` (
   `reg_date` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
   `mod_user` int DEFAULT NULL COMMENT 'FK) users.user_no 수정자',
   `mod_date` datetime DEFAULT NULL COMMENT '수정일시',
+  `del_yn` char(1) DEFAULT 'N' COMMENT '삭제여부 (설문지는 사용여부가 따로 설정 할수 있어서 삭제체크용 컬럼다른 테이블의 use_yn가 대응)',
   PRIMARY KEY (`survey_no`),
   KEY `fk_survey_reg` (`reg_user`),
   KEY `fk_survey_mod` (`mod_user`),
   CONSTRAINT `fk_survey_mod` FOREIGN KEY (`mod_user`) REFERENCES `users` (`user_no`),
   CONSTRAINT `fk_survey_reg` FOREIGN KEY (`reg_user`) REFERENCES `users` (`user_no`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='설문지 테이블';
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='설문지 테이블';
 
 
 -- winitest.question definition
 
 CREATE TABLE `question` (
-  `board_no` int NOT NULL COMMENT '질문 PK (AUTO, file_master.board_no 공용)',
+  `board_no` int NOT NULL COMMENT '질문 PK (board_no 시퀀스 공용)',
   `survey_no` int NOT NULL COMMENT 'FK) survey.survey_no',
   `content` text NOT NULL COMMENT '질문 내용',
-  `type` varchar(255) NOT NULL COMMENT 'FK) code.code_no 문항 타입 (80010~80050)',
+  `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'FK) code.code_no 질문 타입 (radio, text 등)',
   `sort_ord` int DEFAULT NULL COMMENT '질문 정렬 순서',
   `is_multiple` char(1) DEFAULT NULL COMMENT '복수 선택 허용 여부 Y/N',
   `reg_user` int DEFAULT NULL COMMENT 'FK) users.user_no 등록자',
@@ -269,13 +274,13 @@ CREATE TABLE `response` (
   `mod_date` datetime DEFAULT NULL COMMENT '수정일시 (응답 수정 불가)',
   `use_yn` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'Y' COMMENT '사용여부 (응답 수정 불가)',
   PRIMARY KEY (`res_no`),
-  UNIQUE KEY `uq_response_survey_user` (`survey_no`,`reg_user`),
+  UNIQUE KEY `response_unique` (`survey_no`,`reg_user`),
   KEY `fk_response_reg` (`reg_user`),
   KEY `fk_response_mod` (`mod_user`),
   CONSTRAINT `fk_response_mod` FOREIGN KEY (`mod_user`) REFERENCES `users` (`user_no`),
   CONSTRAINT `fk_response_reg` FOREIGN KEY (`reg_user`) REFERENCES `users` (`user_no`),
   CONSTRAINT `fk_response_survey` FOREIGN KEY (`survey_no`) REFERENCES `survey` (`survey_no`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='설문 응답 헤더 (중복참여 방지 UNIQUE)';
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='설문 응답 헤더 (중복참여 방지 UNIQUE) (한 사람이 한 설문에 참여한 기록)';
 
 
 -- winitest.q_option definition
@@ -289,7 +294,7 @@ CREATE TABLE `q_option` (
   `reg_date` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
   `mod_user` int DEFAULT NULL COMMENT 'FK) users.user_no 수정자',
   `mod_date` datetime DEFAULT NULL COMMENT '수정일시',
-  `use_yn` char(1) NOT NULL DEFAULT 'Y' COMMENT '사용여부 (논리삭제용)',
+  `use_yn` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'Y' COMMENT '사용여부 (논리삭제용)',
   PRIMARY KEY (`option_no`),
   KEY `fk_qoption_reg` (`reg_user`),
   KEY `fk_qoption_mod` (`mod_user`),
@@ -297,7 +302,7 @@ CREATE TABLE `q_option` (
   CONSTRAINT `fk_qoption_mod` FOREIGN KEY (`mod_user`) REFERENCES `users` (`user_no`),
   CONSTRAINT `fk_qoption_reg` FOREIGN KEY (`reg_user`) REFERENCES `users` (`user_no`),
   CONSTRAINT `q_option_question_FK` FOREIGN KEY (`q_no`) REFERENCES `question` (`board_no`)
-) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='질문 보기(선택지) 테이블';
+) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='질문 보기(선택지) 테이블';
 
 
 -- winitest.response_detail definition
@@ -308,6 +313,10 @@ CREATE TABLE `response_detail` (
   `q_no` int NOT NULL COMMENT 'FK) question.board_no 소속질문',
   `answer_content` text COMMENT '주관식 답변 텍스트 (단답형/장문형)',
   `option_no` int DEFAULT NULL COMMENT 'FK) q_option.option_no (선택형, 체크박스 복수시 행 복수)',
+  `reg_user` int DEFAULT NULL COMMENT 'FK) users.user_no 등록자(로그인한 세션값 등록)',
+  `reg_date` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '등록일시',
+  `mod_user` int DEFAULT NULL COMMENT 'FK) users.user_no 수정자',
+  `mod_date` datetime DEFAULT NULL COMMENT '수정일시',
   PRIMARY KEY (`res_detail_no`),
   KEY `fk_resdetail_response` (`res_no`),
   KEY `fk_resdetail_option` (`option_no`),
@@ -315,4 +324,4 @@ CREATE TABLE `response_detail` (
   CONSTRAINT `fk_resdetail_option` FOREIGN KEY (`option_no`) REFERENCES `q_option` (`option_no`),
   CONSTRAINT `fk_resdetail_response` FOREIGN KEY (`res_no`) REFERENCES `response` (`res_no`),
   CONSTRAINT `response_detail_question_FK` FOREIGN KEY (`q_no`) REFERENCES `question` (`board_no`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='설문 응답 상세 (문항별 답변, 체크박스 복수선택시 행 여러개)';
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='설문 응답 상세 (문항별 답변, 체크박스 복수선택시 행 여러개)';

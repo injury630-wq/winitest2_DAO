@@ -4,19 +4,32 @@
 <div class="px-1">
 
     <!-- 헤더 -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="h5 fw-bold mb-0">
-            <c:out value="${survey.title}"/>
-            <span class="text-muted fs-6 fw-normal ms-2">(총 응답자: ${totalCount}명)</span>
-        </h2>
+    <div class=" mb-3">
+      <h2>통계</h2>
+      <span class="">(총 응답자: ${totalCount}명)</span>
     </div>
-
-    <!-- 개요 (있을 경우만) -->
-    <c:if test="${not empty survey.content}">
-        <div class="bg-white border p-3 mb-3 text-muted" style="font-size: 14px; white-space: pre-wrap;">
-            <c:out value="${survey.content}"/>
-        </div>
-    </c:if>
+    <!-- 설문지 정보  -->
+		<table class="table table-bordered">
+			<colgroup>
+			  <col style="width: 15%"><col>
+			</colgroup>
+		  <thead>
+		    <tr>
+		      <td class="bg-light">제목</td>
+		      <td class="text-truncate" style="max-width: 300px; min-width: 200px"><c:out value="${survey.title}"/></td>
+		    </tr>
+		  </thead>
+		  <tbody>
+		    <tr>
+		      <td class="bg-light">개요</td>
+		      <td class="text-truncate" style="max-width: 300px; min-width: 200px"><c:out value="${survey.content}"/></td>
+		    </tr>
+		    <tr>
+		      <td class="bg-light">설문 기간</td>
+		      <td><c:out value="${survey.startDate} ~ ${survey.endDate }"/></td>
+		    </tr>
+		  </tbody>
+		</table>
 
     <!-- 질문별 통계 -->
     <c:forEach var="q" items="${questions}" varStatus="vs">
