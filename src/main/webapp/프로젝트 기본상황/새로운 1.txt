@@ -1,0 +1,15 @@
+진행안:
+-서비스 설문지 등록/수정 분리 해야함
+
+변경안:
+-설문지 테이블 삭제여부 컬럼 추가(사용여부와 삭제는 다른 방식으로 처리 사용여부가 N이면 관리페이지에서 보이지만 삭제를 해서 del_yn이 N이면 보이지 않음)
+-메뉴별 권한 테이블 audit 컬럼 추가
+-응답디테일 테이블 audit 컬럼 추가
+-설문지 관리 manage.jsp 제목, 개요 말줄임표
+-질문테이블 pk컬럼 코멘트 변경: 질문 PK (board_no 시퀀스 공용)
+-질문테이블 type컬럼 코멘트 변경: FK) code.code_no 질문 타입 (radio, text 등)
+-q_option 테이블 use_yn 컬럼 nullable로 변경
+-response 테이블 reg_user, survey_no 복합 UK 디비버로 다시 추가 기존 유니크키와 인덱스 삭제
+-surveymapper.xml : 
+	1.SurveyDAO.insertQuestion 등록자, 등록일시 insert 구문 추가
+	2.selectSurveyList 참여 가능 여부 추가
