@@ -25,7 +25,7 @@
         , CASE WHEN s.start_date > NOW()
                THEN 'Y' ELSE 'N' END                        AS canEdit          <!-- 수정가능여부(시작 전) -->
         , CASE WHEN NOW() BETWEEN s.start_date AND s.end_date 
-        			 THEN 'Y' ELSE 'N' END												AS resAvail					<!-- 참여 가능 여부(설문기간 내) -->
+        			 THEN 'Y' ELSE 'N' END					AS resAvail			<!-- 참여 가능 여부(설문기간 내) -->
         , u.user_name                                       AS regUserName      <!-- 등록자명 -->
         , DATE_FORMAT(s.reg_date, '%Y-%m-%d')               AS regDate          <!-- 등록일 -->
     FROM
@@ -352,8 +352,8 @@
     <!-- **SurveyDAO.selectStatTextCount -->
     <select id="selectStatTextCount" parameterType="int" resultType="map">
     SELECT
-        q.board_no                                          AS boardNo
-        , COUNT(rd.res_detail_no)                           AS answerCount
+        q.board_no                                          AS boardNo          <!-- 질문번호 -->
+        , COUNT(rd.res_detail_no)                           AS answerCount      <!-- 답변 건수 -->
     FROM
         question q
     LEFT JOIN response_detail rd ON rd.q_no = q.board_no
