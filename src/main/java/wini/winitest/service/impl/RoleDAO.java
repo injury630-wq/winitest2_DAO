@@ -25,8 +25,13 @@ public class RoleDAO extends EgovComAbstractDAO {
       return (Integer) selectOne("roleDAO.selectRoleTotalCount", param);
   }
 
-  /** 권한 그룹 등록 */
-  public int insertDummy(Map<String, Object> param) {
-      return insert("roleDAO.insertDummy", param);
+  /** 권한 그룹 단건 상세 조회 */
+  public Map<String, Object> selectRoleDetail(Map<String, Object> param) throws Exception {
+      return (Map<String, Object>) selectOne("roleDAO.selectRoleDetail", param);
+  }
+
+  /** 코드 그룹명으로 코드 목록 조회 (콤보박스용) */
+  public List<Map<String, Object>> selectCodesByGroupCode(String groupCode) throws Exception {
+      return selectList("roleDAO.selectCodesByGroupCode", groupCode);
   }
 }

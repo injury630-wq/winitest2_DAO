@@ -1,0 +1,39 @@
+{
+"code_group": [
+	{
+		"group_no" : 1,
+		"group_code" : "USER_TYPE",
+		"group_name" : "사용자 종류",
+		"reg_user" : null,
+		"reg_date" : "2026-05-05 06:32:57",
+		"mod_user" : null,
+		"mod_date" : null
+	},
+	{
+		"group_no" : 2,
+		"group_code" : "USE_YN",
+		"group_name" : "사용여부",
+		"reg_user" : null,
+		"reg_date" : "2026-05-05 06:32:57",
+		"mod_user" : null,
+		"mod_date" : null
+	},
+	{
+		"group_no" : 3,
+		"group_code" : "ADMIN_YN",
+		"group_name" : "관리자여부",
+		"reg_user" : null,
+		"reg_date" : "2026-05-05 06:32:57",
+		"mod_user" : null,
+		"mod_date" : null
+	},
+	{
+		"group_no" : 4,
+		"group_code" : "Q_TYPE",
+		"group_name" : "질문유형",
+		"reg_user" : null,
+		"reg_date" : "2026-05-05 06:32:57",
+		"mod_user" : null,
+		"mod_date" : null
+	}
+]}

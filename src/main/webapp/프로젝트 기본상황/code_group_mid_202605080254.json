@@ -1,0 +1,51 @@
+{
+"code_group_mid": [
+	{
+		"group_no" : 1,
+		"code_key" : 1
+	},
+	{
+		"group_no" : 1,
+		"code_key" : 2
+	},
+	{
+		"group_no" : 1,
+		"code_key" : 3
+	},
+	{
+		"group_no" : 2,
+		"code_key" : 4
+	},
+	{
+		"group_no" : 3,
+		"code_key" : 4
+	},
+	{
+		"group_no" : 2,
+		"code_key" : 5
+	},
+	{
+		"group_no" : 3,
+		"code_key" : 5
+	},
+	{
+		"group_no" : 4,
+		"code_key" : 6
+	},
+	{
+		"group_no" : 4,
+		"code_key" : 7
+	},
+	{
+		"group_no" : 4,
+		"code_key" : 8
+	},
+	{
+		"group_no" : 4,
+		"code_key" : 9
+	},
+	{
+		"group_no" : 4,
+		"code_key" : 10
+	}
+]}

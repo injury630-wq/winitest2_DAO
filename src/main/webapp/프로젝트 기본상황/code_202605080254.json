@@ -1,0 +1,103 @@
+{
+"code": [
+	{
+		"code_key" : 1,
+		"code_name" : "일반사용자",
+		"sort_ord" : 0,
+		"code_no" : "70010",
+		"reg_user" : null,
+		"reg_date" : "2026-05-05 06:33:37",
+		"mod_user" : null,
+		"mod_date" : null
+	},
+	{
+		"code_key" : 2,
+		"code_name" : "관리자",
+		"sort_ord" : 1,
+		"code_no" : "70020",
+		"reg_user" : null,
+		"reg_date" : "2026-05-05 06:33:37",
+		"mod_user" : null,
+		"mod_date" : null
+	},
+	{
+		"code_key" : 3,
+		"code_name" : "시스템관리자",
+		"sort_ord" : 2,
+		"code_no" : "70030",
+		"reg_user" : null,
+		"reg_date" : "2026-05-05 06:33:37",
+		"mod_user" : null,
+		"mod_date" : null
+	},
+	{
+		"code_key" : 4,
+		"code_name" : "Y",
+		"sort_ord" : 0,
+		"code_no" : "Y",
+		"reg_user" : null,
+		"reg_date" : "2026-05-05 06:33:38",
+		"mod_user" : null,
+		"mod_date" : null
+	},
+	{
+		"code_key" : 5,
+		"code_name" : "N",
+		"sort_ord" : 1,
+		"code_no" : "N",
+		"reg_user" : null,
+		"reg_date" : "2026-05-05 06:33:38",
+		"mod_user" : null,
+		"mod_date" : null
+	},
+	{
+		"code_key" : 6,
+		"code_name" : "단답형",
+		"sort_ord" : 0,
+		"code_no" : "text",
+		"reg_user" : null,
+		"reg_date" : "2026-05-05 06:33:38",
+		"mod_user" : null,
+		"mod_date" : null
+	},
+	{
+		"code_key" : 7,
+		"code_name" : "장문형",
+		"sort_ord" : 1,
+		"code_no" : "textarea",
+		"reg_user" : null,
+		"reg_date" : "2026-05-05 06:33:38",
+		"mod_user" : null,
+		"mod_date" : null
+	},
+	{
+		"code_key" : 8,
+		"code_name" : "라디오박스",
+		"sort_ord" : 2,
+		"code_no" : "radio",
+		"reg_user" : null,
+		"reg_date" : "2026-05-05 06:33:38",
+		"mod_user" : null,
+		"mod_date" : null
+	},
+	{
+		"code_key" : 9,
+		"code_name" : "셀렉트박스",
+		"sort_ord" : 3,
+		"code_no" : "select",
+		"reg_user" : null,
+		"reg_date" : "2026-05-05 06:33:38",
+		"mod_user" : null,
+		"mod_date" : null
+	},
+	{
+		"code_key" : 10,
+		"code_name" : "체크박스",
+		"sort_ord" : 4,
+		"code_no" : "checkbox",
+		"reg_user" : null,
+		"reg_date" : "2026-05-05 06:33:38",
+		"mod_user" : null,
+		"mod_date" : null
+	}
+]}

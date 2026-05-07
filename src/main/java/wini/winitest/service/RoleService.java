@@ -25,4 +25,7 @@ public interface RoleService {
   /** 권한 그룹 삭제 (논리삭제)*/
   public int deleteRole(Map<String, Object> param) throws Exception;
 
+  /** 코드 그룹명으로 코드 목록 조회 (콤보박스용) */
+  public List<Map<String, Object>> selectCodesByGroupCode(String groupCode) throws Exception;
+
 }

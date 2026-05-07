@@ -45,11 +45,42 @@
 		
 		<!-- 권한 그룹 전체 건수(검색조건) -->
 		<!-- **RoleDAO.selectRoleTotalCount -->
-		<select id="selectRoleTotalCount" parameterType="map">
+		<select id="selectRoleTotalCount" parameterType="map" resultType="int">
 			SELECT COUNT(*)
 			FROM
 				user_role
 			WHERE del_yn = 'N'
 			<include refid="searchCondition"/>
+		</select>
+
+		<!-- 권한 그룹 단건 상세 조회 -->
+		<!-- **RoleDAO.selectRoleDetail -->
+		<select id="selectRoleDetail" parameterType="map" resultType="map">
+		SELECT
+		    role_no                                          AS roleNo       <!-- 권한 그룹 번호(PK) -->
+		    , role_id                                        AS roleId       <!-- 롤 코드 -->
+		    , role_name                                      AS roleName     <!-- 롤 명 -->
+		    , role_desc                                      AS roleDesc     <!-- 롤 설명 -->
+		    , admin_yn                                       AS adminYn     <!-- 관리자 여부 -->
+		    , use_yn                                         AS useYn       <!-- 사용 여부 -->
+		    , role_rank                                      AS roleRank    <!-- 사용자 구분 코드 -->
+		    , sort_ord                                       AS sortOrd     <!-- 정렬 순서 -->
+		FROM user_role
+		WHERE role_no = #{roleNo}
+		  AND del_yn  = 'N'
+		</select>
+
+		<!-- 코드 그룹명으로 코드 목록 조회 (콤보박스용) -->
+		<!-- **RoleDAO.selectCodesByGroupCode -->
+		<select id="selectCodesByGroupCode" parameterType="string" resultType="map">
+		SELECT
+		    c.code_no                                        AS codeNo      <!-- 코드 값 -->
+		    , c.code_name                                    AS codeName    <!-- 코드 명 -->
+		FROM
+		    code c
+		JOIN code_group_mid cgm ON cgm.code_key = c.code_key
+		JOIN code_group      cg  ON cg.group_no  = cgm.group_no
+		WHERE cg.group_code = #{groupCode}
+		ORDER BY c.sort_ord ASC
 		</select>
 </mapper>
