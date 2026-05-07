@@ -1,5 +1,7 @@
+05/06
 진행안:
 -서비스 설문지 등록/수정 분리 해야함
+
 
 변경안:
 -설문지 테이블 삭제여부 컬럼 추가(사용여부와 삭제는 다른 방식으로 처리 사용여부가 N이면 관리페이지에서 보이지만 삭제를 해서 del_yn이 N이면 보이지 않음)
@@ -13,3 +15,22 @@
 -surveymapper.xml : 
 	1.SurveyDAO.insertQuestion 등록자, 등록일시 insert 구문 추가
 	2.selectSurveyList 참여 가능 여부 추가
+	
+	
+05/07
+진행안:
+-페이징 정보 넘길때 컨트롤러에서 param에 담고 서비스에서 getOrDefault로 호출하는데 수정해야함
+- 페이징유틸 currentPageNo만 param으로 받고 나머지는 매개변수로 받는데 유틸 안에서 특정 값은 param에 담는 작업을 하는데 그 값들이 다 리턴되는 객체 PagingInfo에 있는 값인데 몇개는 param에 담고 이 유틸을 사용하는 곳에서 pagingInfo를 또 param에 담아주는 작업을 하는게 이상함. 원래 사용하던 곳이 있기때문에 메서드 자체를 수정하면 원래 사용하던 곳도 다 변경돼야해서 메서드를 오버로딩 해서 페이징 계산만 하는 유틸로 만들어야함.
+
+변경안:
+-users 테이블 del_yn 컬럼 추가 => 삭제시 목록 표출 안하게 하기 위함
+	default 'N'/ notnull
+	컬럼명	#	Data Type	Not Null	Auto Increment	Key	디폴트	Extra	Comment
+	use_yn	6	char(1)	true	false	[NULL]	'Y'		사용여부 (Y:사용, N:미사용) 관리자가 직접 설정
+	del_yn	12	char(1)	true	false	[NULL]	'N'		논리삭제 여부(목록 조회시 표시 안하기 위함)
+
+-users 테이블 role_desc 컬럼 추가 => 목록에서 설명란이 있음
+-users 테이블 mod_date 디폴트값 제거
+
+
+

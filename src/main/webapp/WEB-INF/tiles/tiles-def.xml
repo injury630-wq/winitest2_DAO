@@ -48,4 +48,9 @@
 	<definition name="survey/*" extends="layout.main">
 	    <put-attribute name="content" value="/WEB-INF/views/survey/{1}.jsp"/>
 	</definition>
+	
+	<!-- 설문 -->
+	<definition name="role/*" extends="layout.main">
+	    <put-attribute name="content" value="/WEB-INF/views/role/{1}.jsp"/>
+	</definition>
 </tiles-definitions>
