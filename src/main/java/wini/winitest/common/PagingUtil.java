@@ -24,8 +24,20 @@ public class PagingUtil {
 
         return paginationInfo;
     }
+    
+    public static PaginationInfo create(int currentPageNo, int recordPerPage, int pageSize) {
+      PaginationInfo paginationInfo = new PaginationInfo();
 
-    public static int parsePageNo(Object value) {
+      currentPageNo = currentPageNo < 1 ? 1 : currentPageNo;; // 현재 페이지 없으면 1 고정
+
+      paginationInfo.setCurrentPageNo(currentPageNo);
+      paginationInfo.setRecordCountPerPage(recordPerPage); // 한 페이지당 게시되는 게시물 건 수
+      paginationInfo.setPageSize(pageSize); // 페이지 리스트에 게시되는 페이지 건수
+
+      return paginationInfo;
+  }
+
+    private static int parsePageNo(Object value) {
     	int page = 1;
 
     	try {

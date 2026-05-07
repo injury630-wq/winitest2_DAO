@@ -27,15 +27,15 @@ public class SurveyServiceImpl extends EgovAbstractServiceImpl implements Survey
         Map<String, Object> result = new HashMap<>();
         result.put("msg", "E");
         try {
-            int recordPerPage = Integer.parseInt(String.valueOf(param.getOrDefault("recordCountPerPage", 10)));
-            int pageSize      = Integer.parseInt(String.valueOf(param.getOrDefault("pageSize", 10)));
+            int recordPerPage = Integer.parseInt(String.valueOf(param.get("recordCountPerPage")));
+            int pageSize  = Integer.parseInt(String.valueOf(param.get("pageSize")));
             PaginationInfo paginationInfo = PagingUtil.create(param, recordPerPage, pageSize);
             int totalCount = surveyDAO.selectSurveyTotalCount(param);
             paginationInfo.setTotalRecordCount(totalCount);
-            result.put("list",           surveyDAO.selectSurveyList(param));
+            result.put("list", surveyDAO.selectSurveyList(param));
             result.put("paginationInfo", paginationInfo);
-            result.put("search",         param);
-            result.put("msg",            "S");
+            result.put("search", param);
+            result.put("msg",  "S");
         } catch (Exception e) {
             e.printStackTrace();
         }

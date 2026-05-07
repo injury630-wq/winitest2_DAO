@@ -25,8 +25,8 @@ public class UserServiceImpl extends EgovAbstractServiceImpl implements UserServ
 		Map<String, Object> result = new HashMap<>();
 		result.put("msg", "E");
 		try {
-			int recordPerPage = Integer.parseInt(String.valueOf(params.getOrDefault("recordCountPerPage", 10)));
-			int pageSize      = Integer.parseInt(String.valueOf(params.getOrDefault("pageSize", 10)));
+			int recordPerPage = Integer.parseInt(String.valueOf(params.get("recordCountPerPage")));
+			int pageSize      = Integer.parseInt(String.valueOf(params.get("pageSize")));
 			PaginationInfo paginationInfo = PagingUtil.create(params, recordPerPage, pageSize);
 			int totalCount = selectUserTotalCount(params);
 			paginationInfo.setTotalRecordCount(totalCount);

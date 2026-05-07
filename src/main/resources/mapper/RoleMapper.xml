@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace = "XXXDAO" → XXXDAO.java에서 "XXXDAO.{queryId}"로 호출 모든 파라미터/결과는 
+		Map 기반 사용 (vo 미사용) -->
+<mapper namespace="roleDAO">
+		<!-- 공통 검색 조건 SQL -->
+		<sql id="searchCondition">
+			<if test="searchRoleId != null and searchRoleId != ''">
+					AND role_id LIKE CONCAT('%', UPPER(#{searchRoleId}), '%')
+			</if>
+			<if test="searchRoleName != null and searchRoleName != ''">
+					AND role_name LIKE CONCAT('%', UPPER(#{searchRoleName}), '%')
+			</if>
+			<if test="searchRoleRank != null and searchRoleRank != ''">
+					AND role_rank = #{searchRoleRank}
+			</if>
+			<if test="searchUseYn != null and searchUseYn != ''">
+					AND use_yn = #{searchUseYn}
+			</if>
+			<if test="searchAdminYn != null and searchAdminYn != ''">
+					AND admin_yn = #{searchAdminYn}
+			</if>
+		</sql>
+
+		<!-- 권한 그룹 목록 조회(검색조건,페이징) -->
+		<!-- **RoleDAO.selectRoleList -->
+		<select id="selectRoleList" parameterType="map" resultType="map">
+				SELECT
+				role_no 					AS roleNo			<!-- 권한 그룹 번호(PK) -->
+				, role_id				 	AS roleId			<!-- 롤 코드 -->
+				, role_name 			AS roleName		<!-- 롤 명 -->
+				, role_desc 			AS roleDesc		<!-- 롤 설명-->
+				, admin_yn 				AS adminYn		<!-- 관리자 여부 -->
+				, use_yn 					AS useYn			<!-- 사용 여부 -->
+				, reg_date 				AS regDate		<!-- 등록일 -->
+				, role_rank 			AS roleRank		<!-- 사용자 구분 코드 -->
+				FROM user_role
+				WHERE del_yn = 'N'
+				<include refid="searchCondition"/>
+				ORDER BY sort_ord ASC
+				LIMIT #{firstIndex}, #{recordCountPerPage}
+		</select>
+		
+		<!-- 권한 그룹 전체 건수(검색조건) -->
+		<!-- **RoleDAO.selectRoleTotalCount -->
+		<select id="selectRoleTotalCount" parameterType="map">
+			SELECT COUNT(*)
+			FROM
+				user_role
+			WHERE del_yn = 'N'
+			<include refid="searchCondition"/>
+		</select>
+</mapper>
