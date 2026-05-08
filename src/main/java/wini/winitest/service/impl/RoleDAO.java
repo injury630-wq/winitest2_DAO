@@ -13,7 +13,6 @@ import egovframework.com.cmm.service.impl.EgovComAbstractDAO;
  */
 @Repository("roleDAO")
 public class RoleDAO extends EgovComAbstractDAO {
-	 /* ===== Role 조회 ===== */
 
   /** 권한 그룹 목록 조회 (페이징 + 검색 조건) */
   public List<Map<String, Object>> selectRoleList(Map<String, Object> param) throws Exception {
@@ -29,9 +28,15 @@ public class RoleDAO extends EgovComAbstractDAO {
   public Map<String, Object> selectRoleDetail(Map<String, Object> param) throws Exception {
       return (Map<String, Object>) selectOne("roleDAO.selectRoleDetail", param);
   }
-
-  /** 코드 그룹명으로 코드 목록 조회 (콤보박스용) */
-  public List<Map<String, Object>> selectCodesByGroupCode(String groupCode) throws Exception {
-      return selectList("roleDAO.selectCodesByGroupCode", groupCode);
+  
+  /** 권한 그룹 단건 등록 */
+  public int insertRole(Map<String, Object> param) throws Exception {
+  	return (Integer) insert("roleDAO.insertRole", param);
   }
+  
+  /** 권한 그룹 단건 논리 삭제 */
+  public int deleteRole(Map<String, Object> param) throws Exception {
+  	return (Integer) update("roleDAO.deleteRole", param);
+  }
+  
 }

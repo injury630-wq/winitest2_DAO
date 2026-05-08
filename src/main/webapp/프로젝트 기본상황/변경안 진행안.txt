@@ -32,5 +32,9 @@
 -user_role 테이블 role_desc 컬럼 추가 => 요구사항 화면인 목록에서 설명란이 있음
 -users 테이블 mod_date 디폴트값 제거
 
+05/08
+변경안:
+-USER_ROLE 테이블 ROLE_ID 컬럼 UK로 변경
+
 
 

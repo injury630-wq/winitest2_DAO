@@ -18,4 +18,5 @@ public class MenuDAO extends EgovComAbstractDAO {
     public List<Map<String, Object>> selectMenuList() throws Exception {
         return selectList("menuDAO.selectMenuList");
     }
+    
 }

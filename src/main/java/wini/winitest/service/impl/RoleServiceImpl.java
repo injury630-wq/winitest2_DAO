@@ -1,12 +1,12 @@
 package wini.winitest.service.impl;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import egovframework.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
@@ -21,7 +21,7 @@ public class RoleServiceImpl extends EgovAbstractServiceImpl implements RoleServ
 
 	@Resource(name = "roleDAO")
 	private RoleDAO roleDAO;
-
+	
 	/** 권한 그룹 목록 조회 (페이징, 검색조건) */
 	@Override
 	public Map<String, Object> selectRoleList(Map<String, Object> param) throws Exception {
@@ -59,14 +59,23 @@ public class RoleServiceImpl extends EgovAbstractServiceImpl implements RoleServ
 		return roleDAO.selectRoleTotalCount(param);
 	}
 
+	/** 권한 그룹 상세 조회*/
 	@Override
 	public Map<String, Object> selectRoleDetail(Map<String, Object> param) throws Exception {
-		return roleDAO.selectRoleDetail(param);
+		Map<String, Object> detail = roleDAO.selectRoleDetail(param);
+		return detail;
 	}
 
+	/** 권한 그룹 단건 등록*/
 	@Override
-	public int insertRole(Map<String, Object> param) throws Exception {
-		return 0;
+	@Transactional
+	public void insertRole(Map<String, Object> param) throws Exception {
+		// 권한그룹 등록
+		int roleResult = roleDAO.insertRole(param);
+		// 권한 그룹 등록 성공 => 메뉴별 권한 데이터 insert
+    if (roleResult < 1) {
+    	new RuntimeException("롤 등록에 실패했습니다.");
+    }
 	}
 
 	@Override
@@ -74,15 +83,13 @@ public class RoleServiceImpl extends EgovAbstractServiceImpl implements RoleServ
 		return 0;
 	}
 
+	/** 권한 그룹 논리 삭제*/
 	@Override
-	public int deleteRole(Map<String, Object> param) throws Exception {
-		return 0;
-	}
-
-	/** 코드 그룹명으로 코드 목록 조회 (콤보박스용) */
-	@Override
-	public List<Map<String, Object>> selectCodesByGroupCode(String groupCode) throws Exception {
-		return roleDAO.selectCodesByGroupCode(groupCode);
+	@Transactional
+	public boolean deleteRole(Map<String, Object> param) throws Exception {
+		int result = roleDAO.deleteRole(param);
+		
+		return result > 0;
 	}
 
 }

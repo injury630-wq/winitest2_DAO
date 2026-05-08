@@ -1,6 +1,5 @@
 package wini.winitest.service;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -17,15 +16,12 @@ public interface RoleService {
   public Map<String, Object> selectRoleDetail(Map<String, Object> param) throws Exception;
 
   /** 권한 그룹 등록 */
-  public int insertRole(Map<String, Object> param) throws Exception;
+  public void insertRole(Map<String, Object> param) throws Exception;
 
   /** 권한 그룹 수정 */
   public int updateRole(Map<String, Object> param) throws Exception;
 
   /** 권한 그룹 삭제 (논리삭제)*/
-  public int deleteRole(Map<String, Object> param) throws Exception;
-
-  /** 코드 그룹명으로 코드 목록 조회 (콤보박스용) */
-  public List<Map<String, Object>> selectCodesByGroupCode(String groupCode) throws Exception;
+  public boolean deleteRole(Map<String, Object> param) throws Exception;
 
 }

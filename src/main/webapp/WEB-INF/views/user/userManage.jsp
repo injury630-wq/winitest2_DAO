@@ -246,7 +246,6 @@
 
 			selectedRow = $(this);
 			selectedUserNo = $(this).data('userNo');
-			console.log(selectedRow.data('userNo'));
 
 			$.ajax({
 				type : 'post',

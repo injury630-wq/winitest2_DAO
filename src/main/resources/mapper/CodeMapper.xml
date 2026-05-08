@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace = "XXXDAO" → XXXDAO.java에서 "XXXDAO.{queryId}"로 호출 모든 파라미터/결과는 
+		Map 기반 사용 (vo 미사용) -->
+<mapper namespace="codeDAO">
+
+		<!-- 코드 그룹명으로 코드 목록 조회 (콤보박스용) -->
+		<!-- **CodeDAO.selectCodeOptions -->
+		<select id="selectCodeOptions" parameterType="string" resultType="map">
+		SELECT
+		    c.code_no                                        AS codeNo      <!-- 코드 값 -->
+		    , c.code_name                                    AS codeName    <!-- 코드 명 -->
+		FROM
+		    code c
+		JOIN code_group_mid cgm ON cgm.code_key = c.code_key
+		JOIN code_group  cg  ON cg.group_no  = cgm.group_no
+		WHERE cg.group_code = #{groupCode}
+		ORDER BY c.sort_ord ASC
+		</select>
+</mapper>
