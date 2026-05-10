@@ -129,4 +129,16 @@ public class UserServiceImpl extends EgovAbstractServiceImpl implements UserServ
 	public List<Map<String, Object>> selectRoleList() throws Exception {
 		return userDAO.selectRoleList();
 	}
+
+	/** 권한별 사용자 목록 조회 */
+	@Override
+	public List<Map<String, Object>> selectUserListByRole(Map<String, Object> param) throws Exception {
+		return userDAO.selectUserListByRole(param);
+	}
+
+	/** 사용자 권한 변경 */
+	@Override
+	public int updateUserRole(Map<String, Object> param) throws Exception {
+		return userDAO.updateUserRole(param);
+	}
 }

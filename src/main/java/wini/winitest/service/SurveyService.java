@@ -3,6 +3,9 @@ package wini.winitest.service;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.web.multipart.MultipartFile;
+
+
 /** 설문 서비스 인터페이스 */
 public interface SurveyService {
 
@@ -35,4 +38,10 @@ public interface SurveyService {
 
     /** 통계 조회 */
     Map<String, Object> getSurveyStat(int surveyNo) throws Exception;
+
+    /** 질문 첨부 이미지 임시 업로드 */
+    Map<String, Object> saveTempImage(MultipartFile file, Object regUser) throws Exception;
+
+    /** 질문 첨부 이미지 조회 (이미지 서빙용) */
+    Map<String, Object> getImageByFileNo(int fileNo) throws Exception;
 }

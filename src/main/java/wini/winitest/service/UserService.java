@@ -37,4 +37,10 @@ public interface UserService {
 
     /** 역할 목록 조회 (콤보박스용) */
     List<Map<String, Object>> selectRoleList() throws Exception;
+
+    /** 권한별 사용자 목록 조회 */
+    List<Map<String, Object>> selectUserListByRole(Map<String, Object> param) throws Exception;
+
+    /** 사용자 권한 변경 */
+    int updateUserRole(Map<String, Object> param) throws Exception;
 }

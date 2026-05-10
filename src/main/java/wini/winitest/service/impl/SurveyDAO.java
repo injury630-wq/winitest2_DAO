@@ -135,4 +135,24 @@ public class SurveyDAO extends EgovComAbstractDAO {
     public int selectTotalResponseCount(int surveyNo) throws Exception {
         return selectOne("surveyDAO.selectTotalResponseCount", surveyNo);
     }
+
+    /** 질문 첨부 이미지 임시 등록 */
+    public void insertSurveyTempImage(Map<String, Object> param) throws Exception {
+        insert("surveyDAO.insertSurveyTempImage", param);
+    }
+
+    /** 질문 첨부 이미지 활성화 (board_no 확정) */
+    public void activateSurveyImage(Map<String, Object> param) throws Exception {
+        update("surveyDAO.activateSurveyImage", param);
+    }
+
+    /** 질문 첨부 이미지 단건 조회 (이미지 서빙용) */
+    public Map<String, Object> selectSurveyImageByFileNo(int fileNo) throws Exception {
+        return selectOne("surveyDAO.selectSurveyImageByFileNo", fileNo);
+    }
+
+    /** 질문 첨부 이미지 논리삭제 */
+    public void logicalDeleteSurveyImage(int fileNo) throws Exception {
+        update("surveyDAO.logicalDeleteSurveyImage", fileNo);
+    }
 }

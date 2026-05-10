@@ -28,15 +28,55 @@ public class RoleDAO extends EgovComAbstractDAO {
   public Map<String, Object> selectRoleDetail(Map<String, Object> param) throws Exception {
       return (Map<String, Object>) selectOne("roleDAO.selectRoleDetail", param);
   }
-  
+
+  /** 신규 등록 전 동일 sort_ord 이상인 기존 롤 순서 +1 밀기 */
+  public void shiftSortOrd(Map<String, Object> param) throws Exception {
+      update("roleDAO.shiftSortOrd", param);
+  }
+
   /** 권한 그룹 단건 등록 */
   public int insertRole(Map<String, Object> param) throws Exception {
-  	return (Integer) insert("roleDAO.insertRole", param);
+      return (Integer) insert("roleDAO.insertRole", param);
   }
-  
+
+  /** 롤코드(role_id) 업데이트 (insertRole 직후 호출) */
+  public void updateRoleId(Map<String, Object> param) throws Exception {
+      update("roleDAO.updateRoleId", param);
+  }
+
+  /** 수정 전 현재 정렬 순서 조회 */
+  public int selectSortOrd(Map<String, Object> param) throws Exception {
+      return (Integer) selectOne("roleDAO.selectSortOrd", param);
+  }
+
+  /** 수정 시 앞으로 이동: new < old 구간 데이터 +1 */
+  public void shiftSortOrdUp(Map<String, Object> param) throws Exception {
+      update("roleDAO.shiftSortOrdUp", param);
+  }
+
+  /** 수정 시 뒤로 이동: new > old 구간 데이터 -1 */
+  public void shiftSortOrdDown(Map<String, Object> param) throws Exception {
+      update("roleDAO.shiftSortOrdDown", param);
+  }
+
+  /** 권한 그룹 수정 */
+  public int updateRole(Map<String, Object> param) throws Exception {
+      return update("roleDAO.updateRole", param);
+  }
+
+  /** 롤 전체 목록 조회 (콤보박스용) */
+  public List<Map<String, Object>> selectAllRoleList() throws Exception {
+      return selectList("roleDAO.selectAllRoleList");
+  }
+
   /** 권한 그룹 단건 논리 삭제 */
   public int deleteRole(Map<String, Object> param) throws Exception {
-  	return (Integer) update("roleDAO.deleteRole", param);
+      return (Integer) update("roleDAO.deleteRole", param);
   }
-  
+
+  /** 롤 사용자 구분 코드 조회 (시스템관리자 여부 확인용) */
+  public Integer selectRoleRank(int roleNo) throws Exception {
+      return (Integer) selectOne("roleDAO.selectRoleRank", roleNo);
+  }
+
 }

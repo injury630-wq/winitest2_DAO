@@ -1,5 +1,6 @@
 package wini.winitest.service;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -23,5 +24,17 @@ public interface RoleService {
 
   /** 권한 그룹 삭제 (논리삭제)*/
   public boolean deleteRole(Map<String, Object> param) throws Exception;
+
+  /** 롤 전체 목록 조회 (콤보박스용) */
+  public List<Map<String, Object>> selectAllRoleList() throws Exception;
+
+  /** 롤별 메뉴 권한 목록 조회 */
+  public List<Map<String, Object>> selectMenuPermList(Map<String, Object> param) throws Exception;
+
+  /** 메뉴별 권한 일괄 저장 */
+  public void saveMenuPermList(String roleNo, List<Map<String, Object>> perms, Object modUser) throws Exception;
+
+  /** 시스템관리자(role_rank=70030) 여부 확인 */
+  public boolean isSystemAdmin(String roleNo) throws Exception;
 
 }

@@ -70,43 +70,132 @@
 		  AND del_yn  = 'N'
 		</select>
 		
-		<!-- 권한 그룹 등록 -->
+		<!-- 신규 등록 전 동일 sort_ord 이상인 기존 롤 순서 +1 밀기 -->
+		<!-- **RoleDAO.shiftSortOrd -->
+		<update id="shiftSortOrd" parameterType="map">
+		UPDATE user_role
+		SET    sort_ord = sort_ord + 1  <!-- 정렬 순서 -->
+		WHERE  sort_ord >= #{sortOrd}   <!-- 정렬 순서 기준 -->
+		  AND  del_yn   = 'N'           <!-- 삭제 여부 -->
+		</update>
+
+		<!-- 수정 전 현재 정렬 순서 조회 -->
+		<!-- **RoleDAO.selectSortOrd -->
+		<select id="selectSortOrd" parameterType="map" resultType="int">
+		SELECT sort_ord                 <!-- 정렬 순서 -->
+		FROM   user_role
+		WHERE  role_no = #{roleNo}      <!-- 롤 번호(PK) -->
+		  AND  del_yn  = 'N'            <!-- 삭제 여부 -->
+		</select>
+
+		<!-- 수정 시 앞으로 이동: new < old 구간 데이터 +1 (자리 비워주기) -->
+		<!-- **RoleDAO.shiftSortOrdUp -->
+		<update id="shiftSortOrdUp" parameterType="map"><![CDATA[
+		UPDATE user_role
+		SET    sort_ord = sort_ord + 1  -- 정렬 순서
+		WHERE  sort_ord >= #{newSortOrd}   -- 신규 정렬 순서
+		  AND  sort_ord  < #{oldSortOrd}   -- 기존 정렬 순서
+		  AND  role_no  != #{roleNo}       -- 롤 번호(PK)
+		  AND  del_yn    = 'N'             -- 삭제 여부
+		]]></update>
+
+		<!-- 수정 시 뒤로 이동: new > old 구간 데이터 -1 (빈 자리 당기기) -->
+		<!-- **RoleDAO.shiftSortOrdDown -->
+		<update id="shiftSortOrdDown" parameterType="map"><![CDATA[
+		UPDATE user_role
+		SET    sort_ord = sort_ord - 1  -- 정렬 순서
+		WHERE  sort_ord  > #{oldSortOrd}   -- 기존 정렬 순서
+		  AND  sort_ord <= #{newSortOrd}   -- 신규 정렬 순서
+		  AND  role_no  != #{roleNo}       -- 롤 번호(PK)
+		  AND  del_yn    = 'N'             -- 삭제 여부
+		]]></update>
+
+		<!-- 권한 그룹 등록 (role_id는 role_no 채번 후 별도 UPDATE로 설정) -->
 		<!-- **RoleDAO.insertRole-->
 		<insert id="insertRole" parameterType="map" useGeneratedKeys="true" keyProperty="roleNo">
-		INSERT INTO user_role 
+		INSERT INTO user_role
 			(
 				role_rank					<!-- 롤 랭크 -->
 			, role_name					<!-- 롤 명 -->
 			, role_desc					<!-- 롤 설명 -->
-			, role_id						<!-- 롤 코드 -->
 			, admin_yn					<!-- 관리자 여부 -->
 			, use_yn						<!-- 사용 여부 -->
 			, sort_ord					<!-- 정렬 순서 -->
 			, reg_date					<!-- 등록일시 -->
 			, reg_user					<!-- 등록자 -->
-			, del_yn						<!-- 삭제 여부(신규 등록이므로 기본값 N) -->
+			, del_yn						<!-- 삭제 여부 -->
 			)
-		VALUES 
-		(
-			#{roleRank}
-		, #{roleName}
-		, #{roleDesc}
-		, UPPER(#{roleId})
-		, #{adminYn}
-		, #{useYn}
-		, #{sortOrd}
-		, NOW()
-		, #{regUser}
-		, 'N')
+		VALUES
+			(
+				#{roleRank}
+			, #{roleName}
+			, #{roleDesc}
+			, #{adminYn}
+			, #{useYn}
+			, #{sortOrd}
+			, NOW()
+			, #{regUser}
+			, 'N'
+			)
 		</insert>
-		
-		<!-- 권한 그룹 등록 -->
+
+		<!-- 롤코드(role_id) 업데이트 (insertRole 직후 채번된 role_no로 생성한 값 세팅) -->
+		<!-- **RoleDAO.updateRoleId -->
+		<update id="updateRoleId" parameterType="map">
+		UPDATE user_role
+		SET    role_id = #{roleId}      <!-- 롤 코드 (자동생성) -->
+		WHERE  role_no = #{roleNo}
+		</update>
+
+		<!-- 권한 그룹 수정 -->
+		<!-- **RoleDAO.updateRole -->
+		<update id="updateRole" parameterType="map">
+		UPDATE user_role
+		SET
+		    role_name  = #{roleName}    <!-- 롤 명 -->
+		    , role_desc = #{roleDesc}   <!-- 롤 설명 -->
+		    , role_rank = #{roleRank}   <!-- 사용자 구분 코드 -->
+		    , admin_yn  = #{adminYn}    <!-- 관리자 여부 -->
+		    , use_yn    = #{useYn}      <!-- 사용 여부 -->
+		    , sort_ord  = #{sortOrd}    <!-- 정렬 순서 -->
+		    , mod_date  = NOW()         <!-- 수정일시 -->
+		    , mod_user  = #{updUser}    <!-- 수정자 -->
+		WHERE role_no   = #{roleNo}
+		  AND del_yn    = 'N'
+		</update>
+
+		<!-- 롤 전체 목록 조회 (콤보박스용, 페이징 없음) -->
+		<!-- **RoleDAO.selectAllRoleList -->
+		<select id="selectAllRoleList" resultType="map">
+		SELECT
+		    role_no     AS roleNo   <!-- 롤 번호(PK) -->
+		    , role_id   AS roleId   <!-- 롤 코드 -->
+		    , role_name AS roleName <!-- 롤 명 -->
+		    , role_rank AS roleRank <!-- 사용자 구분 코드 -->
+		    , admin_yn  AS adminYn  <!-- 관리자 여부 -->
+		    , use_yn    AS useYn    <!-- 사용 여부 -->
+		FROM user_role
+		WHERE del_yn = 'N'
+		  AND use_yn = 'Y'
+		ORDER BY sort_ord ASC
+		</select>
+
+		<!-- 권한 그룹 논리 삭제 -->
 		<!-- **RoleDAO.deleteRole-->
 		<update id="deleteRole" parameterType="map">
 		UPDATE user_role
-		SET 
+		SET
 				del_yn = 'Y'			<!-- 삭제 여부 -->
-		WHERE 
+		WHERE
 				role_no = #{roleNo}
 		</update>
+
+		<!-- 롤 사용자 구분 코드 조회 (시스템관리자 여부 확인용) -->
+		<!-- **RoleDAO.selectRoleRank -->
+		<select id="selectRoleRank" parameterType="int" resultType="int">
+		SELECT role_rank        <!-- 사용자 구분 코드 -->
+		FROM   user_role
+		WHERE  role_no = #{roleNo}
+		  AND  del_yn  = 'N'    <!-- 삭제 여부 -->
+		</select>
 </mapper>

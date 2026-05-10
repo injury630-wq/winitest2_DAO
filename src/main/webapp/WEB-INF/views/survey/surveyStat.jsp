@@ -52,7 +52,6 @@
                         <th class="table-light align-middle text-center">통계</th>
                         <td>
                             <c:choose>
-                            		<!-- ============ 객관식 통계 ============ -->
                                 <c:when test="${q.type eq 'radio' or q.type eq 'select' or q.type eq 'checkbox'}">
                                     <c:choose>
                                         <c:when test="${empty q.stats}">
@@ -67,7 +66,6 @@
                                         </c:otherwise>
                                     </c:choose>
                                 </c:when>
-                                <!-- ============ 단답/서술 ============ -->
                                 <c:otherwise>
                                     <p class="mb-1 fw-semibold" style="font-size: 13px;">
                                         응답 목록 (${q.answerCount}건):

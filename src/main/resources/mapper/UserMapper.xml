@@ -194,4 +194,48 @@
         ORDER BY c.sort_ord ASC
     </select>
 
+    <!-- 사용자 권한 변경 -->
+    <!-- **UserDAO.updateUserRole -->
+    <update id="updateUserRole" parameterType="map">
+    UPDATE users
+    SET
+        role_no    = #{roleNo}   <!-- 롤 번호(FK) -->
+        , mod_user = #{modUser}  <!-- 수정자 -->
+        , mod_date = NOW()       <!-- 수정일시 -->
+    WHERE user_no IN
+    <foreach collection="userNos" item="userNo" open="(" separator="," close=")">
+        #{userNo}
+    </foreach>
+    </update>
+
+    <!-- 권한별 사용자 목록 조회 (검색조건) -->
+    <!-- **UserDAO.selectUserListByRole -->
+    <select id="selectUserListByRole" parameterType="map" resultType="map">
+    SELECT
+        u.user_no                               AS userNo   <!-- 사용자 번호(PK) -->
+        , u.user_id                             AS userId   <!-- 로그인 아이디 -->
+        , u.user_name                           AS userName <!-- 사용자명 -->
+        , u.use_yn                              AS useYn    <!-- 사용여부 -->
+        , u.role_no                             AS roleNo   <!-- 현재 롤 번호 -->
+        , DATE_FORMAT(u.reg_date, '%Y-%m-%d')   AS regDate  <!-- 등록일 -->
+        , r.role_name                           AS roleName <!-- 롤 명 -->
+        , r.role_id                             AS roleId   <!-- 롤 코드 -->
+        , r.admin_yn                            AS adminYn  <!-- 관리자 여부 -->
+        , r.role_rank                           AS roleRank <!-- 사용자 구분 코드 -->
+    FROM users u
+    LEFT JOIN user_role r ON u.role_no = r.role_no
+        AND r.del_yn = 'N'                              <!-- 삭제 여부 -->
+    WHERE u.use_yn = 'Y'                                    <!-- 사용중인 사용자만 -->
+    <if test="searchRoleNo != null and searchRoleNo != ''">
+        AND u.role_no = #{searchRoleNo}                     <!-- 롤 번호 검색 -->
+    </if>
+    <if test="searchUserId != null and searchUserId != ''">
+        AND u.user_id LIKE CONCAT('%', #{searchUserId}, '%')     <!-- 아이디 검색 -->
+    </if>
+    <if test="searchUserName != null and searchUserName != ''">
+        AND u.user_name LIKE CONCAT('%', #{searchUserName}, '%') <!-- 이름 검색 -->
+    </if>
+    ORDER BY u.user_no ASC
+    </select>
+
 </mapper>

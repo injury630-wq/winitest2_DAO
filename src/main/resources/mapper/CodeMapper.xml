@@ -19,4 +19,5 @@
 		WHERE cg.group_code = #{groupCode}
 		ORDER BY c.sort_ord ASC
 		</select>
+
 </mapper>

@@ -192,20 +192,80 @@
     WHERE q_no = #{boardNo}
     </update>
 
-    <!-- 설문의 질문 전체 조회 -->
+    <!-- 설문의 질문 전체 조회 (이미지 정보 포함) -->
     <!-- **SurveyDAO.selectQuestionsBySurveyNo -->
     <select id="selectQuestionsBySurveyNo" parameterType="int" resultType="map">
     SELECT
-        board_no                                            AS boardNo          <!-- 질문번호 -->
-        , content                                           AS content          <!-- 질문 내용 -->
-        , type                                              AS type             <!-- 질문 유형 코드 -->
-        , sort_ord                                          AS sortOrd          <!-- 정렬 순서 -->
+        q.board_no                                          AS boardNo          <!-- 질문번호 -->
+        , q.content                                         AS content          <!-- 질문 내용 -->
+        , q.type                                            AS type             <!-- 질문 유형 코드 -->
+        , q.sort_ord                                        AS sortOrd          <!-- 정렬 순서 -->
+        , fm.file_no                                        AS imageFileNo      <!-- 첨부 이미지 파일번호 -->
     FROM
-        question
-    WHERE survey_no = #{surveyNo}
-      AND use_yn = 'Y'
-    ORDER BY sort_ord ASC
+        question q
+    LEFT JOIN file_master fm ON fm.board_no = q.board_no   <!-- 첨부 이미지 -->
+                             AND fm.use_yn  = 'Y'          <!-- 활성 파일만 -->
+    WHERE q.survey_no = #{surveyNo}
+      AND q.use_yn    = 'Y'
+    ORDER BY q.sort_ord ASC
     </select>
+
+    <!-- 질문 첨부 이미지 임시 등록 (업로드 즉시, use_yn='N'/board_no=0) -->
+    <!-- **SurveyDAO.insertSurveyTempImage -->
+    <insert id="insertSurveyTempImage" parameterType="map" useGeneratedKeys="true" keyProperty="fileNo">
+    INSERT INTO file_master (
+        board_no    <!-- 질문번호 (저장 전 0으로 임시) -->
+        , file_path <!-- 파일 저장 경로 -->
+        , file_name <!-- 서버 저장 파일명 (UUID 기반) -->
+        , org_name  <!-- 원본 파일명 -->
+        , file_ext  <!-- 파일 확장자 -->
+        , file_size <!-- 파일 크기 (bytes) -->
+        , sort_ord  <!-- 정렬 순서 -->
+        , use_yn    <!-- 사용여부 (임시: N) -->
+        , reg_user  <!-- 등록자 -->
+        , reg_date  <!-- 등록일시 -->
+    ) VALUES (
+        0
+        , #{filePath}
+        , #{fileName}
+        , #{orgName}
+        , #{fileExt}
+        , #{fileSize}
+        , 0
+        , 'N'
+        , #{regUser}
+        , NOW()
+    )
+    </insert>
+
+    <!-- 질문 첨부 이미지 활성화 (질문 저장 후 board_no 확정) -->
+    <!-- **SurveyDAO.activateSurveyImage -->
+    <update id="activateSurveyImage" parameterType="map">
+    UPDATE file_master
+    SET    use_yn   = 'Y'           <!-- 임시 → 활성 -->
+         , board_no = #{boardNo}    <!-- 질문번호 확정 -->
+    WHERE  file_no  = #{fileNo}     <!-- 파일번호 -->
+    </update>
+
+    <!-- 질문 첨부 이미지 조회 (file_no 기준, 이미지 서빙용) -->
+    <!-- **SurveyDAO.selectSurveyImageByFileNo -->
+    <select id="selectSurveyImageByFileNo" parameterType="int" resultType="map">
+    SELECT
+        file_no     AS fileNo   <!-- 파일번호 -->
+        , file_path AS filePath <!-- 파일 저장 경로 -->
+        , file_name AS fileName <!-- 서버 저장 파일명 -->
+        , file_ext  AS fileExt  <!-- 파일 확장자 -->
+    FROM file_master
+    WHERE file_no = #{fileNo}
+    </select>
+
+    <!-- 질문 첨부 이미지 논리삭제 -->
+    <!-- **SurveyDAO.logicalDeleteSurveyImage -->
+    <update id="logicalDeleteSurveyImage" parameterType="int">
+    UPDATE file_master
+    SET    use_yn = 'N'         <!-- 활성 → 삭제 -->
+    WHERE  file_no = #{fileNo}  <!-- 파일번호 -->
+    </update>
 
     <!-- 설문에 속한 보기 전체 조회 (수정 폼 로딩용) -->
     <!-- **SurveyDAO.selectOptionsBySurveyNo -->

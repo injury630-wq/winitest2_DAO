@@ -100,9 +100,10 @@ CREATE TABLE `user_role` (
   `mod_user` int DEFAULT NULL COMMENT '수정자 (users.user_no)',
   `del_yn` char(1) NOT NULL DEFAULT 'N' COMMENT '논리삭제 여부(목록 조회시 표시 안하기 위함)',
   PRIMARY KEY (`role_no`),
+  UNIQUE KEY `user_role_unique` (`role_id`),
   KEY `fk_user_role_code` (`role_rank`),
   CONSTRAINT `fk_user_role_code` FOREIGN KEY (`role_rank`) REFERENCES `code` (`code_no`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='사용자 역할 테이블 (code 테이블과 연결)';
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='사용자 역할 테이블 (code 테이블과 연결)';
 
 
 -- winitest.users definition

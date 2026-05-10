@@ -61,7 +61,7 @@
                 <div class="d-flex align-items-center gap-1">
                     <label class="form-label mb-0 me-1" style="font-size: 13px;">페이지당</label>
                     <select class="form-select form-select-sm" name="recordPerPage" id="recordPerPage" style="width: auto;">
-									    <c:forEach var="size" items="10,20,50">
+									    <c:forEach var="size" items="3,5,10">
 									        <option value="${size}" ${search.recordPerPage eq size ? 'selected' : ''}>
 									            ${size}건
 									        </option>
@@ -174,7 +174,7 @@
                     <td>
                         <select id="dtlAdminYn" name="adminYn" class="form-select form-select-sm">
                             <c:forEach var="code" items="${adminYnOptions}">
-                                <option value="${code.codeNo}"><c:out value="${code.codeName}"/></option>
+                                <option value="${code.codeNo}" ${code.codeNo eq 'N' ? 'selected' : ''}><c:out value="${code.codeName}"/></option>
                             </c:forEach>
                         </select>
                     </td>
@@ -195,7 +195,7 @@
                 </tr>
                 <tr>
                     <th class="table-light align-middle text-center">정렬 순서</th>
-                    <td><input type="number" id="dtlSortOrd" name=sortOrd class="form-control form-control-sm" min="0" /></td>
+                    <td><input type="number" id="dtlSortOrd" name="sortOrd" class="form-control form-control-sm" min="0" value="1" /></td>
                 </tr>
             </tbody>
         </table>
@@ -225,110 +225,119 @@ function resetSearch() {
 /* 등록 모드 */
 function setInsertMode() {
     const $form = $('#detailForm');
-    
-		// 1. 폼 초기화 (Hidden 포함 전체 클리어)
+
+    // 1. 폼 초기화
     $form.find('input, textarea').val('');
     $form.find('select').prop('selectedIndex', 0);
-    
- 		// 2. 동적으로 추가됐던 임시 옵션(시스템관리자 등) 제거
+
+    // 2. 동적으로 추가됐던 임시 옵션(시스템관리자 등) 제거
     $form.find('option[data-temp="true"]').remove();
- 		
- 		// 3. 기본값 세팅
+
+    // 3. 기본값 세팅
     $('#dtlAdminYn').val('N');
     $('#dtlUseYn').val('Y');
-    
- 		// 4. UI 제어
-    //$('#detailTitle').text('롤 등록');
-    $('#btnDelete').prop("disabled", true);
-    $('#dtlRoleName')[0].scrollIntoView({ behavior : 'smooth', block: 'start'});
+    $('#dtlSortOrd').val('1');
+
+    // 4. UI 제어
+    $('#dtlRoleRank').prop('disabled', false);
+    $('#btnSave').prop('disabled', false);
+    $('#btnDelete').prop('disabled', true);
+    $('#dtlRoleName')[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
     $('#dtlRoleName').focus();
- 		
 }
 
 /* 행 클릭 → AJAX 상세 조회 → 수정 모드 */
-async function loadDetail(roleNo) {
+function loadDetail(roleNo) {
     $.ajax({
         type    : 'post',
         url     : 'role/roleDetail.do',
         data    : { roleNo: roleNo },
         dataType: 'json',
-        success : function(result) {
+        success : result => {
             if (result.msg !== 'S') {
                 alert(result.desc);
                 return;
             }
-            const role = result.role;
+            const role  = result.role;
             const $form = $('#detailForm');
-            
-         		// 1. UI 초기화 및 제목 변경
+
+            // 1. 이전 임시 옵션 제거 후 select 활성화 초기화
             $form.find('option[data-temp="true"]').remove();
-            
-         		// 2. 시스템관리자(70030) 전용 처리 (목록에 없으면 동적 추가)
+            $('#dtlRoleRank').prop('disabled', false);
+
+            // 2. 시스템관리자(70030): 수정·삭제 불가 처리
             if (role.roleRank === '70030') {
                 $('#dtlRoleRank').append('<option value="70030" data-temp="true">시스템관리자</option>');
-                $('#dtlRoleRank').prop("disabled", true);
-                $('#btnSave').prop("disabled", true); // 시스템관리자 등급은 수정 불가하게 처리 가능
-                $('#btnDelete').prop("disabled", true); // 시스템관리자 등급은 수정 불가하게 처리 가능
+                $('#dtlRoleRank').prop('disabled', true);
+                $('#btnSave').prop('disabled', true);
+                $('#btnDelete').prop('disabled', true);
             } else {
-            	$('#btnSave').prop("disabled", false);
-            	$('#btnDelete').prop("disabled", false);
+                $('#btnSave').prop('disabled', false);
+                $('#btnDelete').prop('disabled', false);
             }
-         		// 3. 데이터 바인딩 (name 속성과 key를 매칭하여 자동 입력)
+
+            // 3. 데이터 바인딩 (name 속성과 key 매칭)
             Object.keys(role).forEach(key => {
-                const $el = $form.find(`[name=\${key}]`);
-                if ($el.length > 0) {
-                    $el.val(role[key]);
-                }
+                const $el = $form.find('[name=' + key + ']');
+                if ($el.length > 0) $el.val(role[key]);
             });
-         		// 4. UI 제어
-            $('#dtlRoleName')[0].scrollIntoView({ behavior : 'smooth', block: 'start'});
+
+            $('#dtlRoleName')[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
         },
-        error : function() {
-            alert('서버 오류가 발생하였습니다.');
-        }
+        error : () => { alert('서버 오류가 발생하였습니다.'); }
     });
 }
 
-/* 수정 or 등록 */
+/* 등록 or 수정 */
 function saveRole() {
-	if()
-	$.ajax({
-    type    : 'post',
-    url     : 'role/roleSave.do',
-    data    : { roleNo: roleNo },
-    dataType: 'json',
-    success : function(result) {
-    },
-    error : function() {
-        alert('서버 오류가 발생하였습니다.');
-    }
-	});
+    const roleName = $('#dtlRoleName').val();
+    const roleRank = $('#dtlRoleRank').val();
+    const adminYn  = $('#dtlAdminYn').val();
+    const useYn    = $('#dtlUseYn').val();
+    const sortOrd  = $('#dtlSortOrd').val();
+
+    if (!roleName) { alert('롤 명을 입력해 주세요.'); $('#dtlRoleName').focus(); return; }
+    if (!roleRank) { alert('사용자 구분코드를 선택해 주세요.'); return; }
+    if (!adminYn)  { alert('관리자 여부를 선택해 주세요.'); return; }
+    if (!useYn)    { alert('사용 여부를 선택해 주세요.'); return; }
+    if (sortOrd === '') { alert('정렬 순서를 입력해 주세요.'); $('#dtlSortOrd').focus(); return; }
+
+    $.ajax({
+        type    : 'post',
+        url     : 'role/roleSave.do',
+        data    : {
+            roleNo  : $('#dtlRoleNo').val(),
+            roleId  : $('#dtlRoleId').val(),
+            roleName: roleName,
+            roleRank: roleRank,
+            adminYn : adminYn,
+            useYn   : useYn,
+            roleDesc: $('#dtlRoleDesc').val(),
+            sortOrd : sortOrd
+        },
+        dataType: 'json',
+        success : result => {
+            alert(result.desc);
+            if (result.msg === 'S') $('#searchForm').submit();
+        },
+        error : () => { alert('서버 오류가 발생하였습니다.'); }
+    });
 }
 
 /* 롤 삭제 */
 function deleteRole() {
-	if(confirm('정말 삭제하시겠습니까?')){
-		alert("삭제")
-		const roleNo = $('#dtlRoleNo').val();
-		$.ajax({
-	    type    : 'post',
-	    url     : 'role/roleDelete.do',
-	    data    : { roleNo: roleNo },
-	    dataType: 'json',
-	    success : function(result) {
-	    	if(result.msg === 'S'){
-	    		alert(result.desc);
-	    		$('#searchForm').submit();
-	    	}else if(result.msg === 'F'){
-	    		alert(result.desc)
-	    	}else{
-	    		alert(result.desc);
-	    	}
-	    },
-	    error : function() {
-	        alert('서버 오류가 발생하였습니다.');
-	    } 
-		});
-	}
+    if (!confirm('정말 삭제하시겠습니까?')) return;
+    const roleNo = $('#dtlRoleNo').val();
+    $.ajax({
+        type    : 'post',
+        url     : 'role/roleDelete.do',
+        data    : { roleNo: roleNo },
+        dataType: 'json',
+        success : result => {
+            alert(result.desc);
+            if (result.msg === 'S') $('#searchForm').submit();
+        },
+        error : () => { alert('서버 오류가 발생하였습니다.'); }
+    });
 }
 </script>

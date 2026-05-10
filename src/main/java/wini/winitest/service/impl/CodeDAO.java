@@ -17,5 +17,6 @@ public class CodeDAO extends EgovComAbstractDAO {
   /** 코드 그룹명으로 코드 목록 조회 (콤보박스용) */
 	public List<Map<String, Object>> selectCodeOptions(String groupCode) throws Exception {
     return selectList("codeDAO.selectCodeOptions", groupCode);
-}
+  }
+
 }

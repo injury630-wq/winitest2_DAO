@@ -4,13 +4,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.util.Arrays;
+import java.util.ResourceBundle;
+
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import egovframework.rte.fdl.cmmn.EgovAbstractServiceImpl;
 import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import wini.winitest.common.FileUploadUtil;
 import wini.winitest.common.PagingUtil;
 import wini.winitest.service.SurveyService;
 
@@ -91,9 +96,15 @@ public class SurveyServiceImpl extends EgovAbstractServiceImpl implements Survey
         }
         int surveyNo = ((Number) param.get("surveyNo")).intValue();
 
-        /* 삭제 요청된 보기/문항 처리 */
-        List<Object> deletedOptionNos   = (List<Object>) param.get("deletedOptionNos");
-        List<Object> deletedQuestionNos = (List<Object>) param.get("deletedQuestionNos");
+        /* 삭제 요청된 이미지/보기/문항 처리 */
+        List<Object> deletedImageFileNos = (List<Object>) param.get("deletedImageFileNos");
+        List<Object> deletedOptionNos    = (List<Object>) param.get("deletedOptionNos");
+        List<Object> deletedQuestionNos  = (List<Object>) param.get("deletedQuestionNos");
+        if (deletedImageFileNos != null) {
+            for (Object o : deletedImageFileNos) {
+                surveyDAO.logicalDeleteSurveyImage(((Number) o).intValue());
+            }
+        }
         if (deletedOptionNos != null) {
             for (Object o : deletedOptionNos) {
                 surveyDAO.deleteOption(((Number) o).intValue());
@@ -119,6 +130,18 @@ public class SurveyServiceImpl extends EgovAbstractServiceImpl implements Survey
                     boardNo = ((Number) q.get("boardNo")).intValue();
                 } else {
                     surveyDAO.updateQuestion(q);
+                }
+
+                /* 첨부 이미지 활성화 */
+                Object imgFileNoObj = q.get("imageFileNo");
+                if (imgFileNoObj != null) {
+                    int imageFileNo = ((Number) imgFileNoObj).intValue();
+                    if (imageFileNo > 0) {
+                        Map<String, Object> imgParam = new HashMap<>();
+                        imgParam.put("fileNo",  imageFileNo);
+                        imgParam.put("boardNo", boardNo);
+                        surveyDAO.activateSurveyImage(imgParam);
+                    }
                 }
 
                 /* 보기 저장 */
@@ -270,6 +293,31 @@ public class SurveyServiceImpl extends EgovAbstractServiceImpl implements Survey
             e.printStackTrace();
         }
         return result;
+    }
+
+    /** 질문 첨부 이미지 임시 업로드 */
+    @Override
+    public Map<String, Object> saveTempImage(MultipartFile file, Object regUser) throws Exception {
+        Map<String, Object> result = new HashMap<>();
+        String uploadDir = ResourceBundle.getBundle("global").getString("survey.upload.path");
+        List<Map<String, Object>> saved = FileUploadUtil.saveImages(Arrays.asList(file), uploadDir);
+        if (saved.isEmpty()) {
+            result.put("msg",  "F");
+            result.put("desc", "허용되지 않는 파일 형식입니다.");
+            return result;
+        }
+        Map<String, Object> fileInfo = saved.get(0);
+        fileInfo.put("regUser", regUser);
+        surveyDAO.insertSurveyTempImage(fileInfo);
+        result.put("msg",    "S");
+        result.put("fileNo", fileInfo.get("fileNo"));
+        return result;
+    }
+
+    /** 질문 첨부 이미지 조회 (이미지 서빙용) */
+    @Override
+    public Map<String, Object> getImageByFileNo(int fileNo) throws Exception {
+        return surveyDAO.selectSurveyImageByFileNo(fileNo);
     }
 
     /**
