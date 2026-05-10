@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace = "menuRolePermDAO" → MenuRolePermDAO.java에서 "menuRolePermDAO.{queryId}"로 호출 -->
+<mapper namespace="menuRolePermDAO">
+
+		<!-- 신규 롤 등록 시 전체 메뉴에 대한 기본 권한(전부 N) 등록 -->
+		<!-- **MenuRolePermDAO.insertDefaultMenuRolePerm -->
+		<insert id="insertDefaultMenuRolePerm" parameterType="map">
+		INSERT INTO menu_role_perm
+			(
+				menu_no						<!-- 메뉴 번호 -->
+			, role_no						<!-- 롤 번호 -->
+			, disp_yn						<!-- 메뉴 표시 권한 -->
+			, view_yn						<!-- 조회 권한 -->
+			, ins_yn						<!-- 등록 권한 -->
+			, upd_yn						<!-- 수정 권한 -->
+			, del_yn						<!-- 삭제 권한 -->
+			, reg_user					<!-- 등록자 -->
+			, reg_date					<!-- 등록일시 -->
+			)
+		SELECT
+			menu_no						<!-- 메뉴 번호 -->
+			, #{roleNo}				<!-- 롤 번호 -->
+			, 'N'							<!-- 메뉴 표시 권한 (기본 N) -->
+			, 'N'							<!-- 조회 권한 (기본 N) -->
+			, 'N'							<!-- 등록 권한 (기본 N) -->
+			, 'N'							<!-- 수정 권한 (기본 N) -->
+			, 'N'							<!-- 삭제 권한 (기본 N) -->
+			, #{regUser}			<!-- 등록자 -->
+			, NOW()						<!-- 등록일시 -->
+		FROM menu
+		WHERE use_yn = 'Y'
+		</insert>
+
+		<!-- 메뉴별 권한 수정 -->
+		<!-- **MenuRolePermDAO.updateMenuPerm -->
+		<update id="updateMenuPerm" parameterType="map">
+		UPDATE menu_role_perm
+		SET
+		    disp_yn  = #{dispYn}    <!-- 메뉴 표시 권한 -->
+		    , view_yn = #{viewYn}   <!-- 조회 권한 -->
+		    , ins_yn  = #{insYn}    <!-- 등록 권한 -->
+		    , upd_yn  = #{updYn}    <!-- 수정 권한 -->
+		    , del_yn  = #{delYn}    <!-- 삭제 권한 -->
+		    , mod_user = #{modUser} <!-- 수정자 -->
+		    , mod_date = NOW()      <!-- 수정일시 -->
+		WHERE menu_no = #{menuNo}
+		  AND role_no = #{roleNo}
+		</update>
+
+		<!-- 롤별 메뉴 권한 목록 조회 (메뉴 전체 LEFT JOIN) -->
+		<!-- **MenuRolePermDAO.selectMenuPermList -->
+		<select id="selectMenuPermList" parameterType="map" resultType="map">
+		SELECT
+		    m.menu_no       AS menuNo   <!-- 메뉴 번호(PK) -->
+		    , m.menu_name   AS menuName <!-- 메뉴명 -->
+		    , m.menu_lev    AS menuLev  <!-- 메뉴 깊이 -->
+		    , m.sort_ord    AS sortOrd  <!-- 정렬 순서 -->
+		    , p.disp_yn     AS dispYn   <!-- 메뉴 표시 권한 -->
+		    , p.view_yn     AS viewYn   <!-- 조회 권한 -->
+		    , p.ins_yn      AS insYn    <!-- 등록 권한 -->
+		    , p.upd_yn      AS updYn    <!-- 수정 권한 -->
+		    , p.del_yn      AS delYn    <!-- 삭제 권한 -->
+		FROM menu m
+		LEFT JOIN menu_role_perm p
+		    ON m.menu_no = p.menu_no
+		    AND p.role_no = #{roleNo}   <!-- 롤 번호 -->
+		WHERE m.use_yn = 'Y'           <!-- 사용중인 메뉴만 -->
+		ORDER BY m.sort_ord ASC        <!-- 정렬 순서 -->
+		</select>
+
+</mapper>
