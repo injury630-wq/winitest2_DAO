@@ -1,6 +1,7 @@
 package wini.winitest.common;
 
 import org.springframework.ui.Model;
+
 import wini.winitest.service.MenuService;
 
 public class MenuUtil {

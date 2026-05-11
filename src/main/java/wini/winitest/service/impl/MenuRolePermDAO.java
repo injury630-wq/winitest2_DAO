@@ -29,4 +29,9 @@ public class MenuRolePermDAO extends EgovComAbstractDAO {
         update("menuRolePermDAO.updateMenuPerm", param);
     }
 
+    /** 세션 저장용 - 롤별 메뉴 권한 목록 (proPath 기준) */
+    public List<Map<String, Object>> selectMenuPermByRole(Map<String, Object> param) throws Exception {
+        return selectList("menuRolePermDAO.selectMenuPermByRole", param);
+    }
+
 }

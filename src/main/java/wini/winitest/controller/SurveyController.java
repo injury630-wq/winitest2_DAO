@@ -1,9 +1,12 @@
 package wini.winitest.controller;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
@@ -13,7 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
+import wini.winitest.common.FileUploadUtil;
 import wini.winitest.common.MenuUtil;
 import wini.winitest.service.MenuService;
 import wini.winitest.service.SurveyService;
@@ -154,5 +159,63 @@ public class SurveyController {
             model.addAttribute("totalCount", result.get("totalCount"));
         }
         return "survey/surveyStat";
+    }
+
+    /** 질문 이미지 임시 업로드 */
+    @RequestMapping(value = "/survey/surveyImageUpload.do", method = RequestMethod.POST)
+    @ResponseBody
+    public Map<String, Object> surveyImageUpload(@RequestParam("file") MultipartFile file,
+                                                 HttpSession session) {
+        Map<String, Object> err = new HashMap<>();
+        try {
+            Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
+            Object regUser = (loginUser != null) ? loginUser.get("userNo") : null;
+            return surveyService.saveTempImage(file, regUser);
+        } catch (Exception e) {
+            e.printStackTrace();
+            err.put("msg", "E");
+            return err;
+        }
+    }
+
+    /** 질문 이미지 삭제 (임시 파일 물리 삭제) */
+    @RequestMapping(value = "/survey/surveyImageDelete.do", method = RequestMethod.POST)
+    @ResponseBody
+    public Map<String, Object> surveyImageDelete(@RequestParam Map<String, Object> param) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            int fileNo = Integer.parseInt((String) param.get("fileNo"));
+            Map<String, Object> fileInfo = surveyService.getImageByFileNo(fileNo);
+            if (fileInfo != null) {
+                FileUploadUtil.deletePhysical(
+                    (String) fileInfo.get("filePath"),
+                    (String) fileInfo.get("fileName")
+                );
+            }
+            result.put("msg", "S");
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("msg", "E");
+        }
+        return result;
+    }
+
+    /** 질문 이미지 서빙 */
+    @RequestMapping(value = "/survey/getImage.do", method = RequestMethod.GET)
+    public void getImage(@RequestParam("fileNo") int fileNo,
+                         HttpServletResponse response) throws Exception {
+        Map<String, Object> fileInfo = surveyService.getImageByFileNo(fileNo);
+        if (fileInfo == null) { response.setStatus(404); return; }
+        String filePath = (String) fileInfo.get("filePath");
+        String fileName = (String) fileInfo.get("fileName");
+        File f = new File(filePath, fileName);
+        if (!f.exists()) { response.setStatus(404); return; }
+        String ext = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
+        String mime = "image/jpeg";
+        if ("png".equals(ext))  mime = "image/png";
+        else if ("gif".equals(ext))  mime = "image/gif";
+        else if ("webp".equals(ext)) mime = "image/webp";
+        response.setContentType(mime);
+        Files.copy(f.toPath(), response.getOutputStream());
     }
 }

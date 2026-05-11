@@ -110,10 +110,24 @@
                                disabled placeholder="단답형 응답 미리보기" />
                     </td>
                 </tr>
+                <tr>
+                    <th class="table-light align-middle text-center">이미지</th>
+                    <td>
+                        <input type="file" id="imageFileInput" class="form-control form-control-sm"
+                               style="max-width: 300px;" accept="image/*" onchange="uploadQuestionImage(this)" />
+                        <div id="imagePreviewArea" class="mt-2 d-none">
+                            <img id="imagePreview" src="" alt="미리보기"
+                                 style="max-width: 300px; max-height: 180px; border: 1px solid #dee2e6; border-radius: 4px;" />
+                            <br/>
+                            <button type="button" class="btn btn-outline-danger btn-sm mt-1"
+                                    onclick="removeQuestionImage()">이미지 삭제</button>
+                        </div>
+                    </td>
+                </tr>
             </tbody>
         </table>
         <div class="d-flex gap-2">
-            <button type="button" class="btn btn-primary btn-sm px-4" id="addBtn" onclick="commitQuestion()">+ 질문 추가</button>
+            <button type="button" class="btn btn-primary btn-sm px-4 ${empty survey ? 'btn-perm-ins' : 'btn-perm-save'}" id="addBtn" onclick="commitQuestion()">+ 질문 추가</button>
             <button type="button" class="btn btn-outline-secondary btn-sm px-3 d-none" id="cancelEditBtn" onclick="cancelEdit()">취소</button>
         </div>
     </div>
@@ -133,10 +147,10 @@
 
     <!-- ===== 4. 버튼 영역 ===== -->
     <div class="d-flex justify-content-end gap-2 mb-4">
-        <button type="button" class="btn btn-primary px-4"           onclick="saveSurvey()">저장</button>
-        <button type="button" class="btn btn-outline-secondary px-4"  onclick="goPost('survey/surveyManage.do')">목록</button>
+        <button type="button" class="btn btn-primary px-4 ${empty survey ? 'btn-perm-ins' : 'btn-perm-save'}" onclick="saveSurvey()">저장</button>
+        <button type="button" class="btn btn-outline-secondary px-4" onclick="goPost('survey/surveyManage.do')">목록</button>
         <c:if test="${not empty survey}">
-            <button type="button" class="btn btn-outline-danger px-4" onclick="deleteSurvey()">삭제</button>
+            <button type="button" class="btn btn-outline-danger px-4 btn-perm-del" onclick="deleteSurvey()">삭제</button>
         </c:if>
     </div>
 
@@ -144,23 +158,29 @@
 
 <script>
 const SURVEY_NO = '${survey.surveyNo}';
-const deletedQuestionNos = [];
-const deletedOptionNos   = [];
+const deletedQuestionNos  = [];
+const deletedOptionNos    = [];
+const deletedImageFileNos = [];
 
 /* ── 질문 목록 (메모리) ── */
-var questionList = [];  /* [{boardNo, content, type, sortOrd, options:[{optionNo,content}]}] */
+var questionList = [];  /* [{boardNo, content, type, sortOrd, imageFileNo, options:[{optionNo,content}]}] */
 var editingIdx   = -1;  /* 수정 중인 인덱스 (-1: 추가 모드) */
 var pendingOpts  = [];  /* 추가 패널의 보기 [{optionNo, content}] */
+
+/* ── 이미지 상태 ── */
+var pendingImageFileNo = 0;    /* 현재 패널에 올라간 이미지의 fileNo */
+var pendingImageIsNew  = false; /* true: 방금 업로드한 임시파일 (취소 시 물리삭제 필요) */
 
 /* ── 기존 질문 데이터 로드 (수정 모드) ── */
 <c:if test="${not empty questions}">
 <c:forEach var="q" items="${questions}" varStatus="vs">
 questionList.push({
-    boardNo : ${q.boardNo},
-    content : '<c:out value="${q.content}" escapeXml="false"/>'.replace(/'/g,"'").replace(/\\/g,"\\\\"),
-    type    : '${q.type}',
-    sortOrd : ${vs.index},
-    options : [
+    boardNo     : ${q.boardNo},
+    content     : '<c:out value="${q.content}" escapeXml="false"/>'.replace(/'/g,"'").replace(/\\/g,"\\\\"),
+    type        : '${q.type}',
+    sortOrd     : ${vs.index},
+    imageFileNo : ${not empty q.imageFileNo ? q.imageFileNo : 0},
+    options     : [
         <c:forEach var="opt" items="${q.options}" varStatus="os">
         { optionNo: ${opt.optionNo}, content: '<c:out value="${opt.content}" escapeXml="false"/>'.replace(/'/g,"'") }<c:if test="${!os.last}">,</c:if>
         </c:forEach>
@@ -177,36 +197,30 @@ typeNames['${t.codeNo}'] = '<c:out value="${t.codeName}"/>';
 
 /* ── 추가 패널 유형 변경 ── */
 function onAddTypeChange() {
-    var type = document.getElementById('qType').value;
+    var type     = $('#qType').val();
     var isChoice = (type === 'radio' || type === 'checkbox' || type === 'select');
-    var optRow = document.getElementById('addOptionRow');
-    var txtRow = document.getElementById('addTextRow');
 
     if (isChoice) {
-        optRow.classList.remove('d-none');
-        txtRow.classList.add('d-none');
+        $('#addOptionRow').removeClass('d-none');
+        $('#addTextRow').addClass('d-none');
     } else {
-        optRow.classList.add('d-none');
-        txtRow.classList.remove('d-none');
+        $('#addOptionRow').addClass('d-none');
+        $('#addTextRow').removeClass('d-none');
         var placeholder = type === 'textarea' ? '장문형 응답 미리보기' : '단답형 응답 미리보기';
-        var newEl;
-        if (type === 'textarea') {
-            newEl = '<textarea class="form-control form-control-sm" style="max-width:300px;" rows="2" disabled placeholder="' + placeholder + '"></textarea>';
-        } else {
-            newEl = '<input type="text" class="form-control form-control-sm" style="max-width:300px;" disabled placeholder="' + placeholder + '" />';
-        }
-        txtRow.querySelector('td').innerHTML = newEl;
+        var newEl = type === 'textarea'
+            ? '<textarea class="form-control form-control-sm" style="max-width:300px;" rows="2" disabled placeholder="' + placeholder + '"></textarea>'
+            : '<input type="text" class="form-control form-control-sm" style="max-width:300px;" disabled placeholder="' + placeholder + '" />';
+        $('#addTextRow td').html(newEl);
     }
 }
 
 /* ── 보기 태그 추가 ── */
 function addOptionTag() {
-    var val = document.getElementById('optionInput').value.trim();
+    var val = $('#optionInput').val().trim();
     if (!val) return;
     pendingOpts.push({ optionNo: 0, content: val });
     renderOptionTags();
-    document.getElementById('optionInput').value = '';
-    document.getElementById('optionInput').focus();
+    $('#optionInput').val('').focus();
 }
 
 function removeOptionTag(idx) {
@@ -226,34 +240,40 @@ function renderOptionTags() {
               + '<button type="button" class="btn-close ms-1" onclick="removeOptionTag(' + i + ')"></button>'
               + '</div>';
     });
-    document.getElementById('optionTagList').innerHTML = html;
+    $('#optionTagList').html(html);
 }
 
 /* ── 질문 추가 / 수정 확정 ── */
 function commitQuestion() {
-    var content = document.getElementById('qContent').value.trim();
-    var type    = document.getElementById('qType').value;
+    var content  = $('#qContent').val().trim();
+    var type     = $('#qType').val();
     var isChoice = (type === 'radio' || type === 'checkbox' || type === 'select');
 
     if (!content) { alert('질문 내용을 입력하세요.'); return; }
     if (isChoice && pendingOpts.length === 0) { alert('선택형 질문은 보기를 1개 이상 추가하세요.'); return; }
 
     var q = {
-        boardNo : 0,
-        content : content,
-        type    : type,
-        sortOrd : 0,
-        options : pendingOpts.slice()
+        boardNo     : 0,
+        content     : content,
+        type        : type,
+        sortOrd     : 0,
+        imageFileNo : pendingImageFileNo,
+        options     : pendingOpts.slice()
     };
 
     if (editingIdx >= 0) {
-        q.boardNo = questionList[editingIdx].boardNo;
+        var prev = questionList[editingIdx];
+        q.boardNo = prev.boardNo;
+        if (prev.imageFileNo > 0 && prev.imageFileNo !== pendingImageFileNo) {
+            deletedImageFileNos.push(prev.imageFileNo);
+        }
         questionList[editingIdx] = q;
         editingIdx = -1;
     } else {
-        questionList.unshift(q);  /* 상단에 추가 */
+        questionList.unshift(q);
     }
 
+    pendingImageIsNew = false;
     resetAddPanel();
     renderQuestionList();
 }
@@ -263,18 +283,28 @@ function startEdit(idx) {
     editingIdx = idx;
     var q = questionList[idx];
 
-    document.getElementById('qType').value    = q.type;
-    document.getElementById('qContent').value = q.content;
+    $('#qType').val(q.type);
+    $('#qContent').val(q.content);
     pendingOpts = q.options.map(function(o) { return { optionNo: o.optionNo, content: o.content }; });
+
+    pendingImageFileNo = q.imageFileNo || 0;
+    pendingImageIsNew  = false;
+    $('#imageFileInput').val('');
+    if (pendingImageFileNo > 0) {
+        $('#imagePreview').attr('src', 'survey/getImage.do?fileNo=' + pendingImageFileNo);
+        $('#imagePreviewArea').removeClass('d-none');
+    } else {
+        $('#imagePreviewArea').addClass('d-none');
+    }
 
     onAddTypeChange();
     renderOptionTags();
 
-    document.getElementById('addPanelTitle').innerText = '질문 수정';
-    document.getElementById('addBtn').innerText = '수정 완료';
-    document.getElementById('cancelEditBtn').classList.remove('d-none');
-    document.getElementById('qContent').focus();
-    document.getElementById('addPanelTitle').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    $('#addPanelTitle').text('질문 수정');
+    $('#addBtn').text('수정 완료');
+    $('#cancelEditBtn').removeClass('d-none');
+    $('#qContent').focus();
+    $('html, body').animate({ scrollTop: $('#addPanelTitle').offset().top - 10 }, 300);
 }
 
 /* ── 수정 취소 ── */
@@ -285,13 +315,22 @@ function cancelEdit() {
 
 /* ── 추가 패널 초기화 ── */
 function resetAddPanel() {
-    document.getElementById('qContent').value = '';
-    document.getElementById('optionInput').value = '';
+    if (pendingImageIsNew && pendingImageFileNo > 0) {
+        deleteTempImage(pendingImageFileNo);
+    }
+    pendingImageFileNo = 0;
+    pendingImageIsNew  = false;
+    $('#imageFileInput').val('');
+    $('#imagePreviewArea').addClass('d-none');
+    $('#imagePreview').attr('src', '');
+
+    $('#qContent').val('');
+    $('#optionInput').val('');
     pendingOpts = [];
     renderOptionTags();
-    document.getElementById('addPanelTitle').innerText = '질문 추가';
-    document.getElementById('addBtn').innerText = '+ 질문 추가';
-    document.getElementById('cancelEditBtn').classList.add('d-none');
+    $('#addPanelTitle').text('질문 추가');
+    $('#addBtn').text('+ 질문 추가');
+    $('#cancelEditBtn').addClass('d-none');
     onAddTypeChange();
 }
 
@@ -320,26 +359,21 @@ function moveQuestion(idx, dir) {
 
 /* ── 질문 목록 렌더링 ── */
 function renderQuestionList() {
-    document.getElementById('qCount').innerText = questionList.length;
-    var container = document.getElementById('questionList');
+    $('#qCount').text(questionList.length);
 
     if (questionList.length === 0) {
-        container.innerHTML = '<div id="emptyGuide" class="text-center text-muted py-4">질문을 추가해주세요.</div>';
+        $('#questionList').html('<div id="emptyGuide" class="text-center text-muted py-4">질문을 추가해주세요.</div>');
         return;
     }
 
     var html = '';
     questionList.forEach(function(q, i) {
-        var isChoice = (q.type === 'radio' || q.type === 'checkbox' || q.type === 'select');
-        var typeName = typeNames[q.type] || q.type;
+        var isChoice  = (q.type === 'radio' || q.type === 'checkbox' || q.type === 'select');
+        var typeName  = typeNames[q.type] || q.type;
         var isEditing = (editingIdx === i);
 
         html += '<div class="d-flex align-items-start gap-2 py-2 px-2 border-bottom' + (isEditing ? ' bg-warning bg-opacity-10' : '') + '">';
-
-        /* 번호 */
         html += '<span class="fw-bold text-muted flex-shrink-0" style="width:24px;">' + (i + 1) + '</span>';
-
-        /* 내용 */
         html += '<div class="flex-grow-1">';
         html += '<span class="badge text-bg-secondary me-1">' + escHtml(typeName) + '</span>';
         html += escHtml(q.content);
@@ -354,27 +388,79 @@ function renderQuestionList() {
             var ph = q.type === 'textarea' ? '장문형' : '단답형';
             html += '<div class="mt-1"><input type="text" class="form-control form-control-sm" style="max-width:200px;" disabled placeholder="' + ph + ' 응답"></div>';
         }
-        html += '</div>';
 
-        /* 버튼 */
+        if (q.imageFileNo > 0) {
+            html += '<div class="mt-1"><img src="' + 'survey/getImage.do?fileNo=' + q.imageFileNo
+                 + '" alt="이미지" style="max-width:120px; max-height:80px; border:1px solid #dee2e6; border-radius:4px;"></div>';
+        }
+
+        html += '</div>';
         html += '<div class="d-flex gap-1 flex-shrink-0">';
         html += '<button type="button" class="btn btn-outline-secondary btn-sm px-1" onclick="moveQuestion(' + i + ',-1)">▲</button>';
         html += '<button type="button" class="btn btn-outline-secondary btn-sm px-1" onclick="moveQuestion(' + i + ', 1)">▼</button>';
-        html += '<button type="button" class="btn btn-outline-primary btn-sm px-2" onclick="startEdit(' + i + ')">수정</button>';
-        html += '<button type="button" class="btn btn-outline-danger btn-sm px-2" onclick="removeQuestion(' + i + ')">삭제</button>';
+        html += '<button type="button" class="btn btn-outline-primary btn-sm px-2 btn-perm-save" onclick="startEdit(' + i + ')">수정</button>';
+        html += '<button type="button" class="btn btn-outline-danger btn-sm px-2 btn-perm-del" onclick="removeQuestion(' + i + ')">삭제</button>';
         html += '</div>';
-
         html += '</div>';
     });
 
-    container.innerHTML = html;
+    $('#questionList').html(html);
+    applyButtonPerms('${empty survey ? "insert" : "update"}');
+}
+
+/* ── 이미지 업로드 ── */
+function uploadQuestionImage(input) {
+    if (!input.files || !input.files[0]) return;
+    var formData = new FormData();
+    formData.append('file', input.files[0]);
+
+    if (pendingImageIsNew && pendingImageFileNo > 0) {
+        deleteTempImage(pendingImageFileNo);
+    }
+
+    $.ajax({
+        url        : 'survey/surveyImageUpload.do',
+        type       : 'POST',
+        data       : formData,
+        processData: false,
+        contentType: false,
+        success    : function(res) {
+            if (res.msg === 'S') {
+                pendingImageFileNo = res.fileNo;
+                pendingImageIsNew  = true;
+                $('#imagePreview').attr('src', 'survey/getImage.do?fileNo=' + res.fileNo);
+                $('#imagePreviewArea').removeClass('d-none');
+            } else {
+                alert(res.desc || '이미지 업로드에 실패했습니다.');
+                $(input).val('');
+            }
+        },
+        error: function() { alert('서버 오류가 발생했습니다.'); $(input).val(''); }
+    });
+}
+
+/* ── 이미지 제거 (패널에서) ── */
+function removeQuestionImage() {
+    if (pendingImageIsNew && pendingImageFileNo > 0) {
+        deleteTempImage(pendingImageFileNo);
+    }
+    pendingImageFileNo = 0;
+    pendingImageIsNew  = false;
+    $('#imageFileInput').val('');
+    $('#imagePreviewArea').addClass('d-none');
+    $('#imagePreview').attr('src', '');
+}
+
+/* ── 임시 파일 물리 삭제 (fire-and-forget) ── */
+function deleteTempImage(fileNo) {
+    $.post('survey/surveyImageDelete.do', { fileNo: fileNo });
 }
 
 /* ── 저장 ── */
 function saveSurvey() {
-    var title     = document.getElementById('title').value.trim();
-    var startDate = document.getElementById('startDate').value;
-    var endDate   = document.getElementById('endDate').value;
+    var title     = $('#title').val().trim();
+    var startDate = $('#startDate').val();
+    var endDate   = $('#endDate').val();
 
     if (!title)     { alert('설문 제목을 입력하세요.'); return; }
     if (!startDate) { alert('시작일을 입력하세요.'); return; }
@@ -384,26 +470,28 @@ function saveSurvey() {
 
     var questions = questionList.map(function(q, i) {
         return {
-            boardNo : q.boardNo || 0,
-            content : q.content,
-            type    : q.type,
-            sortOrd : i,
-            options : q.options.map(function(o, j) {
+            boardNo     : q.boardNo || 0,
+            content     : q.content,
+            type        : q.type,
+            sortOrd     : i,
+            imageFileNo : q.imageFileNo || 0,
+            options     : q.options.map(function(o, j) {
                 return { optionNo: o.optionNo || 0, content: o.content, sortOrd: j };
             })
         };
     });
 
     var payload = {
-        surveyNo           : SURVEY_NO || null,
-        title              : title,
-        content            : document.getElementById('content').value.trim(),
-        startDate          : startDate,
-        endDate            : endDate,
-        useYn              : document.querySelector('input[name=useYn]:checked').value,
-        questions          : questions,
-        deletedQuestionNos : deletedQuestionNos,
-        deletedOptionNos   : deletedOptionNos
+        surveyNo            : SURVEY_NO || null,
+        title               : title,
+        content             : $('#content').val().trim(),
+        startDate           : startDate,
+        endDate             : endDate,
+        useYn               : $('input[name=useYn]:checked').val(),
+        questions           : questions,
+        deletedQuestionNos  : deletedQuestionNos,
+        deletedOptionNos    : deletedOptionNos,
+        deletedImageFileNos : deletedImageFileNos
     };
 
     $.ajax({
@@ -445,12 +533,11 @@ function deleteSurvey() {
 }
 
 function escHtml(str) {
-    var d = document.createElement('div');
-    d.appendChild(document.createTextNode(str || ''));
-    return d.innerHTML;
+    return $('<div>').text(str || '').html();
 }
 
 /* ── 초기 렌더링 ── */
 onAddTypeChange();
 renderQuestionList();
+applyButtonPerms('${empty survey ? "insert" : "update"}');
 </script>

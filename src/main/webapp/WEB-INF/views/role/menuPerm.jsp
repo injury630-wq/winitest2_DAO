@@ -90,7 +90,7 @@
                                 onclick="checkAll(true)" ${isSysAdmin ? 'disabled' : ''}>전체 선택</button>
                         <button type="button" class="btn btn-outline-secondary btn-sm px-2"
                                 onclick="checkAll(false)" ${isSysAdmin ? 'disabled' : ''}>전체 해제</button>
-                        <button type="button" class="btn btn-primary btn-sm px-3"
+                        <button type="button" class="btn btn-primary btn-sm px-3 btn-perm-save"
                                 onclick="savePerm()" ${isSysAdmin ? 'disabled' : ''}>저장</button>
                     </div>
                 </div>
@@ -181,7 +181,6 @@
 </div>
 
 <script>
-const ctx          = '${pageContext.request.contextPath}';
 const selectedRoleNo = '${not empty selectedRoleNo ? selectedRoleNo : ""}';
 const isSysAdmin     = ${isSysAdmin};
 
@@ -193,6 +192,7 @@ function selectRoleSSR(roleNo) {
 
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('roleKeyword').value) filterRoleList();
+    applyButtonPerms('update');
 });
 
 function filterRoleList() {
@@ -224,7 +224,7 @@ function savePerm() {
     });
     if (perms.length === 0) { alert('저장할 권한 데이터가 없습니다.'); return; }
     $.ajax({
-        url: ctx + '/role/menuPermSave.do',
+        url: 'role/menuPermSave.do',
         type: 'POST',
         data: { roleNo: selectedRoleNo, permsJson: JSON.stringify(perms) },
         success: res => { alert(res.desc || (res.msg === 'S' ? '저장됐습니다.' : '저장 중 오류가 발생했습니다.')); },
@@ -248,7 +248,7 @@ function selectRole(row, roleNo, roleId, roleName) {
 
 function loadMenuPermList(roleNo) {
     $.ajax({
-        url: ctx + '/role/menuPermList.do',
+        url: 'role/menuPermList.do',
         type: 'POST',
         data: { roleNo: roleNo },
         success: function(res) {

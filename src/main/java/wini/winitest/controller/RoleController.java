@@ -40,7 +40,8 @@ public class RoleController {
 
 	/** 롤 관리 목록 */
 	@RequestMapping(value = "/role/roleManage.do", method = RequestMethod.POST)
-	public String roleManage(@RequestParam Map<String, Object> param, Model model) throws Exception {
+	public String roleManage(@RequestParam Map<String, Object> param, Model model,
+	                         HttpSession session) throws Exception {
 		MenuUtil.addMenu(model, menuService);
 
 		// null 방어 및 기본값 설정 — 서비스에 보장된 값만 전달
@@ -141,6 +142,12 @@ public class RoleController {
 			if (roleService.isSystemAdmin((String) param.get("roleNo"))) {
 				result.put("msg",  "E");
 				result.put("desc", "시스템관리자 권한그룹은 삭제할 수 없습니다.");
+				return result;
+			}
+			int userCount = roleService.countUserByRole(Integer.parseInt((String) param.get("roleNo")));
+			if (userCount > 0) {
+				result.put("msg",  "E");
+				result.put("desc", "이용중인 사용자가 있어 삭제할 수 없습니다.");
 				return result;
 			}
 			if(roleService.deleteRole(param)) {

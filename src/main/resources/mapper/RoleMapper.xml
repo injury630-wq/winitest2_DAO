@@ -190,6 +190,15 @@
 				role_no = #{roleNo}
 		</update>
 
+		<!-- 롤에 배정된 활성 사용자 수 조회 (삭제 전 체크용) -->
+		<!-- **RoleDAO.countUserByRole -->
+		<select id="countUserByRole" parameterType="int" resultType="int">
+		SELECT COUNT(*)
+		FROM   users
+		WHERE  role_no = #{roleNo}
+		  AND  use_yn  = 'Y'    <!-- 탈퇴·비활성 제외 -->
+		</select>
+
 		<!-- 롤 사용자 구분 코드 조회 (시스템관리자 여부 확인용) -->
 		<!-- **RoleDAO.selectRoleRank -->
 		<select id="selectRoleRank" parameterType="int" resultType="int">

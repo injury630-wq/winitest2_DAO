@@ -82,13 +82,27 @@
    <!-- 2. 권한 인터셉터 - 등록만 ADMIN 이상 (수정/삭제는 본인도 가능하므로 서비스에서 판단) -->
    <mvc:interceptor>
        <mvc:mapping path="/user/userRegist.do"/>
-       <mvc:mapping path="/user/ajaxTest.do"/>
        <bean class="wini.winitest.interceptor.RoleInterceptor">
            <constructor-arg name="minRoleRank" value="70020" type="int"/>
        </bean>
    </mvc:interceptor>
 
-   <!-- 3. 갤러리 수정 폼 접근 제어 - 작성자 또는 관리자만 허용 (수정/삭제 저장은 컨트롤러에서 체크) -->
+   <!-- 3. 메뉴별 권한 인터셉터 - viewPerm='N'이면 접근 거부 -->
+   <mvc:interceptor>
+       <mvc:mapping path="/role/**"/>
+       <mvc:mapping path="/survey/**"/>
+       <mvc:mapping path="/board/**"/>
+       <mvc:mapping path="/gallery/**"/>
+       <mvc:mapping path="/user/**"/>
+       <mvc:exclude-mapping path="/user/login.do"/>
+       <mvc:exclude-mapping path="/user/loginProc.do"/>
+       <mvc:exclude-mapping path="/user/register.do"/>
+       <mvc:exclude-mapping path="/user/registerProc.do"/>
+       <mvc:exclude-mapping path="/user/idCheck.do"/>
+       <bean class="wini.winitest.interceptor.PermInterceptor"/>
+   </mvc:interceptor>
+
+   <!-- 4. 갤러리 수정 폼 접근 제어 - 작성자 또는 관리자만 허용 (수정/삭제 저장은 컨트롤러에서 체크) -->
    <mvc:interceptor>
        <mvc:mapping path="/gallery/form.do"/>
        <bean class="wini.winitest.interceptor.GalleryEditInterceptor">

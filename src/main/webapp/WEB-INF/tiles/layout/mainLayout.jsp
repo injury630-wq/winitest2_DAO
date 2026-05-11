@@ -24,6 +24,22 @@ uri="http://egovframework.gov/ctl/ui"%>
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     ></script>
+    <script src="resources/js/permControl.js"></script>
+    <script>
+      <c:choose>
+        <c:when test="${sessionScope.loginUser.adminYn eq 'Y'}">
+          var pagePerm = { ins: 'Y', upd: 'Y', del: 'Y' };
+        </c:when>
+        <c:otherwise>
+          <c:set var="perm" value="${sessionScope.sessionPerms[pageContext.request.servletPath]}"/>
+          var pagePerm = {
+            ins: '${empty perm ? "N" : perm.insPerm}',
+            upd: '${empty perm ? "N" : perm.updPerm}',
+            del: '${empty perm ? "N" : perm.delPerm}'
+          };
+        </c:otherwise>
+      </c:choose>
+    </script>
     <%-- 사용자 등록 공통 유효성 JS --%>
     <!-- <script src="resources/js/userValidation.js"></script> -->
     <style>

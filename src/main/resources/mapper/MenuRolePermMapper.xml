@@ -12,11 +12,11 @@
 			(
 				menu_no						<!-- 메뉴 번호 -->
 			, role_no						<!-- 롤 번호 -->
-			, disp_yn						<!-- 메뉴 표시 권한 -->
-			, view_yn						<!-- 조회 권한 -->
-			, ins_yn						<!-- 등록 권한 -->
-			, upd_yn						<!-- 수정 권한 -->
-			, del_yn						<!-- 삭제 권한 -->
+			, disp_perm					<!-- 메뉴 표시 권한 -->
+			, view_perm					<!-- 조회 권한 -->
+			, ins_perm					<!-- 등록 권한 -->
+			, upd_perm					<!-- 수정 권한 -->
+			, del_perm					<!-- 삭제 권한 -->
 			, reg_user					<!-- 등록자 -->
 			, reg_date					<!-- 등록일시 -->
 			)
@@ -39,13 +39,13 @@
 		<update id="updateMenuPerm" parameterType="map">
 		UPDATE menu_role_perm
 		SET
-		    disp_yn  = #{dispYn}    <!-- 메뉴 표시 권한 -->
-		    , view_yn = #{viewYn}   <!-- 조회 권한 -->
-		    , ins_yn  = #{insYn}    <!-- 등록 권한 -->
-		    , upd_yn  = #{updYn}    <!-- 수정 권한 -->
-		    , del_yn  = #{delYn}    <!-- 삭제 권한 -->
-		    , mod_user = #{modUser} <!-- 수정자 -->
-		    , mod_date = NOW()      <!-- 수정일시 -->
+		    disp_perm  = #{dispPerm}    <!-- 메뉴 표시 권한 -->
+		    , view_perm = #{viewPerm}   <!-- 조회 권한 -->
+		    , ins_perm  = #{insPerm}    <!-- 등록 권한 -->
+		    , upd_perm  = #{updPerm}    <!-- 수정 권한 -->
+		    , del_perm  = #{delPerm}    <!-- 삭제 권한 -->
+		    , mod_user = #{modUser}     <!-- 수정자 -->
+		    , mod_date = NOW()          <!-- 수정일시 -->
 		WHERE menu_no = #{menuNo}
 		  AND role_no = #{roleNo}
 		</update>
@@ -109,7 +109,7 @@
 		SELECT	
 	  	m.menu_no				AS menuNo				<!-- 메뉴 번호(PK) -->
 		, m.menu_name			AS menuName			<!-- 메뉴 명 -->
-    , p.pro_path 			AS proPath			<!-- 프로그램 url -->
+    , p.pro_path AS proPath	<!-- 프로그램 url -->
     , mrp.disp_perm			AS dispPerm		<!-- 메뉴표시 권한 -->
     , mrp.view_perm			AS viewPerm		<!-- 조회 권한 -->
     , mrp.ins_perm			AS insPerm		<!-- 등록 권한 -->

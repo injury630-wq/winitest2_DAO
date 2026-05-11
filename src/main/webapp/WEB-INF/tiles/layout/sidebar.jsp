@@ -3,6 +3,8 @@
 
 <ul class="nav flex-column pt-3">
 <c:forEach var="menu" items="${menuList}">
+    <c:set var="menuPerm" value="${sessionScope.sessionMenuPerms[menu.menuNo]}"/>
+    <c:if test="${sessionScope.loginUser.adminYn eq 'Y' or empty menuPerm or menuPerm.dispPerm ne 'N'}">
     <li class="nav-item">
         <c:choose>
             <c:when test="${not empty menu.proPath}"> <!-- 하위메뉴 + 연결된 프로그램 있음 -->
@@ -24,5 +26,6 @@
             </c:otherwise>
         </c:choose>
     </li>
+    </c:if>
 </c:forEach>
 </ul>

@@ -45,6 +45,15 @@
                         <td class="text-center align-middle fw-bold">Q${vs.index + 1}</td>
                         <td class="align-middle fw-semibold"><c:out value="${q.content}"/></td>
                     </tr>
+                    <!-- 질문 이미지 -->
+                    <c:if test="${not empty q.imageFileNo and q.imageFileNo gt 0}">
+                    <tr>
+                        <td colspan="2" class="text-center py-2">
+                            <img src="survey/getImage.do?fileNo=${q.imageFileNo}"
+                                 alt="질문 이미지" style="max-width: 500px; max-height: 350px;">
+                        </td>
+                    </tr>
+                    </c:if>
                     <!-- 응답 입력 -->
                     <tr>
                         <th class="table-light align-middle text-center">응답</th>

@@ -118,6 +118,12 @@ public class RoleServiceImpl extends EgovAbstractServiceImpl implements RoleServ
 		return menuRolePermDAO.selectMenuPermList(param);
 	}
 
+	/** 세션 저장용 - 롤별 메뉴 권한 목록 조회 */
+	@Override
+	public List<Map<String, Object>> selectMenuPermByRole(Map<String, Object> param) throws Exception {
+		return menuRolePermDAO.selectMenuPermByRole(param);
+	}
+
 	/** 메뉴별 권한 일괄 저장 */
 	@Override
 	@Transactional
@@ -127,6 +133,12 @@ public class RoleServiceImpl extends EgovAbstractServiceImpl implements RoleServ
 			perm.put("modUser",  modUser);
 			menuRolePermDAO.updateMenuPerm(perm);
 		}
+	}
+
+	/** 롤에 배정된 활성 사용자 수 조회 */
+	@Override
+	public int countUserByRole(int roleNo) throws Exception {
+		return roleDAO.countUserByRole(roleNo);
 	}
 
 	/** 시스템관리자(role_rank=70030) 여부 확인 */

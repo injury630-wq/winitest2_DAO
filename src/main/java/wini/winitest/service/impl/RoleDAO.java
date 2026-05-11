@@ -74,6 +74,11 @@ public class RoleDAO extends EgovComAbstractDAO {
       return (Integer) update("roleDAO.deleteRole", param);
   }
 
+  /** 롤에 배정된 활성 사용자 수 조회 */
+  public int countUserByRole(int roleNo) throws Exception {
+      return (Integer) selectOne("roleDAO.countUserByRole", roleNo);
+  }
+
   /** 롤 사용자 구분 코드 조회 (시스템관리자 여부 확인용) */
   public Integer selectRoleRank(int roleNo) throws Exception {
       return (Integer) selectOne("roleDAO.selectRoleRank", roleNo);

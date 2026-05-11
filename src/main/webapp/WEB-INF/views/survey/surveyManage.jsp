@@ -3,6 +3,10 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <%@ taglib prefix="ui"  uri="http://egovframework.gov/ctl/ui"%>
 
+<c:set var="canUpd" value="${sessionScope.loginUser.adminYn eq 'Y' or
+    (not empty sessionScope.sessionPerms['/survey/surveyManage.do'] and
+     sessionScope.sessionPerms['/survey/surveyManage.do'].updPerm eq 'Y')}"/>
+
 <div class="px-1">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -67,7 +71,8 @@
                         </td>
                         <td class="text-center"><c:out value="${s.regUserName}"/></td>
                         <td class="text-center">
-                                    <button type="button" class="btn btn-secondary btn-sm" <c:if test="${s.canEdit ne 'Y'}">disabled</c:if>
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                            <c:if test="${s.canEdit ne 'Y' or not canUpd}">disabled</c:if>
                                             onclick="goPost('survey/surveyForm.do', {surveyNo: '${s.surveyNo}'})">
                                         수정
                                     </button>
@@ -109,7 +114,7 @@
 
     <!-- 4. 버튼 영역 -->
     <div class="d-flex justify-content-end mb-4">
-        <button type="button" class="btn btn-primary btn-sm px-3"
+        <button type="button" class="btn btn-primary btn-sm px-3 btn-perm-ins"
                 onclick="goPost('survey/surveyForm.do')">+ 설문 등록</button>
     </div>
 
@@ -120,4 +125,8 @@ function linkPage(pageNo) {
     $('#currentPageNo').val(pageNo);
     $('#searchForm').submit();
 }
+
+$(document).ready(function() {
+    applyButtonPerms('insert');
+});
 </script>

@@ -24,8 +24,9 @@
         , DATE_FORMAT(s.end_date,   '%Y-%m-%d')             AS endDate          <!-- 종료일 -->
         , CASE WHEN s.start_date > NOW()
                THEN 'Y' ELSE 'N' END                        AS canEdit          <!-- 수정가능여부(시작 전) -->
-        , CASE WHEN NOW() BETWEEN s.start_date AND s.end_date 
-        			 THEN 'Y' ELSE 'N' END					AS resAvail			<!-- 참여 가능 여부(설문기간 내) -->
+        , CASE WHEN CURDATE() BETWEEN s.start_date AND s.end_date
+                   THEN 'Y' 
+                   ELSE 'N' END                    AS resAvail          <!-- 참여 가능 여부(설문기간 내) -->
         , u.user_name                                       AS regUserName      <!-- 등록자명 -->
         , DATE_FORMAT(s.reg_date, '%Y-%m-%d')               AS regDate          <!-- 등록일 -->
     FROM
@@ -308,7 +309,7 @@
         , DATE_FORMAT(s.start_date, '%Y-%m-%d')             AS startDate        <!-- 시작일 -->
         , DATE_FORMAT(s.end_date,   '%Y-%m-%d')             AS endDate          <!-- 종료일 -->
         , CASE WHEN s.use_yn = 'Y'
-                AND NOW() BETWEEN s.start_date AND s.end_date
+                AND DATE(NOW()) BETWEEN DATE(s.start_date) AND DATE(s.end_date)
                THEN 'Y' ELSE 'N' END                        AS availYn          <!-- 참여가능여부(JS에서 사용) -->
         , CASE WHEN r.res_no IS NOT NULL
                THEN 'Y' ELSE 'N' END                        AS responded        <!-- 참여여부(JS에서 사용) -->

@@ -130,7 +130,7 @@
                         </tbody>
                     </table>
                     <div class="px-3 py-2 border-top d-flex justify-content-end">
-                        <button type="button" class="btn btn-primary btn-sm px-4" id="applyRoleBtn" onclick="applyRole()" disabled>적용</button>
+                        <button type="button" class="btn btn-primary btn-sm px-4 btn-perm-save" id="applyRoleBtn" onclick="applyRole()" disabled>적용</button>
                     </div>
                 </div>
             </div>
@@ -141,8 +141,6 @@
 </div>
 
 <script>
-const ctx = '${pageContext.request.contextPath}';
-
 function selectTargetRole(row, roleNo, roleRank) {
     document.querySelectorAll('.role-row').forEach(r => r.classList.remove('table-primary'));
     row.classList.add('table-primary');
@@ -150,6 +148,7 @@ function selectTargetRole(row, roleNo, roleRank) {
     const isSysAdmin = (String(roleRank) === '70030');
     document.getElementById('selectedRoleNo').value = isSysAdmin ? '' : roleNo;
     document.getElementById('applyRoleBtn').disabled = isSysAdmin;
+    if (!isSysAdmin) applyButtonPerms('update');
 }
 
 function toggleAll(chk) {
@@ -166,7 +165,7 @@ function applyRole() {
         return;
     }
     $.ajax({
-        url : ctx + '/role/userRoleApply.do',
+        url : 'role/userRoleApply.do',
         type: 'POST',
         data: $('#applyForm').serialize(),
         success: function(res) {

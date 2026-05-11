@@ -1,6 +1,7 @@
 package wini.winitest.controller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -19,6 +20,7 @@ import egovframework.com.utl.slm.EgovHttpSessionBindingListener;
 import wini.winitest.common.MenuUtil;
 import wini.winitest.common.RoleUtil;
 import wini.winitest.service.MenuService;
+import wini.winitest.service.RoleService;
 import wini.winitest.service.UserService;
 
 @Controller
@@ -29,6 +31,9 @@ public class UserController {
 
     @Resource(name = "menuService")
     private MenuService menuService;
+
+    @Resource(name = "roleService")
+    private RoleService roleService;
 
     // 로그인 페이지
     @RequestMapping(value = "/user/login.do",
@@ -60,6 +65,22 @@ public class UserController {
                 return "bridge";
             }
             request.getSession().setAttribute("loginUser", loginUser);
+            if (!"Y".equals(loginUser.get("adminYn"))) {
+                Map<String, Object> permParam = new HashMap<>();
+                permParam.put("roleNo", loginUser.get("roleNo"));
+                List<Map<String, Object>> permList = roleService.selectMenuPermByRole(permParam);
+
+                Map<String, Map<String, Object>> sessionPerms = new HashMap<>();
+                Map<Integer, Map<String, Object>> sessionMenuPerms = new HashMap<>();
+                for (Map<String, Object> perm : permList) {
+                    String proPath = (String) perm.get("proPath");
+                    if (proPath != null && !proPath.isEmpty()) sessionPerms.put(proPath, perm);
+                    Object menuNo = perm.get("menuNo");
+                    if (menuNo != null) sessionMenuPerms.put((Integer) menuNo, perm);
+                }
+                request.getSession().setAttribute("sessionPerms",     sessionPerms);
+                request.getSession().setAttribute("sessionMenuPerms", sessionMenuPerms);
+            }
             EgovHttpSessionBindingListener listener = new EgovHttpSessionBindingListener();
             request.getSession().setAttribute((String) loginUser.get("userId"), listener);
             param.put("bridgeUrl", "board/list.do");

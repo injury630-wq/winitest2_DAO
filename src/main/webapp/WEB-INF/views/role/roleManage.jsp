@@ -82,7 +82,7 @@
             <small class="text-muted">전체 :
                 <strong style="color: #c0392b;">${paginationInfo.totalRecordCount}</strong>건
             </small>
-            <button type="button" class="btn btn-primary btn-sm px-3"
+            <button type="button" class="btn btn-primary btn-sm px-3 btn-perm-ins"
                     onclick="setInsertMode()">신규 추가</button>
         </div>
         <table class="table table-bordered table-hover mb-0" style="font-size: 14px;">
@@ -200,8 +200,8 @@
             </tbody>
         </table>
         <div class="d-flex justify-content-end gap-2">
-            <button type="button" id="btnDelete" class="btn btn-danger btn-sm px-3" disabled onclick="deleteRole()">삭제</button>
-            <button type="button" id="btnSave" class="btn btn-primary btn-sm px-3" onclick="saveRole()">저장</button>
+            <button type="button" id="btnDelete" class="btn btn-danger btn-sm px-3 btn-perm-del" disabled onclick="deleteRole()">삭제</button>
+            <button type="button" id="btnSave" class="btn btn-primary btn-sm px-3 btn-perm-save" onclick="saveRole()">저장</button>
         </div>
         </form>
     </div>
@@ -246,6 +246,7 @@ function setInsertMode() {
     $('#btnDelete').prop('disabled', true);
     $('#dtlRoleName')[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
     $('#dtlRoleName').focus();
+    applyButtonPerms('insert');
 }
 
 /* 행 클릭 → AJAX 상세 조회 → 수정 모드 */
@@ -273,7 +274,8 @@ function loadDetail(roleNo) {
                 $form.find('input, select, textarea, #btnSave, #btnDelete').prop('disabled', true);
             } else {
             		$form.find('input, select, textarea, #btnSave, #btnDelete').prop('disabled', false);
-            		$form.find('.no-unlock').prop('disabled', true) // 롤코드만 disabled 처리
+            		$form.find('.no-unlock').prop('disabled', true); // 롤코드만 disabled 처리
+            		applyButtonPerms('update');
             }
 
             // 3. 데이터 바인딩 (name 속성과 key 매칭)
