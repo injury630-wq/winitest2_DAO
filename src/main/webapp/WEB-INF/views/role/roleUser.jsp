@@ -153,7 +153,7 @@ function selectTargetRole(row, roleNo, roleRank) {
 }
 
 function toggleAll(chk) {
-    document.querySelectorAll('.user-chk').forEach(c => { c.checked = chk.checked; });
+	$('.user-chk').prop('checked', chk.checked);
 }
 
 function applyRole() {

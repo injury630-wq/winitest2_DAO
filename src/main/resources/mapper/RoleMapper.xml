@@ -92,7 +92,7 @@
 		<!-- **RoleDAO.shiftSortOrdUp -->
 		<update id="shiftSortOrdUp" parameterType="map"><![CDATA[
 		UPDATE user_role
-		SET    sort_ord = sort_ord + 1  -- 정렬 순서
+		SET    sort_ord = sort_ord + 1  -- 정렬 순서 1씩 증가
 		WHERE  sort_ord >= #{newSortOrd}   -- 신규 정렬 순서
 		  AND  sort_ord  < #{oldSortOrd}   -- 기존 정렬 순서
 		  AND  role_no  != #{roleNo}       -- 롤 번호(PK)

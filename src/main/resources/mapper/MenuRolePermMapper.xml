@@ -54,44 +54,75 @@
 		<!-- **MenuRolePermDAO.selectMenuPermList -->
 		<select id="selectMenuPermList" parameterType="map" resultType="map">
 		    WITH RECURSIVE menu_tree AS (
-        SELECT
-              m.menu_no																												-- 메뉴 번호(PK)
-            , m.menu_name																											-- 메뉴 명
-            , m.menu_lev																											-- 메뉴 깊이
-            , m.sort_ord																											-- 같은 부모내 순서
-            , CAST(LPAD(m.sort_ord, 5, '0') AS CHAR(200)) AS path							-- 계층 정렬용
-        FROM menu m
-        WHERE (m.parent_no IS NULL OR m.parent_no = 0)
-          AND m.use_yn = 'Y'
-
-        UNION ALL
-
-        SELECT
-              m.menu_no
-            , m.menu_name
-            , m.menu_lev
-            , m.sort_ord
-            , CONCAT(mt.path, '/', LPAD(m.sort_ord, 5, '0'))
-        FROM menu m
-        INNER JOIN menu_tree mt ON m.parent_no = mt.menu_no
-        WHERE m.use_yn = 'Y'
-    )
-    SELECT
-          mt.menu_no      AS menuNo
-        , mt.menu_name    AS menuName
-        , mt.menu_lev     AS menuLev
-        , mt.sort_ord     AS sortOrd
-        , mrp.disp_yn AS dispYn
-        , mrp.view_yn AS viewYn
-        , mrp.ins_yn  AS insYn
-        , mrp.upd_yn  AS updYn
-        , mrp.del_yn  AS delYn
-    FROM menu_tree mt
-    LEFT JOIN menu_role_perm mrp
-        ON mt.menu_no = mrp.menu_no
-        AND mrp.role_no = #{roleNo}  -- 파라미터로 받은 특정 롤의 권한만 매핑
-    ORDER BY mt.path  -- 사이드바와 동일한 계층 순서 보장
+			    -- [1] 가상 테이블 정의 시작
+			    SELECT
+			        m.menu_no                     AS menuNo										<!-- 메뉴 번호(PK) -->
+			      , m.menu_name                   AS menuName									<!-- 메뉴 명 -->
+			      , m.parent_no                   AS parentNo									<!-- 부모 메뉴 번호 -->
+			      , m.menu_lev                    AS menuLev									<!-- 메뉴 계층 -->
+			      , m.sort_ord                    AS sortOrd									<!-- 같은 부모를 가진 그룹 내 순서 -->
+			      , m.pro_no                      AS proNo										<!-- 연동된 프로그램 번호 -->
+			      , CAST(LPAD(m.sort_ord, 5, '0') AS CHAR(200)) AS path				<!-- 계층 정렬용 -->
+			    FROM menu m
+			    WHERE (m.parent_no IS NULL OR m.parent_no = 0)
+			      AND m.use_yn = 'Y'
+			
+			    UNION ALL
+			
+			    -- 자기 자신을 이용해 계속 조회(재귀
+			    SELECT
+			        m.menu_no
+			      , m.menu_name
+			      , m.parent_no
+			      , m.menu_lev
+			      , m.sort_ord
+			      , m.pro_no
+			      , CONCAT(mt.path, '/', LPAD(m.sort_ord, 5, '0'))
+			    FROM menu m
+			    JOIN menu_tree mt ON m.parent_no = mt.menuNo
+			    WHERE m.use_yn = 'Y'
+			    -- [2] 가상 테이블 정의 끝
+			)
+			-- [3] 메인 호출 쿼리
+			SELECT 
+			    mt.menuNo																					AS menuNo			<!-- 메뉴 번호(PK) -->
+			  , mt.menuName																				AS menuName		<!-- 메뉴 명 -->
+			  , mt.parentNo																				AS parentNo		<!-- 메뉴 부모 번호 -->
+			  , mt.menuLev																				AS menuLev		<!-- 메뉴 계층 -->
+			  , mt.sortOrd																				AS sortOrd		<!-- 같은 부모 그룹내 순서 -->
+			  ,	mrp.perm_no																				AS permNo			<!-- 메뉴별권한PK -->
+			  , mrp.disp_perm																			AS dispPerm		<!-- 메뉴표시 권한 -->
+			  , mrp.view_perm																			AS viewPerm		<!-- 조회 권한 -->
+			  , mrp.ins_perm																			AS insPerm		<!-- 등록 권한 -->
+			  , mrp.upd_perm																			AS updPerm		<!-- 수정 권한 -->
+			  , mrp.del_perm																			AS delPerm		<!-- 삭제 권한 -->
+			FROM menu_tree mt
+			LEFT JOIN menu_role_perm mrp
+						ON mt.menuNo = mrp.menu_no AND mrp.role_no = #{roleNo} 
+			ORDER BY mt.path;
 		</select>
 		
+		
+		<!-- 메뉴별 권한 세션 저장용 조회 -->
+		<!-- **MenuRolePermDAO.selectMenuPermByRole -->
+		<select id="selectMenuPermByRole" parameterType="map" resultType="map">
+		SELECT	
+	  	m.menu_no				AS menuNo				<!-- 메뉴 번호(PK) -->
+		, m.menu_name			AS menuName			<!-- 메뉴 명 -->
+    , p.pro_path 			AS proPath			<!-- 프로그램 url -->
+    , mrp.disp_perm			AS dispPerm		<!-- 메뉴표시 권한 -->
+    , mrp.view_perm			AS viewPerm		<!-- 조회 권한 -->
+    , mrp.ins_perm			AS insPerm		<!-- 등록 권한 -->
+    , mrp.upd_perm			AS updPerm		<!-- 수정 권한 -->
+    , mrp.del_perm			AS delPerm		<!-- 삭제 권한 -->
+		FROM menu_role_perm mrp
+		JOIN menu m
+		  ON mrp.menu_no = m.menu_no
+		  AND m.use_yn  = 'Y'
+		LEFT JOIN program p
+		  ON m.pro_no = p.pro_no
+		  AND p.use_yn = 'Y'
+		WHERE mrp.role_no = #{roleNo};
+		</select>
 		
 </mapper>

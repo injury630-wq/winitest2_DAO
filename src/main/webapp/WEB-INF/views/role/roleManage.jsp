@@ -61,7 +61,7 @@
                 <div class="d-flex align-items-center gap-1">
                     <label class="form-label mb-0 me-1" style="font-size: 13px;">페이지당</label>
                     <select class="form-select form-select-sm" name="recordPerPage" id="recordPerPage" style="width: auto;">
-									    <c:forEach var="size" items="3,5,10">
+									    <c:forEach var="size" items="10,3,1">
 									        <option value="${size}" ${search.recordPerPage eq size ? 'selected' : ''}>
 									            ${size}건
 									        </option>
@@ -155,10 +155,10 @@
             <tbody>
                 <tr>
                     <th class="table-light align-middle text-center">롤 코드</th>
-                    <td><input type="text" id="dtlRoleId" name="roleId" class="form-control form-control-sm bg-light" maxlength="100" readOnly placeholder="자동 생성입니다." /></td>
+                    <td><input type="text" id="dtlRoleId" name="roleId" class="form-control form-control-sm no-unlock" maxlength="100" disabled placeholder="자동 생성입니다." /></td>
                     <th class="table-light align-middle text-center">사용자구분코드</th>
                     <td>
-                        <select id="dtlRoleRank" name="roleRank" class="form-select form-select-sm">
+                        <select id="dtlRoleRank" name="roleRank" class="form-select form-select-sm" required>
                             <c:forEach var="code" items="${userTypeOptions}">
                             	<c:if test="${code.codeNo ne '70030' }">
                                 <option value="${code.codeNo}"><c:out value="${code.codeName}"/></option>
@@ -172,9 +172,9 @@
                     <td><input type="text" id="dtlRoleName" name="roleName" class="form-control form-control-sm" maxlength="100" /></td>
                     <th class="table-light align-middle text-center">관리자 여부</th>
                     <td>
-                        <select id="dtlAdminYn" name="adminYn" class="form-select form-select-sm">
+                        <select id="dtlAdminYn" name="adminYn" class="form-select form-select-sm" required>
                             <c:forEach var="code" items="${adminYnOptions}">
-                                <option value="${code.codeNo}" ${code.codeNo eq 'N' ? 'selected' : ''}><c:out value="${code.codeName}"/></option>
+                                <option value="${code.codeNo}"><c:out value="${code.codeName}"/></option>
                             </c:forEach>
                         </select>
                     </td>
@@ -186,7 +186,7 @@
                     </td>
                     <th class="table-light align-middle text-center">사용 여부</th>
                     <td>
-                        <select id="dtlUseYn" name=useYn class="form-select form-select-sm">
+                        <select id="dtlUseYn" name=useYn class="form-select form-select-sm" required>
                             <c:forEach var="code" items="${useYnOptions}">
                                 <option value="${code.codeNo}"><c:out value="${code.codeName}"/></option>
                             </c:forEach>
@@ -195,7 +195,7 @@
                 </tr>
                 <tr>
                     <th class="table-light align-middle text-center">정렬 순서</th>
-                    <td><input type="number" id="dtlSortOrd" name="sortOrd" class="form-control form-control-sm" min="0" value="1" /></td>
+                    <td><input type="number" id="dtlSortOrd" name="sortOrd" class="form-control form-control-sm" min="1" value="1" required/></td>
                 </tr>
             </tbody>
         </table>
@@ -205,10 +205,13 @@
         </div>
         </form>
     </div>
-
 </div>
 
 <script>
+/* 돔 로드 후 등록모드 실행 */
+document.addEventListener('DOMContentLoaded', () => {
+	setInsertMode();
+});
 
 /* 페이지네이션 페이지 이동 */
 function linkPage(pageNo) {
@@ -239,8 +242,7 @@ function setInsertMode() {
     $('#dtlSortOrd').val('1');
 
     // 4. UI 제어
-    $('#dtlRoleRank').prop('disabled', false);
-    $('#btnSave').prop('disabled', false);
+    $('#dtlRoleRank, #btnSave').prop('disabled', false);
     $('#btnDelete').prop('disabled', true);
     $('#dtlRoleName')[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
     $('#dtlRoleName').focus();
@@ -253,7 +255,7 @@ function loadDetail(roleNo) {
         url     : 'role/roleDetail.do',
         data    : { roleNo: roleNo },
         dataType: 'json',
-        success : result => {
+        success : function(result) {
             if (result.msg !== 'S') {
                 alert(result.desc);
                 return;
@@ -268,12 +270,10 @@ function loadDetail(roleNo) {
             // 2. 시스템관리자(70030): 수정·삭제 불가 처리
             if (role.roleRank === '70030') {
                 $('#dtlRoleRank').append('<option value="70030" data-temp="true">시스템관리자</option>');
-                $('#dtlRoleRank').prop('disabled', true);
-                $('#btnSave').prop('disabled', true);
-                $('#btnDelete').prop('disabled', true);
+                $form.find('input, select, textarea, #btnSave, #btnDelete').prop('disabled', true);
             } else {
-                $('#btnSave').prop('disabled', false);
-                $('#btnDelete').prop('disabled', false);
+            		$form.find('input, select, textarea, #btnSave, #btnDelete').prop('disabled', false);
+            		$form.find('.no-unlock').prop('disabled', true) // 롤코드만 disabled 처리
             }
 
             // 3. 데이터 바인딩 (name 속성과 key 매칭)
@@ -290,11 +290,14 @@ function loadDetail(roleNo) {
 
 /* 등록 or 수정 */
 function saveRole() {
+		const roleNo = $('#dtlRoleNo').val();
+		const roleId = $('#dtlRoleId').val();
     const roleName = $('#dtlRoleName').val();
     const roleRank = $('#dtlRoleRank').val();
     const adminYn  = $('#dtlAdminYn').val();
-    const useYn    = $('#dtlUseYn').val();
-    const sortOrd  = $('#dtlSortOrd').val();
+    const useYn = $('#dtlUseYn').val();
+    const sortOrd = $('#dtlSortOrd').val();
+    const roleDesc = $('#dtlRoleDesc').val()
 
     if (!roleName) { alert('롤 명을 입력해 주세요.'); $('#dtlRoleName').focus(); return; }
     if (!roleRank) { alert('사용자 구분코드를 선택해 주세요.'); return; }
@@ -306,13 +309,13 @@ function saveRole() {
         type    : 'post',
         url     : 'role/roleSave.do',
         data    : {
-            roleNo  : $('#dtlRoleNo').val(),
-            roleId  : $('#dtlRoleId').val(),
+            roleNo  : roleNo,
+            roleId  : roleId,
             roleName: roleName,
             roleRank: roleRank,
             adminYn : adminYn,
             useYn   : useYn,
-            roleDesc: $('#dtlRoleDesc').val(),
+            roleDesc: roleDesc,
             sortOrd : sortOrd
         },
         dataType: 'json',

@@ -36,8 +36,9 @@ public class RoleServiceImpl extends EgovAbstractServiceImpl implements RoleServ
 		int pageSize      = Integer.parseInt((String) param.get("pageSize"));
 
 		PaginationInfo paginationInfo = PagingUtil.create(currentPageNo, recordPerPage, pageSize);
-		paginationInfo.setTotalRecordCount(roleDAO.selectRoleTotalCount(param));
+		paginationInfo.setTotalRecordCount(roleDAO.selectRoleTotalCount(param)); // 검색조건에 따른 전체 건수
 
+		// 목록 조회 LIMIT 조건 추가
 		param.put("firstIndex",         paginationInfo.getFirstRecordIndex());
 		param.put("recordCountPerPage", recordPerPage);
 
@@ -49,9 +50,9 @@ public class RoleServiceImpl extends EgovAbstractServiceImpl implements RoleServ
 		search.put("searchAdminYn",  param.get("searchAdminYn"));
 		search.put("recordPerPage",  param.get("recordPerPage"));
 
-		result.put("list",           roleDAO.selectRoleList(param));
+		result.put("list",  roleDAO.selectRoleList(param));
 		result.put("paginationInfo", paginationInfo);
-		result.put("search",         search);
+		result.put("search",  search);
 
 		return result;
 	}

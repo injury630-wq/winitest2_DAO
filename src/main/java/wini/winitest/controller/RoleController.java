@@ -68,6 +68,94 @@ public class RoleController {
 		}
 		return "role/roleManage";
 	}
+	
+	/** 롤 상세 조회 (AJAX) */
+	@RequestMapping(value = "/role/roleDetail.do", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> roleDetail(@RequestParam Map<String, Object> param) {
+		Map<String, Object> result = new HashMap<String, Object>();
+		try {
+			Map<String, Object> detail = roleService.selectRoleDetail(param);
+			if(detail == null) {
+				result.put("msg", "F");
+				result.put("desc", "데이터가 조회되지 않았습니다.");
+			}else {
+				result.put("role", detail);
+				result.put("msg", "S");
+			}
+		} catch (Exception e) {
+			result.put("msg", "E");
+			result.put("desc", "서버 오류가 발생했습니다.");
+		}
+		return result;
+	}
+	
+	/** 롤 등록/수정 (AJAX) */
+	@RequestMapping(value = "/role/roleSave.do", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> roleSave(@RequestParam Map<String, Object> param, HttpSession session) {
+		Map<String, Object> result = new HashMap<String, Object>();
+		try {
+			Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
+			if (loginUser != null) {
+				param.put("regUser", loginUser.get("userNo"));
+				param.put("updUser", loginUser.get("userNo"));
+			}
+
+			String roleNo = (String) param.get("roleNo"); // input으로 넘어와서 빈값 or 문자열값
+
+			if (roleNo == null || roleNo.isEmpty()) {
+				roleService.insertRole(param);
+				result.put("msg",  "S");
+				result.put("desc", "등록이 완료됐습니다.");
+			} else {//
+				if (roleService.isSystemAdmin(roleNo)) {
+					result.put("msg",  "E");
+					result.put("desc", "시스템관리자 권한그룹은 수정할 수 없습니다.");
+					return result;
+				}
+				int cnt = roleService.updateRole(param);
+				if (cnt > 0) {
+					result.put("msg",  "S");
+					result.put("desc", "수정이 완료됐습니다.");
+				} else {
+					result.put("msg",  "F");
+					result.put("desc", "수정할 대상이 없습니다.");
+				}
+			}
+		} catch (Exception e) {
+			result.put("msg",  "E");
+			result.put("desc", "서버 오류가 발생했습니다.");
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+	
+	/** 롤 논리 삭제 (AJAX) */
+	@RequestMapping(value = "/role/roleDelete.do", method = RequestMethod.POST)
+	@ResponseBody
+	public Map<String, Object> roleDelete(@RequestParam Map<String, Object> param){
+		Map<String, Object> result = new HashMap<String, Object>();
+		try {
+			if (roleService.isSystemAdmin((String) param.get("roleNo"))) {
+				result.put("msg",  "E");
+				result.put("desc", "시스템관리자 권한그룹은 삭제할 수 없습니다.");
+				return result;
+			}
+			if(roleService.deleteRole(param)) {
+				result.put("msg", "S");
+				result.put("desc", "삭제가 완료됐습니다.");
+			}else {
+				result.put("msg", "F");
+				result.put("desc", "삭제할 대상이 없습니다");
+			}
+		} catch (Exception e) {
+			result.put("msg", "E");
+			result.put("desc", "삭제 중에 서버 오류가 발생했습니다.");
+		}
+		return result;
+	}
 
 	/** 메뉴별 권한 관리 */
 	@RequestMapping(value = "/role/menuPerm.do", method = RequestMethod.POST)
@@ -182,91 +270,5 @@ public class RoleController {
 		return result;
 	}
 
-	/** 롤 상세 조회 (AJAX) */
-	@RequestMapping(value = "/role/roleDetail.do", method = RequestMethod.POST)
-	@ResponseBody
-	public Map<String, Object> roleDetail(@RequestParam Map<String, Object> param) {
-		Map<String, Object> result = new HashMap<String, Object>();
-		try {
-			Map<String, Object> detail = roleService.selectRoleDetail(param);
-			if(detail == null) {
-				result.put("msg", "F");
-				result.put("desc", "데이터가 조회되지 않았습니다.");
-			}else {
-				result.put("role", detail);
-				result.put("msg", "S");
-			}
-		} catch (Exception e) {
-			result.put("msg", "E");
-			result.put("desc", "서버 오류가 발생했습니다.");
-		}
-		return result;
-	}
 	
-	/** 롤 등록/수정 (AJAX) */
-	@RequestMapping(value = "/role/roleSave.do", method = RequestMethod.POST)
-	@ResponseBody
-	public Map<String, Object> roleSave(@RequestParam Map<String, Object> param, HttpSession session) {
-		Map<String, Object> result = new HashMap<String, Object>();
-		try {
-			Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
-			if (loginUser != null) {
-				param.put("regUser", loginUser.get("userNo"));
-				param.put("updUser", loginUser.get("userNo"));
-			}
-
-			String roleNo = (String) param.get("roleNo");
-
-			if (roleNo == null || roleNo.isEmpty()) {
-				roleService.insertRole(param);
-				result.put("msg",  "S");
-				result.put("desc", "등록이 완료됐습니다.");
-			} else {
-				if (roleService.isSystemAdmin(roleNo)) {
-					result.put("msg",  "E");
-					result.put("desc", "시스템관리자 권한그룹은 수정할 수 없습니다.");
-					return result;
-				}
-				int cnt = roleService.updateRole(param);
-				if (cnt > 0) {
-					result.put("msg",  "S");
-					result.put("desc", "수정이 완료됐습니다.");
-				} else {
-					result.put("msg",  "F");
-					result.put("desc", "수정할 대상이 없습니다.");
-				}
-			}
-		} catch (Exception e) {
-			result.put("msg",  "E");
-			result.put("desc", "서버 오류가 발생했습니다.");
-			e.printStackTrace();
-		}
-		return result;
-	}
-	
-	
-	/** 롤 논리 삭제 (AJAX) */
-	@RequestMapping(value = "/role/roleDelete.do", method = RequestMethod.POST)
-	@ResponseBody
-	public Map<String, Object> roleDelete(@RequestParam Map<String, Object> param){
-		Map<String, Object> result = new HashMap<String, Object>();
-		try {
-			if (roleService.isSystemAdmin((String) param.get("roleNo"))) {
-				result.put("msg",  "E");
-				result.put("desc", "시스템관리자 권한그룹은 삭제할 수 없습니다.");
-				return result;
-			}
-			if(roleService.deleteRole(param)) {
-				result.put("msg", "S");
-				result.put("desc", "삭제가 완료됐습니다.");
-			}else {
-				result.put("msg", "F");
-				result.put("desc", "삭제할 대상이 없습니다");
-			}
-		} catch (Exception e) {
-			result.put("msg", "E");
-			result.put("desc", "삭제 중에 서버 오류가 발생했습니다.");
-		}
-		return result;
-	}
 }

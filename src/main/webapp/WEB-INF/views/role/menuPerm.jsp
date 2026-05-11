@@ -138,27 +138,27 @@
                                         </td>
                                         <td class="text-center">
                                             <input type="checkbox" class="form-check-input chk-disp"
-                                                   ${menu.dispYn == 'Y' ? 'checked' : ''}
+                                                   ${menu.dispPerm == 'Y' ? 'checked' : ''}
                                                    ${isSysAdmin ? 'disabled' : ''}>
                                         </td>
                                         <td class="text-center">
                                             <input type="checkbox" class="form-check-input chk-view"
-                                                   ${menu.viewYn == 'Y' ? 'checked' : ''}
+                                                   ${menu.viewPerm == 'Y' ? 'checked' : ''}
                                                    ${isSysAdmin ? 'disabled' : ''}>
                                         </td>
                                         <td class="text-center">
                                             <input type="checkbox" class="form-check-input chk-ins"
-                                                   ${menu.insYn == 'Y' ? 'checked' : ''}
+                                                   ${menu.insPerm == 'Y' ? 'checked' : ''}
                                                    ${isSysAdmin ? 'disabled' : ''}>
                                         </td>
                                         <td class="text-center">
                                             <input type="checkbox" class="form-check-input chk-upd"
-                                                   ${menu.updYn == 'Y' ? 'checked' : ''}
+                                                   ${menu.updPerm == 'Y' ? 'checked' : ''}
                                                    ${isSysAdmin ? 'disabled' : ''}>
                                         </td>
                                         <td class="text-center">
                                             <input type="checkbox" class="form-check-input chk-del"
-                                                   ${menu.delYn == 'Y' ? 'checked' : ''}
+                                                   ${menu.delPerm == 'Y' ? 'checked' : ''}
                                                    ${isSysAdmin ? 'disabled' : ''}>
                                         </td>
                                     </tr>
@@ -215,11 +215,11 @@ function savePerm() {
     document.querySelectorAll('#menuPermBody tr[data-menu-no]').forEach(tr => {
         perms.push({
             menuNo: tr.getAttribute('data-menu-no'),
-            dispYn: tr.querySelector('.chk-disp').checked ? 'Y' : 'N',
-            viewYn: tr.querySelector('.chk-view').checked ? 'Y' : 'N',
-            insYn:  tr.querySelector('.chk-ins').checked  ? 'Y' : 'N',
-            updYn:  tr.querySelector('.chk-upd').checked  ? 'Y' : 'N',
-            delYn:  tr.querySelector('.chk-del').checked  ? 'Y' : 'N'
+            dispPerm: tr.querySelector('.chk-disp').checked ? 'Y' : 'N',
+            viewPerm: tr.querySelector('.chk-view').checked ? 'Y' : 'N',
+            insPerm:  tr.querySelector('.chk-ins').checked  ? 'Y' : 'N',
+            updPerm:  tr.querySelector('.chk-upd').checked  ? 'Y' : 'N',
+            delPerm:  tr.querySelector('.chk-del').checked  ? 'Y' : 'N'
         });
     });
     if (perms.length === 0) { alert('저장할 권한 데이터가 없습니다.'); return; }
@@ -274,11 +274,11 @@ function renderMenuPermList(list) {
         html += '<tr class="' + rowCls + '" data-menu-no="' + m.menuNo + '">';
         html += '<td class="text-center">' + (seq++) + '</td>';
         html += '<td style="padding-left:' + pl + 'px;">' + prefix + escHtml(m.menuName) + '</td>';
-        html += '<td class="text-center"><input type="checkbox" class="form-check-input chk-disp" ' + (m.dispYn === 'Y' ? 'checked' : '') + '></td>';
-        html += '<td class="text-center"><input type="checkbox" class="form-check-input chk-view" ' + (m.viewYn === 'Y' ? 'checked' : '') + '></td>';
-        html += '<td class="text-center"><input type="checkbox" class="form-check-input chk-ins"  ' + (m.insYn  === 'Y' ? 'checked' : '') + '></td>';
-        html += '<td class="text-center"><input type="checkbox" class="form-check-input chk-upd"  ' + (m.updYn  === 'Y' ? 'checked' : '') + '></td>';
-        html += '<td class="text-center"><input type="checkbox" class="form-check-input chk-del"  ' + (m.delYn  === 'Y' ? 'checked' : '') + '></td>';
+        html += '<td class="text-center"><input type="checkbox" class="form-check-input chk-disp" ' + (m.dispPerm === 'Y' ? 'checked' : '') + '></td>';
+        html += '<td class="text-center"><input type="checkbox" class="form-check-input chk-view" ' + (m.viewPerm === 'Y' ? 'checked' : '') + '></td>';
+        html += '<td class="text-center"><input type="checkbox" class="form-check-input chk-ins"  ' + (m.insPerm  === 'Y' ? 'checked' : '') + '></td>';
+        html += '<td class="text-center"><input type="checkbox" class="form-check-input chk-upd"  ' + (m.updPerm  === 'Y' ? 'checked' : '') + '></td>';
+        html += '<td class="text-center"><input type="checkbox" class="form-check-input chk-del"  ' + (m.delPerm  === 'Y' ? 'checked' : '') + '></td>';
         html += '</tr>';
     });
     tbody.innerHTML = html;
