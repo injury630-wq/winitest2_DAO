@@ -17,9 +17,9 @@
         <h2 class="h5 fw-bold mb-0">메뉴별 권한 관리</h2>
     </div>
 
-    <%-- SSR 방식: 롤 선택 시 이 폼을 POST 제출 (keyword도 함께 전송하여 검색조건 유지) --%>
+    <%-- 롤 선택 시 이 폼을 POST 제출 (keyword도 함께 전송하여 검색조건 유지) --%>
     <form id="roleSelectForm" method="post"
-          action="${pageContext.request.contextPath}/role/menuPerm.do"
+          action="role/menuPerm.do"
           style="display:none;">
         <input type="hidden" id="selectedRoleNoInput" name="selectedRoleNo" value="" />
         <input type="hidden" id="keywordInput"        name="keyword"        value="" />
@@ -166,8 +166,8 @@
                             </c:when>
                             <c:otherwise>
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">
-                                        좌측에서 롤을 선택해 주세요.
+                                    <td colspan="7" class="text-center py-4">
+                                         롤을 선택해 주세요.
                                     </td>
                                 </tr>
                             </c:otherwise>

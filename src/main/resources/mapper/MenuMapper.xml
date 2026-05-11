@@ -5,47 +5,48 @@
 <mapper namespace="menuDAO">
 
     <select id="selectMenuList" resultType="map">
-        WITH RECURSIVE menu_tree AS (
-
-            -- 앵커: 최상위 메뉴(parent_no 없음) 조회
-            SELECT
-                m.menu_no                      AS menuNo    -- 메뉴 번호(PK)
-              , m.menu_name                    AS menuName  -- 메뉴명
-              , m.parent_no                    AS parentNo  -- 부모 메뉴 번호
-              , m.menu_lev                     AS menuLev   -- 메뉴 depth (1=최상위)
-              , m.sort_ord                     AS sortOrd   -- 같은 depth 내 정렬 순서
-              , m.pro_no                       AS proNo     -- 연결된 프로그램 번호
-              , CAST(m.menu_no AS CHAR(200))   AS path			-- 트리 순서(예: 1 -> 1/3 -> 1/3/7)
-              
-            FROM menu m
-            WHERE (m.parent_no IS NULL OR m.parent_no = 0)
-              AND m.use_yn = 'Y'
-
-            UNION ALL
-
-            -- 재귀: 부모를 찾은 행에 자식 메뉴를 이어 붙임
-            SELECT
-                m.menu_no
-              , m.menu_name
-              , m.parent_no
-              , m.menu_lev
-              , m.sort_ord
-              , m.pro_no
-              , CONCAT(mt.path, '/', m.menu_no) -- 경로 누적 (예: "1/3/7")
-            FROM menu m
-            JOIN menu_tree mt ON m.parent_no = mt.menuNo
-            WHERE m.use_yn = 'Y'
-
-        )
-        SELECT mt.menuNo                                        -- 메뉴 번호
-             , mt.menuName                                      -- 메뉴명
-             , mt.parentNo                                      -- 부모 메뉴 번호
-             , mt.menuLev                                       -- 메뉴 depth
-             , mt.sortOrd                                       -- 정렬 순서
-             , TRIM(LEADING '/' FROM p.pro_path) AS proPath     -- 메뉴 클릭 시 이동할 URL
-        FROM  menu_tree mt
-        LEFT JOIN program p ON mt.proNo = p.pro_no AND p.use_yn = 'Y'
-        ORDER BY mt.path   -- 누적 경로 기준 정렬 -> 트리 계층 순서 보장
+			WITH RECURSIVE menu_tree AS (
+			    -- [1] 가상 테이블 정의 시작
+			    -- 앵커 멤버
+			    SELECT
+			        m.menu_no                     AS menuNo
+			      , m.menu_name                   AS menuName
+			      , m.parent_no                   AS parentNo
+			      , m.menu_lev                    AS menuLev
+			      , m.sort_ord                    AS sortOrd
+			      , m.pro_no                      AS proNo
+			      , CAST(LPAD(m.sort_ord, 5, '0') AS CHAR(200)) AS path
+			    FROM menu m
+			    WHERE (m.parent_no IS NULL OR m.parent_no = 0)
+			      AND m.use_yn = 'Y'
+			
+			    UNION ALL
+			
+			    -- 재귀 멤버
+			    SELECT
+			        m.menu_no
+			      , m.menu_name
+			      , m.parent_no
+			      , m.menu_lev
+			      , m.sort_ord
+			      , m.pro_no
+			      , CONCAT(mt.path, '/', LPAD(m.sort_ord, 5, '0'))
+			    FROM menu m
+			    INNER JOIN menu_tree mt ON m.parent_no = mt.menuNo
+			    WHERE m.use_yn = 'Y'
+			    -- [2] 가상 테이블 정의 끝 (여기에 ORDER BY가 있으면 안 됩니다!)
+			)
+			-- [3] 메인 호출 쿼리
+			SELECT 
+			    mt.menuNo
+			  , mt.menuName
+			  , mt.parentNo
+			  , mt.menuLev
+			  , mt.sortOrd
+			  , TRIM(LEADING '/' FROM p.pro_path) AS proPath
+			FROM menu_tree mt
+			LEFT JOIN program p ON mt.proNo = p.pro_no AND p.use_yn = 'Y'
+			ORDER BY mt.path;
     </select>
 
 </mapper>
