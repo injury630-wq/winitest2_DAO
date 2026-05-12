@@ -15,7 +15,7 @@
         <div class="border bg-white p-3 mb-3">
             <div class="d-flex gap-2 mb-2">
                 <input type="text" name="searchKeyword" class="form-control"
-                       value="<c:out value="${search.searchKeyword}"/>"
+                       value='<c:out value="${search.searchKeyword}"/>'
                        placeholder="설문 제목 검색" maxlength="100" />
             </div>
             <div class="text-center">
@@ -34,13 +34,20 @@
             </small>
         </div>
         <table class="table table-bordered table-hover mb-0" style="font-size: 14px;">
+            <colgroup>
+                <col style="width: 7%">
+                <col>
+                <col>
+                <col style="width: 20%">
+                <col style="width: 8%">
+            </colgroup>
             <thead class="table-light">
                 <tr>
-                    <th class="text-center" style="width: 7%">순번</th>
+                    <th class="text-center">순번</th>
                     <th class="text-center">제목</th>
                     <th class="text-center">개요</th>
-                    <th class="text-center" style="width: 20%">설문기간</th>
-                    <th class="text-center" style="width: 8%">참여</th>
+                    <th class="text-center">설문기간</th>
+                    <th class="text-center">참여</th>
                 </tr>
             </thead>
             <tbody>
@@ -54,9 +61,9 @@
                         <c:forEach var="s" items="${list}" varStatus="vs">
                             <tr>
                                 <td class="text-center">
-                                    ${paginationInfo.totalRecordCount
+                                    <c:out value="${paginationInfo.totalRecordCount
                                       - (paginationInfo.currentPageNo - 1) * paginationInfo.recordCountPerPage
-                                      - vs.index}
+                                      - vs.index}"/>
                                 </td>
                                 <td class="text-center text-truncate" style="max-width: 100px"><c:out value="${s.title}"/></td>
                                 <td class="text-center text-truncate" style="max-width: 100px"><c:out value="${s.content}"/></td>

@@ -1,14 +1,16 @@
 package wini.winitest.service.impl;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
-import java.util.Arrays;
-import java.util.ResourceBundle;
+import java.util.Set;
 
 import javax.annotation.Resource;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,12 +25,18 @@ import wini.winitest.service.SurveyService;
 @Service("surveyService")
 public class SurveyServiceImpl extends EgovAbstractServiceImpl implements SurveyService {
 
+    @Value("${survey.upload.path}")
+    private String uploadPath;
+
+    @Value("${image.allowed.extensions}")
+    private String allowedExtensions;
+
     @Resource(name = "surveyDAO")
     private SurveyDAO surveyDAO;
 
     /** 설문 목록 조회 (페이징, 검색조건) + 전체 건수 */
     @Override
-    public Map<String, Object> getSurveyList(Map<String, Object> param) throws Exception {
+    public Map<String, Object> selectSurveyList(Map<String, Object> param) throws Exception {
         Map<String, Object> result = new HashMap<>();
         result.put("msg", "E");
         try {
@@ -62,11 +70,11 @@ public class SurveyServiceImpl extends EgovAbstractServiceImpl implements Survey
     /** 설문 문항+보기 목록 조회 (수정 폼용) */
     @Override
     public List<Map<String, Object>> selectQuestionsWithOptions(int surveyNo) throws Exception {
-        List<Map<String, Object>> questions  = surveyDAO.selectQuestionsBySurveyNo(surveyNo);
-        List<Map<String, Object>> allOptions = surveyDAO.selectOptionsBySurveyNo(surveyNo);
-        for (Map<String, Object> q : questions) {
+        List<Map<String, Object>> questions  = surveyDAO.selectQuestionsBySurveyNo(surveyNo); // 설문 질문
+        List<Map<String, Object>> allOptions = surveyDAO.selectOptionsBySurveyNo(surveyNo); // 설문 보기
+        for (Map<String, Object> q : questions) { // 각 질문에 맞는 보기 매핑
             int boardNo = ((Number) q.get("boardNo")).intValue();
-            List<Map<String, Object>> opts = new java.util.ArrayList<>();
+            List<Map<String, Object>> opts = new ArrayList<>(); //보기 배열
             for (Map<String, Object> opt : allOptions) {
                 if (((Number) opt.get("qNo")).intValue() == boardNo) {
                     opts.add(opt);
@@ -77,92 +85,135 @@ public class SurveyServiceImpl extends EgovAbstractServiceImpl implements Survey
         return questions;
     }
 
-    /**
-     * 설문 저장 (등록/수정 통합)
-     */
+    /** 설문 등록 */
     @Override
     @Transactional
-    public Map<String, Object> saveSurvey(Map<String, Object> param) throws Exception {
-        Map<String, Object> result = new HashMap<>();
-
-        String surveyNoStr = (String) param.get("surveyNo");
-        boolean isNew = (surveyNoStr == null || surveyNoStr.isEmpty() || "null".equals(surveyNoStr));
-
-        if (isNew) {
-            surveyDAO.insertSurvey(param);
-        } else {
-            param.put("surveyNo", Integer.parseInt(surveyNoStr));
-            surveyDAO.updateSurvey(param);
-        }
+    public Map<String, Object> insertSurvey(Map<String, Object> param) throws Exception {
+        surveyDAO.insertSurvey(param);
         int surveyNo = ((Number) param.get("surveyNo")).intValue();
 
-        /* 삭제 요청된 이미지/보기/문항 처리 */
-        List<Object> deletedImageFileNos = (List<Object>) param.get("deletedImageFileNos");
-        List<Object> deletedOptionNos    = (List<Object>) param.get("deletedOptionNos");
-        List<Object> deletedQuestionNos  = (List<Object>) param.get("deletedQuestionNos");
-        if (deletedImageFileNos != null) {
-            for (Object o : deletedImageFileNos) {
-                surveyDAO.logicalDeleteSurveyImage(((Number) o).intValue());
-            }
-        }
-        if (deletedOptionNos != null) {
-            for (Object o : deletedOptionNos) {
-                surveyDAO.deleteOption(((Number) o).intValue());
-            }
-        }
-        if (deletedQuestionNos != null) {
-            for (Object o : deletedQuestionNos) {
-                int boardNo = ((Number) o).intValue();
-                surveyDAO.deleteOptionsByQuestionNo(boardNo);
-                surveyDAO.deleteQuestion(boardNo);
-            }
-        }
-
-        /* 문항 저장 */
         List<Map<String, Object>> questions = (List<Map<String, Object>>) param.get("questions");
         if (questions != null) {
             for (Map<String, Object> q : questions) {
                 q.put("surveyNo", surveyNo);
                 q.put("regUser",  param.get("regUser"));
-                int boardNo = ((Number) q.getOrDefault("boardNo", 0)).intValue();
-                if (boardNo == 0) {
-                    surveyDAO.insertQuestion(q);
-                    boardNo = ((Number) q.get("boardNo")).intValue();
-                } else {
-                    surveyDAO.updateQuestion(q);
-                }
+                surveyDAO.insertQuestion(q);
+                int boardNo = ((Number) q.get("boardNo")).intValue();
+                activateImage(q, boardNo);
+                insertOptions(q, boardNo);
+            }
+        }
 
-                /* 첨부 이미지 활성화 */
-                Object imgFileNoObj = q.get("imageFileNo");
-                if (imgFileNoObj != null) {
-                    int imageFileNo = ((Number) imgFileNoObj).intValue();
-                    if (imageFileNo > 0) {
-                        Map<String, Object> imgParam = new HashMap<>();
-                        imgParam.put("fileNo",  imageFileNo);
-                        imgParam.put("boardNo", boardNo);
-                        surveyDAO.activateSurveyImage(imgParam);
-                    }
-                }
+        Map<String, Object> result = new HashMap<>();
+        result.put("msg",      "S");
+        return result;
+    }
 
-                /* 보기 저장 */
-                List<Map<String, Object>> options = (List<Map<String, Object>>) q.get("options");
-                if (options != null) {
-                    for (Map<String, Object> opt : options) {
-                        opt.put("qNo", boardNo);
-                        int optionNo = ((Number) opt.getOrDefault("optionNo", 0)).intValue();
-                        if (optionNo == 0) {
-                            surveyDAO.insertOption(opt);
-                        } else {
-                            surveyDAO.updateOption(opt);
-                        }
-                    }
+    /**
+     * 설문 수정
+     * [설문] 단순 UPDATE
+     * [질문] DB 비교 후 처리
+     * [보기] 전체 논리삭제 후 재INSERT
+     */
+    @Override
+    @Transactional
+    public Map<String, Object> updateSurvey(Map<String, Object> param) throws Exception {
+
+        // JSON으로 넘어온 surveyNo는 String 타입 -> int로 변환 후 다시 param에 넣어 MyBatis #{surveyNo} 바인딩에 사용
+        int surveyNo = Integer.parseInt(String.valueOf(param.get("surveyNo")));
+        param.put("surveyNo", surveyNo);
+
+        // [설문] 단순 UPDATE
+        surveyDAO.updateSurvey(param);
+
+        List<Map<String, Object>> questions = (List<Map<String, Object>>) param.get("questions");
+
+        // [질문 1단계] 제출된 질문의 boardNo를 HashSet에 모음 (DB와 비교용)
+        // boardNo=0인 신규 질문은 아직 DB에 없으므로 제외
+        Set<Integer> submittedBoardNos = new HashSet<>();
+        if (questions != null) {
+            for (Map<String, Object> q : questions) {
+                Object bnObj = q.get("boardNo");
+                int bn = (bnObj != null) ? Integer.parseInt(String.valueOf(bnObj)) : 0;
+                if (bn > 0) {
+                    submittedBoardNos.add(bn);
                 }
             }
         }
 
+        // [질문 2단계] DB 질문 목록과 비교해서 제출 목록에 없는 질문을 논리삭제
+        // 예) DB: [10, 11, 12] / 제출: [10, 12] -> 11번이 화면에서 삭제된 것 -> 논리삭제
+        // 1.보기 삭제  2.질문 삭제 (논리삭제)
+        List<Map<String, Object>> dbQuestions = surveyDAO.selectQuestionsBySurveyNo(surveyNo);
+        for (Map<String, Object> dbQ : dbQuestions) {
+            int boardNo = Integer.parseInt(String.valueOf(dbQ.get("boardNo")));
+            if (!submittedBoardNos.contains(boardNo)) {
+                surveyDAO.deleteOptionsByQuestionNo(boardNo);
+                surveyDAO.deleteQuestion(boardNo);
+            }
+        }
+
+        // [질문 3단계] 제출된 질문 순회 - boardNo=0이면 신규 INSERT, 양수면 기존 UPDATE
+        if (questions != null) {
+            for (Map<String, Object> q : questions) {
+                q.put("surveyNo", surveyNo);
+                q.put("regUser",  param.get("regUser"));
+
+                Object boardNoObj = q.get("boardNo");
+                int boardNo = (boardNoObj != null) ? Integer.parseInt(String.valueOf(boardNoObj)) : 0;
+
+                if (boardNo == 0) {
+                    // 신규 질문: INSERT 후 시퀀스  boardNo를 q에 저장
+                    surveyDAO.insertQuestion(q);
+                    boardNo = Integer.parseInt(String.valueOf(q.get("boardNo")));
+                } else {
+                    // 기존 질문: 내용만 UPDATE (boardNo 유지 -> 이미지 연결 유지)
+                    surveyDAO.updateQuestion(q);
+                }
+
+                // boardNo 확정 후 이미지 처리 (신규 질문은 INSERT 완료 후에 boardNo가 생기므로 여기서 처리)
+                activateImage(q, boardNo);
+
+                // [보기] 기존 보기 전체 논리삭제 후 제출된 보기 전체 재INSERT
+                surveyDAO.deleteOptionsByQuestionNo(boardNo);
+                insertOptions(q, boardNo);
+            }
+        }
+
+        Map<String, Object> result = new HashMap<>();
         result.put("msg",      "S");
-        result.put("surveyNo", surveyNo);
         return result;
+    }
+
+    /** 질문 이미지 처리 - 기존 이미지 비활성화 후 새 이미지 활성화 */
+    private void activateImage(Map<String, Object> q, int boardNo) throws Exception {
+        /* 기존에 연결된 이미지를 먼저 비활성화 - 이미지 삭제/교체 시 이전 파일이 남지 않도록 */
+        surveyDAO.deactivateImageByQuestion(boardNo);
+
+        Object imgFileNoObj = q.get("imageFileNo");
+        if (imgFileNoObj == null) {
+            return; // imageFileNo 키 자체가 없으면 종료
+        }
+        int imageFileNo = Integer.parseInt(String.valueOf(imgFileNoObj));
+        if (imageFileNo <= 0) {
+            return; // 0이면 이미지 없음 (삭제된 경우 포함)
+        }
+
+        /* 임시 저장(use_yn='N') 상태의 이미지를 이 질문과 연결하면서 활성화(use_yn='Y') */
+        Map<String, Object> imgParam = new HashMap<>();
+        imgParam.put("fileNo",  imageFileNo);
+        imgParam.put("boardNo", boardNo);
+        surveyDAO.activateSurveyImage(imgParam);
+    }
+
+    /** 보기 전체 INSERT (기존 보기 전체 삭제 => insert) */
+    private void insertOptions(Map<String, Object> q, int boardNo) throws Exception {
+        List<Map<String, Object>> options = (List<Map<String, Object>>) q.get("options");
+        if (options == null) return;
+        for (Map<String, Object> opt : options) {
+            opt.put("qNo", boardNo);
+            surveyDAO.insertOption(opt);
+        }
     }
 
     /** 사용자용 설문 목록 */
@@ -171,15 +222,15 @@ public class SurveyServiceImpl extends EgovAbstractServiceImpl implements Survey
         Map<String, Object> result = new HashMap<>();
         result.put("msg", "E");
         try {
-            int recordPerPage = Integer.parseInt(String.valueOf(param.getOrDefault("recordCountPerPage", 10)));
-            int pageSize      = Integer.parseInt(String.valueOf(param.getOrDefault("pageSize", 10)));
+            int recordPerPage = Integer.parseInt(String.valueOf(param.get("recordCountPerPage")));
+            int pageSize      = Integer.parseInt(String.valueOf(param.get("pageSize")));
             PaginationInfo paginationInfo = PagingUtil.create(param, recordPerPage, pageSize);
             int totalCount = surveyDAO.selectSurveyTotalCountForUser(param);
             paginationInfo.setTotalRecordCount(totalCount);
-            result.put("list",           surveyDAO.selectSurveyListForUser(param));
+            result.put("list",   surveyDAO.selectSurveyListForUser(param));
             result.put("paginationInfo", paginationInfo);
-            result.put("search",         param);
-            result.put("msg",            "S");
+            result.put("search",   param);
+            result.put("msg",   "S");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -295,12 +346,26 @@ public class SurveyServiceImpl extends EgovAbstractServiceImpl implements Survey
         return result;
     }
 
+    /** 응답자 목록 조회 */
+    @Override
+    public List<Map<String, Object>> selectRespondentList(int surveyNo) throws Exception {
+        return surveyDAO.selectRespondentList(surveyNo);
+    }
+
+    /** 응답자별 답변 상세 조회 */
+    @Override
+    public List<Map<String, Object>> selectRespondentDetail(int surveyNo, int userNo) throws Exception {
+        Map<String, Object> param = new HashMap<>();
+        param.put("surveyNo", surveyNo);
+        param.put("userNo",   userNo);
+        return surveyDAO.selectRespondentDetail(param);
+    }
+
     /** 질문 첨부 이미지 임시 업로드 */
     @Override
     public Map<String, Object> saveTempImage(MultipartFile file, Object regUser) throws Exception {
         Map<String, Object> result = new HashMap<>();
-        String uploadDir = ResourceBundle.getBundle("global").getString("survey.upload.path");
-        List<Map<String, Object>> saved = FileUploadUtil.saveImages(Arrays.asList(file), uploadDir);
+        List<Map<String, Object>> saved = FileUploadUtil.saveImages(Arrays.asList(file), uploadPath, allowedExtensions);
         if (saved.isEmpty()) {
             result.put("msg",  "F");
             result.put("desc", "허용되지 않는 파일 형식입니다.");

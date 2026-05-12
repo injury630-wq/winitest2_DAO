@@ -25,6 +25,9 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
     @Value("${gallery.upload.path}")
     private String uploadPath;
 
+    @Value("${image.allowed.extensions}")
+    private String allowedExtensions;
+
     /** 목록 + 전체 건수를 Map 하나로 묶어 반환 */
     @Override
     public Map<String, Object> getGalleryList(Map<String, Object> param) throws Exception {
@@ -46,7 +49,7 @@ public class GalleryServiceImpl extends EgovAbstractServiceImpl implements Galle
     @Override
     public List<Map<String, Object>> saveTempFiles(List<MultipartFile> files,
                                                     Object regUser) throws Exception {
-        List<Map<String, Object>> savedFiles = FileUploadUtil.saveImages(files, uploadPath);
+        List<Map<String, Object>> savedFiles = FileUploadUtil.saveImages(files, uploadPath, allowedExtensions);
         for (Map<String, Object> fp : savedFiles) {
             fp.put("boardNo", 0);
             fp.put("regUser", regUser);

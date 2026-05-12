@@ -31,7 +31,7 @@
         , DATE_FORMAT(s.reg_date, '%Y-%m-%d')               AS regDate          <!-- 등록일 -->
     FROM
         survey s
-    JOIN users u ON u.user_no = s.reg_user
+    JOIN users u ON u.user_no = s.reg_user <!--  -->
     WHERE s.del_yn = 'N' 
     <include refid="searchCondition"/>
     ORDER BY s.survey_no DESC
@@ -155,23 +155,6 @@
     )
     </insert>
 
-    <!-- 보기 수정 -->
-    <!-- **SurveyDAO.updateOption -->
-    <update id="updateOption" parameterType="map">
-    UPDATE q_option
-    SET
-        content    = #{content}         <!-- 보기 내용 -->
-        , sort_ord = #{sortOrd}         <!-- 정렬 순서 -->
-    WHERE option_no = #{optionNo}
-    </update>
-
-    <!-- 보기 논리삭제 (단건) -->
-    <!-- **SurveyDAO.deleteOption -->
-    <update id="deleteOption" parameterType="int">
-    UPDATE q_option SET use_yn = 'N'
-    WHERE option_no = #{optionNo}
-    </update>
-
     <!-- 질문 논리삭제 (단건) -->
     <!-- **SurveyDAO.deleteQuestion -->
     <update id="deleteQuestion" parameterType="int">
@@ -182,7 +165,7 @@
     <!-- 설문 논리삭제 -->
     <!-- **SurveyDAO.deleteSurvey -->
     <update id="deleteSurvey" parameterType="int">
-    UPDATE survey SET use_yn = 'N'
+    UPDATE survey SET del_yn = 'Y'
     WHERE survey_no = #{surveyNo}
     </update>
 
@@ -243,7 +226,7 @@
     <!-- **SurveyDAO.activateSurveyImage -->
     <update id="activateSurveyImage" parameterType="map">
     UPDATE file_master
-    SET    use_yn   = 'Y'           <!-- 임시 → 활성 -->
+    SET    use_yn   = 'Y'           <!-- 임시 -> 활성 -->
          , board_no = #{boardNo}    <!-- 질문번호 확정 -->
     WHERE  file_no  = #{fileNo}     <!-- 파일번호 -->
     </update>
@@ -264,8 +247,17 @@
     <!-- **SurveyDAO.logicalDeleteSurveyImage -->
     <update id="logicalDeleteSurveyImage" parameterType="int">
     UPDATE file_master
-    SET    use_yn = 'N'         <!-- 활성 → 삭제 -->
+    SET    use_yn = 'N'         <!-- 활성 -> 삭제 -->
     WHERE  file_no = #{fileNo}  <!-- 파일번호 -->
+    </update>
+
+    <!-- 질문에 연결된 활성 이미지 전체 비활성화 (이미지 삭제/교체 전 기존 파일 정리용) -->
+    <!-- **SurveyDAO.deactivateImageByQuestion -->
+    <update id="deactivateImageByQuestion" parameterType="int">
+    UPDATE file_master
+    SET    use_yn = 'N'
+    WHERE  board_no = #{boardNo}
+      AND  use_yn   = 'Y'
     </update>
 
     <!-- 설문에 속한 보기 전체 조회 (수정 폼 로딩용) -->
@@ -390,6 +382,7 @@
     JOIN   q_option qo         ON qo.q_no     = q.board_no
     LEFT JOIN response_detail rd ON rd.option_no = qo.option_no
     WHERE q.survey_no = #{surveyNo}
+      AND qo.use_yn   = 'Y'
     GROUP BY q.board_no, qo.option_no, qo.content
     ORDER BY q.sort_ord ASC, qo.sort_ord ASC
     </select>
@@ -433,6 +426,41 @@
     FROM
         response
     WHERE survey_no = #{surveyNo}
+    </select>
+
+    <!-- 응답자 목록 (설문별) -->
+    <!-- **SurveyDAO.selectRespondentList -->
+    <select id="selectRespondentList" parameterType="int" resultType="map">
+    SELECT
+        r.res_no                                AS resNo        <!-- 응답번호(PK) -->
+        , u.user_no                             AS userNo       <!-- 사용자번호 -->
+        , u.user_id                             AS userId       <!-- 아이디 -->
+        , u.user_name                           AS userName     <!-- 이름 -->
+        , DATE_FORMAT(r.reg_date, '%Y-%m-%d')   AS regDate      <!-- 응답일 -->
+    FROM response r
+    JOIN users u ON u.user_no = r.reg_user
+    WHERE r.survey_no = #{surveyNo}
+    ORDER BY r.reg_date DESC
+    </select>
+
+    <!-- 응답자별 답변 상세 (질문+답변) -->
+    <!-- **SurveyDAO.selectRespondentDetail -->
+    <select id="selectRespondentDetail" parameterType="map" resultType="map">
+    SELECT
+        q.board_no                              AS qNo          <!-- 질문번호 -->
+        , q.sort_ord                            AS sortOrd      <!-- 질문 순서 -->
+        , q.content                             AS qContent     <!-- 질문 내용 -->
+        , q.type                                AS qType        <!-- 질문 유형 -->
+        , qo.content                            AS optionContent <!-- 선택 보기 내용 -->
+        , rd.answer_content                     AS answerContent <!-- 주관식 답변 -->
+    FROM response r
+    JOIN response_detail rd ON rd.res_no = r.res_no
+    JOIN question q         ON q.board_no = rd.q_no
+    LEFT JOIN q_option qo   ON qo.option_no = rd.option_no
+    WHERE r.survey_no = #{surveyNo}
+      AND r.reg_user  = #{userNo}
+      AND q.use_yn    = 'Y'
+    ORDER BY q.sort_ord ASC, rd.res_detail_no ASC
     </select>
 
 </mapper>

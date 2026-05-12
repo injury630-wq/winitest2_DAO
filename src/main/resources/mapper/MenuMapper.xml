@@ -18,7 +18,7 @@
 		      , m.pro_no                                     AS proNo     <!-- 연동된 프로그램 번호 -->
 		      , CAST(LPAD(m.sort_ord, 5, '0') AS CHAR(200)) AS path      <!-- 계층 정렬용 -->
 		    FROM menu m
-		    <if test="adminYn != 'Y'">
+		    <if test='adminYn != "Y"'>
 		    JOIN menu_role_perm mrp <!-- 표시 권한 없으면 제거 -->
 		    	ON	m.menu_no =  mrp.menu_no 
 		    	AND mrp.role_no = #{roleNo}
@@ -41,7 +41,7 @@
 		    FROM menu m
 		    JOIN menu_tree mt 
 		    	ON m.parent_no = mt.menuNo
-		    <if test="adminYn != 'Y'">
+		    <if test='adminYn != "Y"'>
 		    JOIN menu_role_perm mrp <!-- 표시 권한 없으면 제거 -->
 		    	ON	m.menu_no =  mrp.menu_no 
 		    	AND mrp.role_no = #{roleNo}

@@ -1,7 +1,6 @@
 package wini.winitest.controller;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,7 +37,7 @@ public class SurveyController {
         MenuUtil.addMenu(model, menuService);
         param.put("recordCountPerPage", 10);
         param.put("pageSize", 10);
-        Map<String, Object> result = surveyService.getSurveyList(param);
+        Map<String, Object> result = surveyService.selectSurveyList(param);
         if ("S".equals(result.get("msg"))) {
             model.addAttribute("list",           result.get("list"));
             model.addAttribute("search",         result.get("search"));
@@ -51,12 +50,12 @@ public class SurveyController {
     @RequestMapping(value = "/survey/surveyForm.do", method = RequestMethod.POST)
     public String surveyForm(@RequestParam Map<String, Object> param, Model model) throws Exception {
         MenuUtil.addMenu(model, menuService);
-        model.addAttribute("questionTypes", surveyService.selectQuestionTypes());
-        String surveyNoStr = (String) param.get("surveyNo");
+        model.addAttribute("questionTypes", surveyService.selectQuestionTypes()); // 콤보박스용
+        String surveyNoStr = (param.get("surveyNo") != null) ? String.valueOf(param.get("surveyNo")) : null;
         if (surveyNoStr != null && !surveyNoStr.isEmpty()) {
             int surveyNo = Integer.parseInt(surveyNoStr);
-            model.addAttribute("survey",    surveyService.selectSurvey(surveyNo));
-            model.addAttribute("questions", surveyService.selectQuestionsWithOptions(surveyNo));
+            model.addAttribute("survey",     surveyService.selectSurvey(surveyNo));
+            model.addAttribute("questions",  surveyService.selectQuestionsWithOptions(surveyNo));
         }
         return "survey/surveyForm";
     }
@@ -66,14 +65,24 @@ public class SurveyController {
     @ResponseBody
     public Map<String, Object> surveySave(@RequestBody Map<String, Object> param,
                                           HttpSession session) {
-        Map<String, Object> err = new HashMap<>();
+        Map<String, Object> result = new HashMap<>();
         try {
             Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
             if (loginUser != null) param.put("regUser", loginUser.get("userNo"));
-            return surveyService.saveSurvey(param);
+            String surveyNoStr = String.valueOf(param.get("surveyNo")); // 화면에서 null or 숫자값으로 보냄
+            boolean isNew = "null".equals(surveyNoStr) || surveyNoStr.isEmpty();
+            if(isNew) {
+            	surveyService.insertSurvey(param);
+            	result.put("msg", "S");
+            }else {
+            	surveyService.updateSurvey(param);
+            	result.put("msg", "S");
+            }
+            return result;
         } catch (Exception e) {
-            err.put("msg", "E");
-            return err;
+            e.printStackTrace();
+            result.put("msg", "E");
+            return result;
         }
     }
 
@@ -161,6 +170,30 @@ public class SurveyController {
         return "survey/surveyStat";
     }
 
+    /** 응답자 목록 */
+    @RequestMapping(value = "/survey/surveyRespondent.do", method = RequestMethod.POST)
+    public String surveyRespondent(@RequestParam Map<String, Object> param, Model model) throws Exception {
+        MenuUtil.addMenu(model, menuService);
+        int surveyNo = Integer.parseInt((String) param.get("surveyNo"));
+        model.addAttribute("survey",        surveyService.selectSurvey(surveyNo));
+        model.addAttribute("respondentList", surveyService.selectRespondentList(surveyNo));
+        model.addAttribute("surveyNo",      surveyNo);
+        return "survey/surveyRespondent";
+    }
+
+    /** 응답자별 답변 상세 */
+    @RequestMapping(value = "/survey/surveyRespondentDetail.do", method = RequestMethod.POST)
+    public String surveyRespondentDetail(@RequestParam Map<String, Object> param, Model model) throws Exception {
+        MenuUtil.addMenu(model, menuService);
+        int surveyNo = Integer.parseInt((String) param.get("surveyNo"));
+        int userNo   = Integer.parseInt((String) param.get("userNo"));
+        model.addAttribute("survey",      surveyService.selectSurvey(surveyNo));
+        model.addAttribute("answers",     surveyService.selectRespondentDetail(surveyNo, userNo));
+        model.addAttribute("surveyNo",    surveyNo);
+        model.addAttribute("userNo",      userNo);
+        return "survey/surveyRespondentDetail";
+    }
+
     /** 질문 이미지 임시 업로드 */
     @RequestMapping(value = "/survey/surveyImageUpload.do", method = RequestMethod.POST)
     @ResponseBody
@@ -205,17 +238,15 @@ public class SurveyController {
     public void getImage(@RequestParam("fileNo") int fileNo,
                          HttpServletResponse response) throws Exception {
         Map<String, Object> fileInfo = surveyService.getImageByFileNo(fileNo);
-        if (fileInfo == null) { response.setStatus(404); return; }
-        String filePath = (String) fileInfo.get("filePath");
-        String fileName = (String) fileInfo.get("fileName");
-        File f = new File(filePath, fileName);
-        if (!f.exists()) { response.setStatus(404); return; }
-        String ext = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
-        String mime = "image/jpeg";
-        if ("png".equals(ext))  mime = "image/png";
-        else if ("gif".equals(ext))  mime = "image/gif";
-        else if ("webp".equals(ext)) mime = "image/webp";
-        response.setContentType(mime);
-        Files.copy(f.toPath(), response.getOutputStream());
+        if (fileInfo == null) {// DB 조회 안됨
+            response.setStatus(404);
+            return;
+        }
+        File f = new File((String) fileInfo.get("filePath"), (String) fileInfo.get("fileName"));
+        if (!f.exists()) {
+            response.setStatus(404);
+            return;
+        }
+        FileUploadUtil.streamImage(f, response);
     }
 }

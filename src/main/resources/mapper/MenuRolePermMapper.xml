@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<!-- namespace = "menuRolePermDAO" → MenuRolePermDAO.java에서 "menuRolePermDAO.{queryId}"로 호출 -->
+<!-- namespace = "menuRolePermDAO" -> MenuRolePermDAO.java에서 "menuRolePermDAO.{queryId}"로 호출 -->
 <mapper namespace="menuRolePermDAO">
 
 		<!-- 신규 롤 등록 시 전체 메뉴에 대한 기본 권한(전부 N) 등록 -->

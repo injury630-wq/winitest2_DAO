@@ -27,7 +27,7 @@
         <Logger name="jdbc.resultset"      level="OFF"   additivity="false"/>
         <Logger name="jdbc.connection"     level="OFF"   additivity="false"/>
 
-        <!-- 전체 기본 레벨 (프레임워크 INFO 이상 필요시 WARN → INFO로 변경) -->
+        <!-- 전체 기본 레벨 (프레임워크 INFO 이상 필요시 WARN -> INFO로 변경) -->
         <Root level="ERROR">
             <AppenderRef ref="console"/>
         </Root>

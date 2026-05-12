@@ -95,8 +95,7 @@
                     <td>
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <input type="text" id="optionInput" class="form-control form-control-sm"
-                                   style="max-width: 300px;" placeholder="보기 내용 입력"
-                                   onkeydown="if(event.key==='Enter'){event.preventDefault();addOptionTag();}" />
+                                   style="max-width: 300px;" placeholder="보기 내용 입력" />
                             <button type="button" class="btn btn-outline-secondary btn-sm px-3"
                                     onclick="addOptionTag()">보기 추가</button>
                         </div>
@@ -126,7 +125,7 @@
             </tbody>
         </table>
         <div class="d-flex gap-2">
-            <button type="button" class="btn btn-primary btn-sm px-4 ${empty survey ? 'btn-perm-ins' : 'btn-perm-save'}" id="addBtn" onclick="commitQuestion()">+ 질문 추가</button>
+            <button type="button" class="btn btn-primary btn-sm px-4" id="addBtn" onclick="commitQuestion()">+ 질문 추가</button>
             <button type="button" class="btn btn-outline-secondary btn-sm px-3 d-none" id="cancelEditBtn" onclick="cancelEdit()">취소</button>
         </div>
     </div>
@@ -146,60 +145,84 @@
 
     <!-- ===== 4. 버튼 영역 ===== -->
     <div class="d-flex justify-content-end gap-2 mb-4">
-        <button type="button" class="btn btn-primary px-4 ${empty survey ? 'btn-perm-ins' : 'btn-perm-save'}" onclick="saveSurvey()">저장</button>
+        <button type="button" class="btn btn-primary px-4" onclick="saveSurvey()">저장</button>
         <button type="button" class="btn btn-outline-secondary px-4" onclick="goPost('survey/surveyManage.do')">목록</button>
         <c:if test="${not empty survey}">
-            <button type="button" class="btn btn-outline-danger px-4 btn-perm-del" onclick="deleteSurvey()">삭제</button>
+            <button type="button" class="btn btn-outline-danger px-4" onclick="deleteSurvey()">삭제</button>
         </c:if>
+    </div>
+
+    <!-- ===== 5. JSTL 질문 데이터 (스크립트가 읽기 위한 hidden 영역) ===== -->
+    <div id="questionData" class="d-none">
+        <c:forEach var="q" items="${questions}">
+            <div class="q-item"
+                 data-board-no="${q.boardNo}"
+                 data-content="<c:out value='${q.content}'/>"
+                 data-type="${q.type}"
+                 data-sort-ord="${q.sortOrd}"
+                 data-image-file-no="${q.imageFileNo}">
+                <c:forEach var="opt" items="${q.options}">
+                    <div class="opt-item"
+                         data-option-no="${opt.optionNo}"
+                         data-content="<c:out value='${opt.content}'/>"
+                         data-sort-ord="${opt.sortOrd}"></div>
+                </c:forEach>
+            </div>
+        </c:forEach>
     </div>
 
 </div>
 
 <script>
+/* 수정 화면이면 surveyNo, 등록 화면이면 빈 문자열 -> surveySave.do에서 insert/update 분기 */
 const SURVEY_NO = '${survey.surveyNo}';
-pageMode = '${empty survey ? "insert" : "update"}';
-const deletedQuestionNos  = [];
-const deletedOptionNos    = [];
-const deletedImageFileNos = [];
 
-/* ── 질문 목록 (메모리) ── */
-var questionList = [];  /* [{boardNo, content, type, sortOrd, imageFileNo, options:[{optionNo,content}]}] */
-var editingIdx   = -1;  /* 수정 중인 인덱스 (-1: 추가 모드) */
-var pendingOpts  = [];  /* 추가 패널의 보기 [{optionNo, content}] */
-
-/* ── 이미지 상태 ── */
-var pendingImageFileNo = 0;    /* 현재 패널에 올라간 이미지의 fileNo */
-var pendingImageIsNew  = false; /* true: 방금 업로드한 임시파일 (취소 시 물리삭제 필요) */
-
-/* ── 기존 질문 데이터 로드 (수정 모드) ── */
-<c:if test="${not empty questions}">
-<c:forEach var="q" items="${questions}" varStatus="vs">
-questionList.push({
-    boardNo     : ${q.boardNo},
-    content     : '<c:out value="${q.content}" escapeXml="false"/>'.replace(/'/g,"'").replace(/\\/g,"\\\\"),
-    type        : '${q.type}',
-    sortOrd     : ${vs.index},
-    imageFileNo : ${not empty q.imageFileNo ? q.imageFileNo : 0},
-    options     : [
-        <c:forEach var="opt" items="${q.options}" varStatus="os">
-        { optionNo: ${opt.optionNo}, content: '<c:out value="${opt.content}" escapeXml="false"/>'.replace(/'/g,"'") }<c:if test="${!os.last}">,</c:if>
-        </c:forEach>
-    ]
+/*
+ * questionList : 현재 폼의 질문 배열. 유일한 데이터 원본.
+ *   - 등록 시: 빈 배열로 시작
+ *   - 수정 시: #questionData hidden div에서 읽어서 채움
+ * boardNo=0이면 신규 질문, 0보다 크면 DB에 이미 있는 질문.
+ */
+var questionList = [];
+$('#questionData .q-item').each(function() {
+    var $q = $(this);
+    var opts = [];
+    $q.find('.opt-item').each(function() {
+        var $o = $(this);
+        opts.push({
+            optionNo: parseInt($o.data('option-no')) || 0,
+            content : $o.data('content') || '',
+            sortOrd : parseInt($o.data('sort-ord')) || 0
+        });
+    });
+    questionList.push({
+        boardNo     : parseInt($q.data('board-no')) || 0,
+        content     : $q.data('content') || '',
+        type        : $q.data('type') || '',
+        sortOrd     : parseInt($q.data('sort-ord')) || 0,
+        imageFileNo : parseInt($q.data('image-file-no')) || 0,
+        options     : opts
+    });
 });
-</c:forEach>
-</c:if>
 
-/* ── 타입 코드 → 이름 매핑 ── */
+/* 질문 유형 코드 -> 이름 매핑. #qType select가 이미 렌더링돼 있으므로 재활용/ 질문목록 뱃지표시용도*/
 var typeNames = {};
-<c:forEach var="t" items="${questionTypes}">
-typeNames['${t.codeNo}'] = '<c:out value="${t.codeName}"/>';
-</c:forEach>
+$('#qType option').each(function() {
+    typeNames[$(this).val()] = $(this).text();
+});
+
+/* editingIdx : 질문 목록에서 수정 중인 항목 인덱스. -1이면 추가 모드 */
+var editingIdx  = -1;
+/* pendingOpts : 추가 패널에서 입력 중인 보기 목록. commitQuestion() 시 questionList에 합쳐짐 */
+var pendingOpts  = [];
+/* pendingImageFileNo : 추가 패널에 업로드된 이미지 fileNo. 0이면 이미지 없음 */
+var pendingImageFileNo = 0;
 
 /* ── 추가 패널 유형 변경 ── */
 function onAddTypeChange() {
     var type     = $('#qType').val();
     var isChoice = (type === 'radio' || type === 'checkbox' || type === 'select');
-
+		// 추가 패널에서 객관식 선택시 보기 영역 show 텍스트 영역 hide
     if (isChoice) {
         $('#addOptionRow').removeClass('d-none');
         $('#addTextRow').addClass('d-none');
@@ -210,7 +233,7 @@ function onAddTypeChange() {
         var newEl = type === 'textarea'
             ? '<textarea class="form-control form-control-sm" style="max-width:300px;" rows="2" disabled placeholder="' + placeholder + '"></textarea>'
             : '<input type="text" class="form-control form-control-sm" style="max-width:300px;" disabled placeholder="' + placeholder + '" />';
-        $('#addTextRow td').html(newEl);
+        $('#addTextRow td').html(newEl); // 답변 미리보기 input textarea 분기
     }
 }
 
@@ -223,14 +246,13 @@ function addOptionTag() {
     $('#optionInput').val('').focus();
 }
 
+/* 보기 태그 삭제 */
 function removeOptionTag(idx) {
-    var removed = pendingOpts.splice(idx, 1);
-    if (removed[0] && removed[0].optionNo > 0) {
-        deletedOptionNos.push(removed[0].optionNo);
-    }
-    renderOptionTags();
+    pendingOpts.splice(idx, 1); // 보기 태그 배열에서 제거
+    renderOptionTags(); // 재렌더링
 }
 
+/* 보기 태그 렌더링  */
 function renderOptionTags() {
     var html = '';
     pendingOpts.forEach(function(opt, i) {
@@ -264,22 +286,20 @@ function commitQuestion() {
         type        : type,
         sortOrd     : 0,
         imageFileNo : pendingImageFileNo,
+        /* slice()로 얕은 복사 - resetAddPanel()이 pendingOpts를 비워도 저장된 보기에 영향 없음 */
         options     : pendingOpts.slice()
     };
 
     if (editingIdx >= 0) {
-        var prev = questionList[editingIdx];
-        q.boardNo = prev.boardNo;
-        if (prev.imageFileNo > 0 && prev.imageFileNo !== pendingImageFileNo) {
-            deletedImageFileNos.push(prev.imageFileNo);
-        }
-        questionList[editingIdx] = q;
-        editingIdx = -1;
+        /* 수정 모드: 기존 boardNo 유지 (0이면 신규, 양수면 DB에 있는 기존 질문) */
+        q.boardNo = questionList[editingIdx].boardNo; // boardNo 복원
+        questionList[editingIdx] = q; // 배열의 해당 위치를 새 객체로 교체
+        editingIdx = -1; // 수정 모드 종료 -> 추가 모드로 복귀
     } else {
+        /* 추가 모드: 목록 맨 앞에 삽입 */
         questionList.unshift(q);
     }
 
-    pendingImageIsNew = false;
     resetAddPanel();
     renderQuestionList();
 }
@@ -291,10 +311,11 @@ function startEdit(idx) {
 
     $('#qType').val(q.type);
     $('#qContent').val(q.content);
+   	// 추가(수정) 패널에서 입력 중인 보기 목록 새로운 List<Map> 형태로 반환
     pendingOpts = q.options.map(function(o) { return { optionNo: o.optionNo, content: o.content }; });
-
-    pendingImageFileNo = q.imageFileNo || 0;
-    pendingImageIsNew  = false;
+		
+   	// 추가(수정) 패널 업로드된 이미지
+    pendingImageFileNo = q.imageFileNo || 0; // 0 => 이미지 없음
     $('#imageFileInput').val('');
     if (pendingImageFileNo > 0) {
         $('#imagePreview').attr('src', 'survey/getImage.do?fileNo=' + pendingImageFileNo);
@@ -303,8 +324,8 @@ function startEdit(idx) {
         $('#imagePreviewArea').addClass('d-none');
     }
 
-    onAddTypeChange();
-    renderOptionTags();
+    onAddTypeChange(); // 패널 타입에 맞춰 보기 변경
+    renderOptionTags(); // 보기 렌더링
 
     $('#addPanelTitle').text('질문 수정');
     $('#addBtn').text('수정 완료');
@@ -315,55 +336,62 @@ function startEdit(idx) {
 
 /* ── 수정 취소 ── */
 function cancelEdit() {
-    editingIdx = -1;
-    resetAddPanel();
+    editingIdx = -1; // 추가모드로 변경
+    resetAddPanel(); // 추가패널 값 초기화
 }
 
 /* ── 추가 패널 초기화 ── */
 function resetAddPanel() {
-    if (pendingImageIsNew && pendingImageFileNo > 0) {
-        deleteTempImage(pendingImageFileNo);
-    }
     pendingImageFileNo = 0;
-    pendingImageIsNew  = false;
     $('#imageFileInput').val('');
     $('#imagePreviewArea').addClass('d-none');
     $('#imagePreview').attr('src', '');
 
     $('#qContent').val('');
     $('#optionInput').val('');
-    pendingOpts = [];
-    renderOptionTags();
+    pendingOpts = []; // 보기 지우기
+    renderOptionTags(); // 보기 재렌더링
     $('#addPanelTitle').text('질문 추가');
     $('#addBtn').text('+ 질문 추가');
     $('#cancelEditBtn').addClass('d-none');
-    onAddTypeChange();
+    onAddTypeChange(); // 응답 미리보기 type에 맞게 변경
 }
 
 /* ── 질문 삭제 ── */
 function removeQuestion(idx) {
-    var q = questionList.splice(idx, 1)[0];
-    if (q.boardNo > 0) {
-        deletedQuestionNos.push(q.boardNo);
-        q.options.forEach(function(o) { if (o.optionNo > 0) deletedOptionNos.push(o.optionNo); });
+    questionList.splice(idx, 1); // 질문 배열에서 삭제
+    /* 수정 중이던 질문을 삭제하면 추가 패널도 초기화 */
+    if (editingIdx === idx) {
+        editingIdx = -1;
+        resetAddPanel();
     }
-    if (editingIdx === idx) { editingIdx = -1; resetAddPanel(); }
     renderQuestionList();
 }
 
 /* ── 질문 순서 이동 ── */
 function moveQuestion(idx, dir) {
-    var ti = idx + dir;
-    if (ti < 0 || ti >= questionList.length) return;
+    var ti = idx + dir; // dir: -1 위로 1 아래로 
+    if (ti < 0 || ti >= questionList.length) {// 질문 개수 안에서만 변경
+        return;
+    }
+    /* 배열 swap */
     var tmp = questionList[idx];
     questionList[idx] = questionList[ti];
     questionList[ti]  = tmp;
-    if      (editingIdx === idx) editingIdx = ti;
-    else if (editingIdx === ti)  editingIdx = idx;
+    /* 수정 중인 항목이 이동하면 editingIdx도 함께 이동 (노란 배경 유지) */
+    if (editingIdx === idx) {
+        editingIdx = ti;
+    } else if (editingIdx === ti) {
+        editingIdx = idx;
+    }
     renderQuestionList();
 }
 
-/* ── 질문 목록 렌더링 ── */
+/*
+ * 질문 목록 렌더링
+ * - questionList가 바뀔 때마다 #questionList 전체를 재생성.
+ * - 버튼 onclick에 인덱스(i)를 직접 박아야 해서 부분 업데이트가 어렵기 때문.
+ */
 function renderQuestionList() {
     $('#qCount').text(questionList.length);
 
@@ -404,26 +432,27 @@ function renderQuestionList() {
         html += '<div class="d-flex gap-1 flex-shrink-0">';
         html += '<button type="button" class="btn btn-outline-secondary btn-sm px-1" onclick="moveQuestion(' + i + ',-1)">▲</button>';
         html += '<button type="button" class="btn btn-outline-secondary btn-sm px-1" onclick="moveQuestion(' + i + ', 1)">▼</button>';
-        html += '<button type="button" class="btn btn-outline-primary btn-sm px-2 btn-perm-save" onclick="startEdit(' + i + ')">수정</button>';
-        html += '<button type="button" class="btn btn-outline-danger btn-sm px-2 btn-perm-del" onclick="removeQuestion(' + i + ')">삭제</button>';
+        html += '<button type="button" class="btn btn-outline-primary btn-sm px-2" onclick="startEdit(' + i + ')">수정</button>';
+        html += '<button type="button" class="btn btn-outline-danger btn-sm px-2" onclick="removeQuestion(' + i + ')">삭제</button>';
         html += '</div>';
         html += '</div>';
     });
 
     $('#questionList').html(html);
-    applyButtonPerms();
 }
 
-/* ── 이미지 업로드 ── */
+/*
+ * 이미지 업로드 (1단계)
+ * - 파일 선택 즉시 서버로 전송 -> DB에 use_yn='N'으로 임시 저장 -> fileNo 반환
+ * - 저장 버튼(saveSurvey) 시 해당 fileNo를 질문과 연결하면서 use_yn='Y'로 활성화
+ * - processData:false, contentType:false 는 파일 전송 시 jQuery 기본 처리를 막는 필수 옵션
+ */
 function uploadQuestionImage(input) {
-    if (!input.files || !input.files[0]) return;
+    if (!input.files || !input.files[0]) {
+        return;
+    }
     var formData = new FormData();
     formData.append('file', input.files[0]);
-
-    if (pendingImageIsNew && pendingImageFileNo > 0) {
-        deleteTempImage(pendingImageFileNo);
-    }
-
     $.ajax({
         url        : 'survey/surveyImageUpload.do',
         type       : 'POST',
@@ -433,7 +462,6 @@ function uploadQuestionImage(input) {
         success    : function(res) {
             if (res.msg === 'S') {
                 pendingImageFileNo = res.fileNo;
-                pendingImageIsNew  = true;
                 $('#imagePreview').attr('src', 'survey/getImage.do?fileNo=' + res.fileNo);
                 $('#imagePreviewArea').removeClass('d-none');
             } else {
@@ -441,25 +469,19 @@ function uploadQuestionImage(input) {
                 $(input).val('');
             }
         },
-        error: function() { alert('서버 오류가 발생했습니다.'); $(input).val(''); }
+        error: function() { 
+	        	alert('서버 오류가 발생했습니다.'); 
+	        	$(input).val(''); 
+        	}
     });
 }
 
 /* ── 이미지 제거 (패널에서) ── */
 function removeQuestionImage() {
-    if (pendingImageIsNew && pendingImageFileNo > 0) {
-        deleteTempImage(pendingImageFileNo);
-    }
     pendingImageFileNo = 0;
-    pendingImageIsNew  = false;
     $('#imageFileInput').val('');
     $('#imagePreviewArea').addClass('d-none');
     $('#imagePreview').attr('src', '');
-}
-
-/* ── 임시 파일 물리 삭제 (fire-and-forget) ── */
-function deleteTempImage(fileNo) {
-    $.post('survey/surveyImageDelete.do', { fileNo: fileNo });
 }
 
 /* ── 저장 ── */
@@ -489,6 +511,7 @@ function saveSurvey() {
         return;
     }
 
+    /* sortOrd를 현재 배열 순서(i)로 덮어써서 사용자가 이동시킨 순서를 반영 */
     var questions = questionList.map(function(q, i) {
         return {
             boardNo     : q.boardNo || 0,
@@ -502,17 +525,18 @@ function saveSurvey() {
         };
     });
 
+    /*
+     * SURVEY_NO가 빈 문자열이면 등록(insert), 값이 있으면 수정(update).
+     * 서버 SurveyController.surveySave()에서 이 값으로 분기.
+     */
     var payload = {
-        surveyNo            : SURVEY_NO || null,
-        title               : title,
-        content             : $('#content').val().trim(),
-        startDate           : startDate,
-        endDate             : endDate,
-        useYn               : $('input[name=useYn]:checked').val(),
-        questions           : questions,
-        deletedQuestionNos  : deletedQuestionNos,
-        deletedOptionNos    : deletedOptionNos,
-        deletedImageFileNos : deletedImageFileNos
+        surveyNo  : SURVEY_NO || null,
+        title     : title,
+        content   : $('#content').val().trim(),
+        startDate : startDate,
+        endDate   : endDate,
+        useYn     : $('input[name=useYn]:checked').val(),
+        questions : questions
     };
 
     $.ajax({
@@ -535,7 +559,7 @@ function saveSurvey() {
 
 /* ── 삭제 ── */
 function deleteSurvey() {
-    if (!confirm('설문을 삭제하시겠습니까?\n(사용여부가 N으로 변경됩니다.)')) return;
+    if (!confirm('설문을 삭제하시겠습니까?')) return;
     $.ajax({
         type    : 'post',
         url     : 'survey/surveyDelete.do',
@@ -553,12 +577,12 @@ function deleteSurvey() {
     });
 }
 
+/* JS로 HTML을 직접 조립할 때 XSS 방지용. jQuery가 text()로 넣으면 자동 이스케이프됨 */
 function escHtml(str) {
     return $('<div>').text(str || '').html();
 }
 
 /* ── 초기 렌더링 ── */
-onAddTypeChange();
-renderQuestionList();
-applyButtonPerms('${empty survey ? "insert" : "update"}');
+onAddTypeChange();   /* 유형 select 초기값에 맞게 보기/텍스트 행 toggle */
+renderQuestionList(); /* 수정 화면이면 기존 질문 목록 표시, 등록이면 빈 안내 문구 표시 */
 </script>

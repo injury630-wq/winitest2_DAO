@@ -1,7 +1,6 @@
 package wini.winitest.controller;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
+import wini.winitest.common.FileUploadUtil;
 import wini.winitest.common.MenuUtil;
 import wini.winitest.common.PagingUtil;
 import wini.winitest.service.GalleryService;
@@ -182,24 +182,16 @@ public class GalleryController {
 	// 이미지 스트리밍 (내용 삽입 이미지 + 목록 썸네일)
 	@RequestMapping(value = "/gallery/imgView.do", method = RequestMethod.GET)
 	public void imgView(@RequestParam Map<String, Object> param, HttpServletResponse response) throws Exception {
-		// 파일 조회
 		Map<String, Object> file = galleryService.selectFileDetail(param);
 		if (file == null) {
 			response.sendError(404);
 			return;
 		}
-
 		File f = new File((String) file.get("filePath"), (String) file.get("fileName"));
 		if (!f.exists()) {
 			response.sendError(404);
 			return;
 		}
-
-		// http 이미지 설정
-		String ext = String.valueOf(file.get("fileExt")).toLowerCase();
-		response.setContentType("image/" + ("jpg".equals(ext) ? "jpeg" : ext));
-		response.setContentLengthLong(f.length());
-		Files.copy(f.toPath(), response.getOutputStream());
-		response.flushBuffer();
+		FileUploadUtil.streamImage(f, response);
 	}
 }

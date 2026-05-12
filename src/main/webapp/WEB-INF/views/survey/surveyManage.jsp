@@ -3,10 +3,6 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <%@ taglib prefix="ui"  uri="http://egovframework.gov/ctl/ui"%>
 
-<c:set var="canUpd" value="${sessionScope.loginUser.adminYn eq 'Y' or
-    (not empty sessionScope.sessionPerms['/survey/surveyManage.do'] and
-     sessionScope.sessionPerms['/survey/surveyManage.do'].updPerm eq 'Y')}"/>
-
 <div class="px-1">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -19,7 +15,7 @@
         <div class="border bg-white p-3 mb-3">
             <div class="d-flex gap-2 mb-2">
                 <input type="text" name="searchKeyword" class="form-control"
-                       value="${search.searchKeyword}"
+                       value='<c:out value="${search.searchKeyword}"/>'
                        placeholder="설문 제목 검색" maxlength="100" />
             </div>
             <div class="text-center">
@@ -38,16 +34,26 @@
             </small>
         </div>
         <table class="table table-bordered table-hover mb-0" style="font-size: 14px;">
+            <colgroup>
+                <col style="width: 7%">
+                <col>
+                <col style="width: 10%">
+                <col style="width: 10%">
+                <col style="width: 20%">
+                <col style="width: 10%">
+                <col style="width: 8%">
+                <col style="width: 8%">
+            </colgroup>
             <thead class="table-light">
                 <tr>
-                    <th class="text-center" style="width: 7%">순번</th>
+                    <th class="text-center">순번</th>
                     <th class="text-center">제목</th>
-                    <th class="text-center" style="width: 10%">사용여부</th>
-                    <th class="text-center" style="width: 10%">응답가능여부</th>
-                    <th class="text-center" style="width: 20%">설문 기간</th>
-                    <th class="text-center" style="width: 10%">작성자</th>
-                    <th class="text-center" style="width: 8%">수정</th>
-                    <th class="text-center" style="width: 8%">통계</th>
+                    <th class="text-center">사용여부</th>
+                    <th class="text-center">응답가능여부</th>
+                    <th class="text-center">설문 기간</th>
+                    <th class="text-center">작성자</th>
+                    <th class="text-center">수정</th>
+                    <th class="text-center">통계</th>
                 </tr>
             </thead>
             <tbody>
@@ -59,9 +65,9 @@
                 <c:forEach var="s" items="${list}" varStatus="vs">
                     <tr>
                         <td class="text-center">
-                            ${paginationInfo.totalRecordCount
+                            <c:out value="${paginationInfo.totalRecordCount
                               - (paginationInfo.currentPageNo - 1) * paginationInfo.recordCountPerPage
-                              - vs.index}
+                              - vs.index}"/>
                         </td>
                         <td><c:out value="${s.title}"/></td>
                         <td class="text-center"><c:out value="${s.useYn}"/></td>
@@ -71,24 +77,21 @@
                         </td>
                         <td class="text-center"><c:out value="${s.regUserName}"/></td>
                         <td class="text-center">
-                                    <button type="button" class="btn btn-secondary btn-sm"
-                                            <c:if test="${s.canEdit ne 'Y' or not canUpd}">disabled</c:if>
-                                            onclick="goPost('survey/surveyForm.do', {surveyNo: '${s.surveyNo}'})">
-                                        수정
-                                    </button>
-     <%--                        <c:choose>
-                                <c:when test="${s.canEdit eq 'Y'}">
-                                    <button type="button" class="btn btn-secondary btn-sm"
-                                            onclick="goPost('survey/surveyForm.do', {surveyNo: '${s.surveyNo}'})">
-                                        수정
-                                    </button>
-                                </c:when>
-                                <c:otherwise>
-                                    <button type="button" class="btn btn-secondary btn-sm" disabled title="설문이 이미 시작되어 수정할 수 없습니다.">
-                                        수정
-                                    </button>
-                                </c:otherwise>
-                            </c:choose> --%>
+                          <c:choose>
+                            <c:when test="${s.canEdit eq 'Y'}">
+                              <%-- 설문 시작 전: 권한 클래스 부여 -> applyButtonPerms()가 권한에 따라 활성/비활성 --%>
+                              <button type="button" class="btn btn-secondary btn-sm btn-perm-upd"
+                                      onclick="goPost('survey/surveyForm.do', {surveyNo: '${s.surveyNo}'})">
+                                수정
+                              </button>
+                            </c:when>
+                            <c:otherwise>
+                              <%-- 설문 시작 후: 권한 클래스 없이 disabled 고정 -> applyButtonPerms() 영향 없음 --%>
+                              <button type="button" class="btn btn-secondary btn-sm" disabled>
+                                수정
+                              </button>
+                            </c:otherwise>
+                          </c:choose>
                         </td>
                         <td class="text-center">
                             <button type="button" class="btn btn-secondary btn-sm"

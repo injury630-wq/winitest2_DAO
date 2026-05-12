@@ -10,6 +10,7 @@ public interface MenuService {
 	/** (권한체크) 관리자용 메뉴 리스트*/
 	List<Map<String, Object>> selectMenuListAdmin() throws Exception;
 
-	/** (권한체크) 통합용 메뉴 리스트*/
+	/** 통합용 메뉴 리스트 (adminYn=Y이면 전체, 아니면 disp_perm 필터링) */
 	List<Map<String, Object>> selectMenuList(Map<String, Object> param) throws Exception;
+
 }

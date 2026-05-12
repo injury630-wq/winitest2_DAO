@@ -14,7 +14,7 @@ import javax.servlet.http.HttpSession;
  */
 public class EgovMultiLoginPreventor {
 
-    /** 로그인 중인 사용자 ID → 세션 맵 */
+    /** 로그인 중인 사용자 ID -> 세션 맵 */
     public static ConcurrentHashMap<String, HttpSession> loginUsers = new ConcurrentHashMap<>();
 
     /** 해당 ID로 활성 세션이 존재하는지 확인 */
@@ -40,7 +40,7 @@ public class EgovMultiLoginPreventor {
             prevSession.invalidate();
             // invalidate() 성공 시 valueUnbound()가 호출되어 맵에서 자동 제거됨
         } catch (IllegalStateException e) {
-            // 이미 만료된 세션(타임아웃 등)에 invalidate() 재호출 → 예외 무시 후 맵 강제 정리
+            // 이미 만료된 세션(타임아웃 등)에 invalidate() 재호출 -> 예외 무시 후 맵 강제 정리
             loginUsers.remove(loginId, prevSession);
         }
     }

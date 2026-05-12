@@ -31,7 +31,7 @@ public class PermInterceptor implements HandlerInterceptor {
         if (sessionPerms == null) return true;
 
         // program 테이블에 등록된 메뉴 URL만 sessionPerms에 존재
-        // 저장/삭제 AJAX 등 미등록 URL은 perm == null → 통과 (메뉴 접근권한을 따라감)
+        // 저장/삭제 AJAX 등 미등록 URL은 perm == null => 통과 (메뉴 접근권한을 따라감)
         // 메뉴에 등록된 URL이고 viewPerm='N'인 경우만 차단
         String proPath = request.getServletPath();
         Map<String, Object> perm = sessionPerms.get(proPath);

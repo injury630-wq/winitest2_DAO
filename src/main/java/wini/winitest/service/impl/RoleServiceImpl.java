@@ -69,7 +69,7 @@ public class RoleServiceImpl extends EgovAbstractServiceImpl implements RoleServ
 		return roleDAO.selectRoleDetail(param);
 	}
 
-	/** 권한 그룹 단건 등록 — sort_ord 밀기 => INSERT => roleId 생성 → 메뉴 권한 초기 등록 */
+	/** 권한 그룹 단건 등록 — sort_ord 밀기 => INSERT => roleId 생성 => 메뉴 권한 초기 등록 */
 	@Override
 	@Transactional
 	public void insertRole(Map<String, Object> param) throws Exception {
@@ -149,7 +149,7 @@ public class RoleServiceImpl extends EgovAbstractServiceImpl implements RoleServ
 		return rank != null && rank.intValue() == 70030;
 	}
 
-	/** roleRank 코드값으로 prefix 결정 후 roleId 생성 (70020=관리자→MGR, 그 외→USER) */
+	/** roleRank 코드값으로 prefix 결정 후 roleId 생성 (70020=관리자=>MGR, 그 외=>USER) */
 	private String buildRoleId(String roleRank, int roleNo) {
 		String prefix = "70020".equals(roleRank) ? "MGR" : "USER";
 		return prefix + String.format("%04d", roleNo);

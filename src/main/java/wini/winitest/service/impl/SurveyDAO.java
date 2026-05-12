@@ -56,16 +56,6 @@ public class SurveyDAO extends EgovComAbstractDAO {
         insert("surveyDAO.insertOption", param);
     }
 
-    /** 보기 수정 */
-    public void updateOption(Map<String, Object> param) throws Exception {
-        update("surveyDAO.updateOption", param);
-    }
-
-    /** 보기 논리삭제 (단건) */
-    public void deleteOption(int optionNo) throws Exception {
-        update("surveyDAO.deleteOption", optionNo);
-    }
-
     /** 문항의 보기 전체 논리삭제 */
     public void deleteOptionsByQuestionNo(int boardNo) throws Exception {
         update("surveyDAO.deleteOptionsByQuestionNo", boardNo);
@@ -136,6 +126,16 @@ public class SurveyDAO extends EgovComAbstractDAO {
         return selectOne("surveyDAO.selectTotalResponseCount", surveyNo);
     }
 
+    /** 응답자 목록 */
+    public List<Map<String, Object>> selectRespondentList(int surveyNo) throws Exception {
+        return selectList("surveyDAO.selectRespondentList", surveyNo);
+    }
+
+    /** 응답자별 답변 상세 */
+    public List<Map<String, Object>> selectRespondentDetail(Map<String, Object> param) throws Exception {
+        return selectList("surveyDAO.selectRespondentDetail", param);
+    }
+
     /** 질문 첨부 이미지 임시 등록 */
     public void insertSurveyTempImage(Map<String, Object> param) throws Exception {
         insert("surveyDAO.insertSurveyTempImage", param);
@@ -154,5 +154,10 @@ public class SurveyDAO extends EgovComAbstractDAO {
     /** 질문 첨부 이미지 논리삭제 */
     public void logicalDeleteSurveyImage(int fileNo) throws Exception {
         update("surveyDAO.logicalDeleteSurveyImage", fileNo);
+    }
+
+    /** 질문에 연결된 활성 이미지 전체 비활성화 (이미지 삭제/교체 전 기존 파일 정리용) */
+    public void deactivateImageByQuestion(int boardNo) throws Exception {
+        update("surveyDAO.deactivateImageByQuestion", boardNo);
     }
 }

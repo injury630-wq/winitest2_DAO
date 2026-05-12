@@ -10,7 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 public interface SurveyService {
 
     /** 설문 목록 조회 (페이징, 검색조건) + 전체 건수 */
-    Map<String, Object> getSurveyList(Map<String, Object> param) throws Exception;
+    Map<String, Object> selectSurveyList(Map<String, Object> param) throws Exception;
 
     /** 설문 기본정보 조회 */
     Map<String, Object> selectSurvey(int surveyNo) throws Exception;
@@ -21,8 +21,11 @@ public interface SurveyService {
     /** 질문 유형 코드 목록 (Q_TYPE 콤보박스용) */
     List<Map<String, Object>> selectQuestionTypes() throws Exception;
 
-    /** 설문 저장 (등록/수정 통합) */
-    Map<String, Object> saveSurvey(Map<String, Object> param) throws Exception;
+    /** 설문 등록 */
+    Map<String, Object> insertSurvey(Map<String, Object> param) throws Exception;
+
+    /** 설문 수정 */
+    Map<String, Object> updateSurvey(Map<String, Object> param) throws Exception;
 
     /** 설문 삭제 (문항·보기 포함) */
     Map<String, Object> deleteSurvey(int surveyNo) throws Exception;
@@ -38,6 +41,12 @@ public interface SurveyService {
 
     /** 통계 조회 */
     Map<String, Object> getSurveyStat(int surveyNo) throws Exception;
+
+    /** 응답자 목록 조회 */
+    List<Map<String, Object>> selectRespondentList(int surveyNo) throws Exception;
+
+    /** 응답자별 답변 상세 조회 */
+    List<Map<String, Object>> selectRespondentDetail(int surveyNo, int userNo) throws Exception;
 
     /** 질문 첨부 이미지 임시 업로드 */
     Map<String, Object> saveTempImage(MultipartFile file, Object regUser) throws Exception;

@@ -44,9 +44,13 @@
                         <span class="fw-semibold" style="font-size: 14px;">권한 목록</span>
                     </div>
                     <table class="table table-bordered table-hover mb-0" style="font-size: 13px;">
+                        <colgroup>
+                            <col style="width: 15%">
+                            <col>
+                        </colgroup>
                         <thead class="table-light">
                             <tr>
-                                <th class="text-center" style="width: 15%;">NO</th>
+                                <th class="text-center">NO</th>
                                 <th class="text-center">롤 명</th>
                             </tr>
                         </thead>

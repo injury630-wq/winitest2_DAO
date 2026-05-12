@@ -3,7 +3,7 @@
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <!--
-    namespace = "userDAO" → UserDAO.java에서 "userDAO.{queryId}"로 호출
+    namespace = "userDAO" -> UserDAO.java에서 "userDAO.{queryId}"로 호출
     모든 파라미터/결과는 Map 기반 (VO 미사용)
 -->
 <mapper namespace="userDAO">

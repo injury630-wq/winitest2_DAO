@@ -3,7 +3,7 @@
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <!--
-    namespace = "galleryDAO" → GalleryDAO.java에서 "galleryDAO.{queryId}"로 호출
+    namespace = "galleryDAO" -> GalleryDAO.java에서 "galleryDAO.{queryId}"로 호출
     모든 파라미터/결과는 Map 기반 사용 (vo 미사용)
 -->
 <mapper namespace="galleryDAO">
@@ -146,7 +146,7 @@
 
     <!-- ===== 논리 삭제 ===== -->
 
-    <!-- 이미지 게시글 논리 삭제 (use_yn 'Y'→'N') -->
+    <!-- 이미지 게시글 논리 삭제 (use_yn 'Y'->'N') -->
     <!-- **GalleryDAO.logicalDeleteGallery -->
     <update id="logicalDeleteGallery" parameterType="map">
         UPDATE image_board
@@ -197,11 +197,11 @@
         )
     </insert>
 
-    <!-- 파일 활성화 (게시글 저장 시 use_yn 'N'→'Y', board_no 확정) -->
+    <!-- 파일 활성화 (게시글 저장 시 use_yn 'N'->'Y', board_no 확정) -->
     <!-- **GalleryDAO.activateFiles -->
     <update id="activateFiles" parameterType="map">
         UPDATE file_master
-        SET    use_yn   = 'Y'        -- 임시 → 활성
+        SET    use_yn   = 'Y'        -- 임시 -> 활성
              , board_no = #{boardNo} -- 게시글 번호 확정
         WHERE  file_no IN
         <foreach collection="fileNos" item="no" open="(" separator="," close=")">
@@ -269,7 +269,7 @@
         WHERE  file_no = #{fileNo}
     </select>
 
-    <!-- 파일 논리 삭제 (use_yn 'Y'→'N') -->
+    <!-- 파일 논리 삭제 (use_yn 'Y'->'N') -->
     <!-- **GalleryDAO.logicalDeleteFile -->
     <update id="logicalDeleteFile" parameterType="map">
         UPDATE file_master

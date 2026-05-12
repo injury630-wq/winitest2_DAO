@@ -118,7 +118,7 @@
     <div class="d-flex justify-content-between mb-4">
         <button type="button" class="btn btn-outline-secondary px-4"
                 onclick="goPost('survey/surveyList.do')">목록</button>
-        <button type="button" class="btn btn-primary px-4 btn-perm-ins"
+        <button type="button" class="btn btn-primary px-4"
                 onclick="submitResponse()">설문 참여</button>
     </div>
 

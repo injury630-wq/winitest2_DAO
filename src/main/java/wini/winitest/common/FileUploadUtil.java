@@ -1,30 +1,28 @@
 package wini.winitest.common;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.UUID;
+
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.web.multipart.MultipartFile;
 
 public class FileUploadUtil {
 
-    private static final Set<String> IMAGE_EXTS;
-    static {
-        Set<String> exts = new HashSet<>();
-        for (String ext : ResourceBundle.getBundle("global").getString("file.allowed.extensions").split(",")) {
-            exts.add(ext.trim());
-        }
-        IMAGE_EXTS = exts;
-    }
-
     public static List<Map<String, Object>> saveImages(
-            List<MultipartFile> files, String uploadDir) throws Exception {
+            List<MultipartFile> files, String uploadDir, String allowedExtensions) throws Exception {
+
+        Set<String> imageExts = new HashSet<>();
+        for (String ext : allowedExtensions.split(",")) {
+            imageExts.add(ext.trim());
+        }
 
         File dir = new File(uploadDir);
         if (!dir.exists()) {
@@ -41,7 +39,7 @@ public class FileUploadUtil {
             int dotIdx = orgName != null ? orgName.lastIndexOf('.') : -1;
             String ext  = dotIdx >= 0 ? orgName.substring(dotIdx + 1).toLowerCase() : "";
 
-            if (!IMAGE_EXTS.contains(ext)) continue;
+            if (!imageExts.contains(ext)) continue;
 
             String fileName = UUID.randomUUID().toString() + "." + ext;
             file.transferTo(new File(dir, fileName));
@@ -57,6 +55,14 @@ public class FileUploadUtil {
             result.add(m);
         }
         return result;
+    }
+
+    public static void streamImage(File f, HttpServletResponse response) throws Exception {
+        String ext = f.getName().substring(f.getName().lastIndexOf('.') + 1).toLowerCase();
+        response.setContentType("image/" + ("jpg".equals(ext) ? "jpeg" : ext));
+        response.setContentLengthLong(f.length());
+        Files.copy(f.toPath(), response.getOutputStream());
+        response.flushBuffer();
     }
 
     public static void deletePhysical(String filePath, String fileName) {

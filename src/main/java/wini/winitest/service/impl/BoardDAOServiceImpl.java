@@ -155,7 +155,7 @@ public class BoardDAOServiceImpl extends EgovAbstractServiceImpl implements Boar
         Map<String, Object> deleteParam = new HashMap<>();
         deleteParam.put("ids", deleteIds);
 
-        // DB 삭제 전 물리 파일 경로 수집 → 컨트롤러에서 파일 시스템 삭제에 사용
+        // DB 삭제 전 물리 파일 경로 수집 -> 컨트롤러에서 파일 시스템 삭제에 사용
         List<Map<String, Object>> fileList = boardDAO.selectFileListByIds(deleteParam);
         param.put("deleteFileList", fileList);
 
@@ -188,7 +188,7 @@ public class BoardDAOServiceImpl extends EgovAbstractServiceImpl implements Boar
 //    	Map<String, Object> deleteParam = new HashMap<>();
 //    	deleteParam.put("ids", deleteIds);
 //    	
-//    	// DB 삭제 전 물리 파일 경로 수집 → 컨트롤러에서 파일 시스템 삭제에 사용
+//    	// DB 삭제 전 물리 파일 경로 수집 -> 컨트롤러에서 파일 시스템 삭제에 사용
 //    	List<Map<String, Object>> fileList = boardDAO.selectFileListByIds(deleteParam);
 //    	param.put("_deleteFileList", fileList);
 //    	

@@ -16,12 +16,12 @@
                 <div>
                     <label class="form-label mb-1" style="font-size: 13px;">롤 코드</label>
                     <input type="text" name="searchRoleId" id="searchRoleId" class="form-control form-control-sm"
-                           value="<c:out value="${search.searchRoleId}"/>" placeholder="롤 코드를 입력하세요" maxlength="200" />
+                           value='<c:out value="${search.searchRoleId}"/>' placeholder="롤 코드를 입력하세요" maxlength="200" />
                 </div>
                 <div>
                     <label class="form-label mb-1" style="font-size: 13px;">롤 명</label>
                     <input type="text" name="searchRoleName" id="searchRoleName" class="form-control form-control-sm"
-                           value="<c:out value="${search.searchRoleName}"/>" placeholder="롤 명을 입력하세요" maxlength="50" />
+                           value='<c:out value="${search.searchRoleName}"/>' placeholder="롤 명을 입력하세요" maxlength="50" />
                 </div>
                 <div>
                     <label class="form-label mb-1" style="font-size: 13px;">사용자구분코드</label>
@@ -80,7 +80,9 @@
     <div class="bg-white border mb-3">
         <div class="px-3 pt-2 pb-1 d-flex justify-content-between align-items-center">
             <small class="text-muted">전체 :
-                <strong style="color: #c0392b;">${paginationInfo.totalRecordCount}</strong>건
+                <strong style="color: #c0392b;">
+                    <c:out value="${paginationInfo.totalRecordCount}"/>
+                </strong>건
             </small>
             <button type="button" class="btn btn-primary btn-sm px-3 btn-perm-ins"
                     onclick="setInsertMode()">신규 추가</button>
@@ -251,7 +253,7 @@ function setInsertMode() {
     applyButtonPerms();
 }
 
-/* 행 클릭 → AJAX 상세 조회 → 수정 모드 */
+/* 행 클릭 -> AJAX 상세 조회 -> 수정 모드 */
 function loadDetail(roleNo) {
     $.ajax({
         type    : 'post',

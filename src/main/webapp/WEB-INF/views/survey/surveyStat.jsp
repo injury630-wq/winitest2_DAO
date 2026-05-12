@@ -4,9 +4,13 @@
 <div class="px-1">
 
     <!-- 헤더 -->
-    <div class=" mb-3">
-      <h2>통계</h2>
-      <span class="">(총 응답자: ${totalCount}명)</span>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="h5 fw-bold mb-1">통계</h2>
+            <span class="text-muted" style="font-size: 14px;">(총 응답자: <c:out value="${totalCount}"/>명)</span>
+        </div>
+        <button type="button" class="btn btn-outline-primary btn-sm px-3"
+                onclick="goPost('survey/surveyRespondent.do', {surveyNo: '${survey.surveyNo}'})">응답자 확인</button>
     </div>
     <!-- 설문지 정보  -->
 		<table class="table table-bordered">
@@ -27,7 +31,7 @@
 		    </tr>
 		    <tr>
 		      <td class="bg-light">설문 기간</td>
-		      <td><c:out value="${survey.startDate} ~ ${survey.endDate }"/></td>
+		      <td><c:out value="${survey.startDate}"/> ~ <c:out value="${survey.endDate}"/></td>
 		    </tr>
 		  </tbody>
 		</table>
@@ -42,7 +46,7 @@
                 <tbody>
                     <!-- 헤더: 질문 번호 + 내용 -->
                     <tr class="table-light">
-                        <td class="text-center align-middle fw-bold">Q${vs.index + 1}</td>
+                        <td class="text-center align-middle fw-bold">Q<c:out value="${vs.index + 1}"/></td>
                         <td class="align-middle fw-semibold">
                             <c:out value="${q.content}"/>
                         </td>
@@ -77,7 +81,7 @@
                                 </c:when>
                                 <c:otherwise>
                                     <p class="mb-1 fw-semibold" style="font-size: 13px;">
-                                        응답 목록 (${q.answerCount}건):
+                                        응답 목록 (<c:out value="${q.answerCount}"/>건):
                                     </p>
                                     <c:choose>
                                         <c:when test="${empty q.answers}">

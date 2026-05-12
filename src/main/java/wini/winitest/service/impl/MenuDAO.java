@@ -20,11 +20,12 @@ public class MenuDAO extends EgovComAbstractDAO {
     }
     /** 사이드바 메뉴 목록 조회 (일반사용자용 - 권한체크)*/
     public List<Map<String, Object>> selectMenuListUser(Map<String, Object> param) throws Exception {
-    	return selectList("menuDAO.selectMenuListUser");
+    	return selectList("menuDAO.selectMenuListUser", param);
     }
-    /** 사이드바 메뉴 목록 조회 (통합용)*/
+
+    /** 사이드바 메뉴 목록 조회 (통합용 - adminYn 조건 분기)*/
     public List<Map<String, Object>> selectMenuList(Map<String, Object> param) throws Exception {
-    	return selectList("menuDAO.selectMenuListUser");
+    	return selectList("menuDAO.selectMenuList", param);
     }
     
 }
