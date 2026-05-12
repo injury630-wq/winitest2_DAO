@@ -24,7 +24,6 @@ uri="http://egovframework.gov/ctl/ui"%>
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     ></script>
-    <!-- <script src="resources/js/permControl.js"></script> -->
     <script>
     /* 관리자 여부 */
     var isAdminPerm = false;
@@ -41,8 +40,12 @@ uri="http://egovframework.gov/ctl/ui"%>
          	isAdminPerm = true;
         </c:when>
         <c:otherwise>
-          <c:set var="perm" value="${sessionScope.sessionPerms[pageContext.request.servletPath]}"/>
-          var pagePerm = {
+        	<c:set var="currentPath" value="${requestScope['javax.servlet.forward.servlet_path']}" />
+        	<c:if test="${empty currentPath}">
+        	    <c:set var="currentPath" value="${pageContext.request.servletPath}" />
+        	</c:if>
+          <c:set var="perm" value="${sessionScope.sessionPerms[currentPath]}"/>
+          pagePerm = {
             ins: '${perm.insPerm}',
             upd: '${perm.updPerm}',
             del: '${perm.delPerm}'
@@ -78,10 +81,10 @@ uri="http://egovframework.gov/ctl/ui"%>
       }
       document.addEventListener('DOMContentLoaded', function() {
       	applyButtonPerms();
+      	console.log('${currentPath}')
+      	console.log('${perm}')
       });
     </script>
-    <%-- 사용자 등록 공통 유효성 JS --%>
-    <!-- <script src="resources/js/userValidation.js"></script> -->
     <style>
       body {
         font-family: "맑은 고딕", sans-serif;

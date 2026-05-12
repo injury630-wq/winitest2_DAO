@@ -131,9 +131,16 @@
                             </c:choose>
                         </tbody>
                     </table>
+                     <!-- 3. 페이징 영역 -->
+								    <div class="paging mb-3">
+								        <nav aria-label="페이지 이동">
+								            <ul class="pagination justify-content-center">
+								                <ui:pagination paginationInfo="${paginationInfo}"
+								                               type="customRenderer" jsFunction="linkPage"/>
+								            </ul>
+								        </nav>
+								    </div>
                     <div class="px-3 py-2 border-top d-flex justify-content-between align-items-center">
-                        <ui:pagination paginationInfo="${paginationInfo}"
-                                       type="customRenderer" jsFunction="linkPage"/>
                         <button type="button" class="btn btn-primary btn-sm px-4 btn-perm-upd" id="applyRoleBtn" onclick="applyRole()" disabled>적용</button>
                     </div>
                 </div>

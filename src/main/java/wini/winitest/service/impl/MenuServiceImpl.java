@@ -24,11 +24,20 @@ public class MenuServiceImpl extends EgovAbstractServiceImpl implements MenuServ
 	@Resource(name = "menuDAO")
 	private MenuDAO menuDAO;
 
+	/** (권한체크) 일반사용자용 메뉴 리스트*/
 	@Override
-	public List<Map<String, Object>> selectMenuList() throws Exception {
-		return menuDAO.selectMenuList();
+	public List<Map<String, Object>> selectMenuListUser(Map<String, Object> param) throws Exception {
+		return menuDAO.selectMenuListUser(param);
 	}
-
-	
+	/** 관리자용 메뉴 리스트*/
+	@Override
+	public List<Map<String, Object>> selectMenuListAdmin() throws Exception {
+		return menuDAO.selectMenuListAdmin();
+	}
+	/** 통합용 메뉴 리스트*/
+	@Override
+	public List<Map<String, Object>> selectMenuList(Map<String, Object> param) throws Exception {
+		return menuDAO.selectMenuListAdmin();
+	}
 
 }

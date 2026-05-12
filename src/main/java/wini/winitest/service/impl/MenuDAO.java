@@ -14,9 +14,17 @@ import egovframework.com.cmm.service.impl.EgovComAbstractDAO;
 @Repository("menuDAO")
 public class MenuDAO extends EgovComAbstractDAO {
 
-    /** 사이드바 메뉴 목록 조회 */
-    public List<Map<String, Object>> selectMenuList() throws Exception {
-        return selectList("menuDAO.selectMenuList");
+    /** 사이드바 메뉴 목록 조회(관리자용)*/
+    public List<Map<String, Object>> selectMenuListAdmin() throws Exception {
+        return selectList("menuDAO.selectMenuListAdmin");
+    }
+    /** 사이드바 메뉴 목록 조회 (일반사용자용 - 권한체크)*/
+    public List<Map<String, Object>> selectMenuListUser(Map<String, Object> param) throws Exception {
+    	return selectList("menuDAO.selectMenuListUser");
+    }
+    /** 사이드바 메뉴 목록 조회 (통합용)*/
+    public List<Map<String, Object>> selectMenuList(Map<String, Object> param) throws Exception {
+    	return selectList("menuDAO.selectMenuListUser");
     }
     
 }

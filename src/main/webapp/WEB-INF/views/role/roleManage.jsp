@@ -281,7 +281,7 @@ function loadDetail(roleNo) {
           	     applyButtonPerms();
             }
 
-            // 3. 데이터 바인딩 (name 속성과 key 매칭)
+            // 3. 데이터 바인딩 (name 속성과 key 매칭) 상세조회 데이터 렌더링
             Object.keys(role).forEach(function(key) {
                 const $el = $form.find('[name=' + key + ']');
                 if ($el.length > 0) {
@@ -349,7 +349,9 @@ function saveRole() {
                 $('#searchForm').submit();
             }
         },
-        error : function() { alert('서버 오류가 발생하였습니다.'); }
+        error : function() { 
+        		alert('서버 오류가 발생하였습니다.');
+        	}
     });
 }
 

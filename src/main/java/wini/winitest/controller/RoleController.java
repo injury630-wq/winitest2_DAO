@@ -111,8 +111,8 @@ public class RoleController {
 				roleService.insertRole(param);
 				result.put("msg",  "S");
 				result.put("desc", "등록이 완료됐습니다.");
-			} else {//
-				if (roleService.isSystemAdmin(roleNo)) {
+			} else {// 수정
+				if (roleService.isSystemAdmin(roleNo)) { // 시스템 관리자는 불가
 					result.put("msg",  "E");
 					result.put("desc", "시스템관리자 권한그룹은 수정할 수 없습니다.");
 					return result;

@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
 <%-- 시스템관리자 여부 (role_rank=70030) --%>
+
 <c:set var="isSysAdmin" value="false" />
 <c:if test="${not empty selectedRoleNo}">
     <c:forEach var="role" items="${roleList}">
@@ -44,9 +45,12 @@
                     </div>
                 </div>
                 <table class="table table-bordered table-hover mb-0" style="font-size: 13px;">
+                <colgroup>
+                <col style="width: 45%">
+                </colgroup>
                     <thead class="table-light">
                         <tr>
-                            <th class="text-center" style="width: 45%;">롤 코드</th>
+                            <th class="text-center">롤 코드</th>
                             <th class="text-center">롤 명</th>
                         </tr>
                     </thead>
@@ -179,7 +183,6 @@
 
     </div>
 </div>
-
 <script>
 const selectedRoleNo = '${not empty selectedRoleNo ? selectedRoleNo : ""}';
 const isSysAdmin     = ${isSysAdmin};

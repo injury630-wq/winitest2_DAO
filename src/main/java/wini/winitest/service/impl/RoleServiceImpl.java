@@ -106,7 +106,7 @@ public class RoleServiceImpl extends EgovAbstractServiceImpl implements RoleServ
 		return roleDAO.deleteRole(param) > 0;
 	}
 
-	/** 롤 전체 목록 조회 (콤보박스용) */
+	/** 롤 전체 목록 조회 권한별사용자(콤보박스, 권한목록), 메뉴별권한(롤코드,롤명 좌측) */
 	@Override
 	public List<Map<String, Object>> selectAllRoleList() throws Exception {
 		return roleDAO.selectAllRoleList();
