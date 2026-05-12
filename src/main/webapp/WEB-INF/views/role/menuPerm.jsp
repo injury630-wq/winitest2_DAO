@@ -90,18 +90,18 @@
                                 onclick="checkAll(true)" ${isSysAdmin ? 'disabled' : ''}>전체 선택</button>
                         <button type="button" class="btn btn-outline-secondary btn-sm px-2"
                                 onclick="checkAll(false)" ${isSysAdmin ? 'disabled' : ''}>전체 해제</button>
-                        <button type="button" class="btn btn-primary btn-sm px-3 btn-perm-save"
+                        <button type="button" class="btn btn-primary btn-sm px-3 btn-perm-upd"
                                 onclick="savePerm()" ${isSysAdmin ? 'disabled' : ''}>저장</button>
                     </div>
                 </div>
 
                 <%-- 시스템관리자 안내 메시지 --%>
-                <c:if test="${isSysAdmin}">
+             <%--    <c:if test="${isSysAdmin}">
                     <div class="px-3 py-2 bg-danger bg-opacity-10 border-bottom"
                          style="font-size: 12px; color: #c0392b;">
                         시스템관리자의 메뉴 권한은 변경할 수 없습니다. 권한 수정이 필요하면 DB에서 직접 처리해 주세요.
                     </div>
-                </c:if>
+                </c:if> --%>
 
                 <table class="table table-bordered mb-0" style="font-size: 13px;">
                     <colgroup>
@@ -191,8 +191,9 @@ function selectRoleSSR(roleNo) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('roleKeyword').value) filterRoleList();
-    applyButtonPerms('update');
+    if (document.getElementById('roleKeyword').value) {
+    	filterRoleList();
+    }
 });
 
 function filterRoleList() {
@@ -232,62 +233,4 @@ function savePerm() {
     });
 }
 
-/*
- * ════════════════════════════════════════════════════════════════
- *  AJAX 방식 원본 (SSR 전환 전) — 복구 시 아래 주석 해제 후
- *  tr 의 onclick 을 selectRole(this, '${role.roleNo}', ...) 로 변경
- * ════════════════════════════════════════════════════════════════
- *
-function selectRole(row, roleNo, roleId, roleName) {
-    document.querySelectorAll('.role-row').forEach(function(r) { r.classList.remove('table-primary'); });
-    row.classList.add('table-primary');
-    selectedRoleNo = roleNo;
-    document.getElementById('selectedRoleLabel').innerText = '— ' + roleName + ' (' + roleId + ')';
-    loadMenuPermList(roleNo);
-}
-
-function loadMenuPermList(roleNo) {
-    $.ajax({
-        url: 'role/menuPermList.do',
-        type: 'POST',
-        data: { roleNo: roleNo },
-        success: function(res) {
-            if (res.msg !== 'S') { alert('조회 중 오류가 발생했습니다.'); return; }
-            renderMenuPermList(res.list);
-        },
-        error: function() { alert('서버 오류가 발생했습니다.'); }
-    });
-}
-
-function renderMenuPermList(list) {
-    var tbody = document.getElementById('menuPermBody');
-    if (!list || list.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">메뉴 데이터가 없습니다.</td></tr>';
-        return;
-    }
-    var html = '';
-    var seq = 1;
-    list.forEach(function(m) {
-        var pl = m.menuLev > 0 ? (m.menuLev * 20 + 8) : 8;
-        var rowCls = m.menuLev === 0 ? 'fw-semibold' : 'table-light';
-        var prefix = m.menuLev > 0 ? '└ ' : '';
-        html += '<tr class="' + rowCls + '" data-menu-no="' + m.menuNo + '">';
-        html += '<td class="text-center">' + (seq++) + '</td>';
-        html += '<td style="padding-left:' + pl + 'px;">' + prefix + escHtml(m.menuName) + '</td>';
-        html += '<td class="text-center"><input type="checkbox" class="form-check-input chk-disp" ' + (m.dispPerm === 'Y' ? 'checked' : '') + '></td>';
-        html += '<td class="text-center"><input type="checkbox" class="form-check-input chk-view" ' + (m.viewPerm === 'Y' ? 'checked' : '') + '></td>';
-        html += '<td class="text-center"><input type="checkbox" class="form-check-input chk-ins"  ' + (m.insPerm  === 'Y' ? 'checked' : '') + '></td>';
-        html += '<td class="text-center"><input type="checkbox" class="form-check-input chk-upd"  ' + (m.updPerm  === 'Y' ? 'checked' : '') + '></td>';
-        html += '<td class="text-center"><input type="checkbox" class="form-check-input chk-del"  ' + (m.delPerm  === 'Y' ? 'checked' : '') + '></td>';
-        html += '</tr>';
-    });
-    tbody.innerHTML = html;
-}
-
-function escHtml(str) {
-    var d = document.createElement('div');
-    d.appendChild(document.createTextNode(str || ''));
-    return d.innerHTML;
-}
- */
 </script>

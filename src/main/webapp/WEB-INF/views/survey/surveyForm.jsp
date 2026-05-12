@@ -113,11 +113,10 @@
                 <tr>
                     <th class="table-light align-middle text-center">이미지</th>
                     <td>
-                        <input type="file" id="imageFileInput" class="form-control form-control-sm"
-                               style="max-width: 300px;" accept="image/*" onchange="uploadQuestionImage(this)" />
+                        <input type="file" id="imageFileInput" class="form-control form-control-sm" accept="image/*" onchange="uploadQuestionImage(this)" />
                         <div id="imagePreviewArea" class="mt-2 d-none">
                             <img id="imagePreview" src="" alt="미리보기"
-                                 style="max-width: 300px; max-height: 180px; border: 1px solid #dee2e6; border-radius: 4px;" />
+                                 style="max-width: 100%; max-height: 600px; border: 1px solid #dee2e6; border-radius: 4px;" />
                             <br/>
                             <button type="button" class="btn btn-outline-danger btn-sm mt-1"
                                     onclick="removeQuestionImage()">이미지 삭제</button>
@@ -391,7 +390,7 @@ function renderQuestionList() {
 
         if (q.imageFileNo > 0) {
             html += '<div class="mt-1"><img src="' + 'survey/getImage.do?fileNo=' + q.imageFileNo
-                 + '" alt="이미지" style="max-width:120px; max-height:80px; border:1px solid #dee2e6; border-radius:4px;"></div>';
+                 + '" alt="이미지" style="max-width:100%; max-height:600px; border:1px solid #dee2e6; border-radius:4px;"></div>';
         }
 
         html += '</div>';

@@ -24,21 +24,61 @@ uri="http://egovframework.gov/ctl/ui"%>
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     ></script>
-    <script src="resources/js/permControl.js"></script>
+    <!-- <script src="resources/js/permControl.js"></script> -->
     <script>
+    /* 관리자 여부 */
+    var isAdminPerm = false;
+    /* 현재 페이지 모드 */
+    var pageMode = 'insert';
+    /* 기본 권한 초기화 */
+    var pagePerm = {
+        ins: 'N',
+        upd: 'N',
+        del: 'N'
+    };
       <c:choose>
         <c:when test="${sessionScope.loginUser.adminYn eq 'Y'}">
-          var pagePerm = { ins: 'Y', upd: 'Y', del: 'Y' };
+         	isAdminPerm = true;
         </c:when>
         <c:otherwise>
           <c:set var="perm" value="${sessionScope.sessionPerms[pageContext.request.servletPath]}"/>
           var pagePerm = {
-            ins: '${empty perm ? "N" : perm.insPerm}',
-            upd: '${empty perm ? "N" : perm.updPerm}',
-            del: '${empty perm ? "N" : perm.delPerm}'
+            ins: '${perm.insPerm}',
+            upd: '${perm.updPerm}',
+            del: '${perm.delPerm}'
           };
         </c:otherwise>
       </c:choose>
+      
+      function applyButtonPerms() {
+      	// 관리자 모든 버튼 활성화
+      	if(isAdminPerm) {
+      		$('.btn-perm-ins').prop('disabled', false);
+          $('.btn-perm-upd').prop('disabled', false);
+          $('.btn-perm-del').prop('disabled', false);
+          $('.btn-perm-save').prop('disabled', false);
+          return;
+      	}
+      	
+      	/* 등록 전용 버튼 */
+      	$('.btn-perm-ins').prop('disabled', pagePerm.ins !== 'Y');
+      	
+     		 /* 수정 버튼 */
+        $('.btn-perm-upd').prop('disabled', pagePerm.upd !== 'Y');
+      	
+      	/* 삭제 버튼 */
+      	$('.btn-perm-del').prop('disabled', pagePerm.del !== 'Y' || pageMode !== 'update');
+      	
+      	/* 저장 버튼 (등록/수정 겸용): 현재 모드에 따라 권한 판단 */
+      	if (pageMode === 'insert') {
+      		$('.btn-perm-save').prop('disabled', pagePerm.ins !== 'Y');
+      	} else {
+      		$('.btn-perm-save').prop('disabled', pagePerm.upd !== 'Y');
+      	}
+      }
+      document.addEventListener('DOMContentLoaded', function() {
+      	applyButtonPerms();
+      });
     </script>
     <%-- 사용자 등록 공통 유효성 JS --%>
     <!-- <script src="resources/js/userValidation.js"></script> -->

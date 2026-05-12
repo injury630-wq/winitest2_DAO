@@ -105,7 +105,7 @@ public class RoleController {
 
 			String roleNo = (String) param.get("roleNo"); // input으로 넘어와서 빈값 or 문자열값
 
-			if (roleNo == null || roleNo.isEmpty()) {
+			if (roleNo == null || roleNo.isEmpty()) { //등록
 				roleService.insertRole(param);
 				result.put("msg",  "S");
 				result.put("desc", "등록이 완료됐습니다.");

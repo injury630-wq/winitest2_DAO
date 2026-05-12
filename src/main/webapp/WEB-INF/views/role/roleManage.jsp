@@ -242,11 +242,13 @@ function setInsertMode() {
     $('#dtlSortOrd').val('1');
 
     // 4. UI 제어
-    $('#dtlRoleRank, #btnSave').prop('disabled', false);
-    $('#btnDelete').prop('disabled', true);
+    $('#dtlRoleRank').prop('disabled', false);
+    //$('#btnSave').prop('disabled', false);
+    //$('#btnDelete').prop('disabled', true);
     $('#dtlRoleName')[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
     $('#dtlRoleName').focus();
-    applyButtonPerms('insert');
+    pageMode = 'insert';
+    applyButtonPerms();
 }
 
 /* 행 클릭 → AJAX 상세 조회 → 수정 모드 */
@@ -275,7 +277,8 @@ function loadDetail(roleNo) {
             } else {
             		$form.find('input, select, textarea, #btnSave, #btnDelete').prop('disabled', false);
             		$form.find('.no-unlock').prop('disabled', true); // 롤코드만 disabled 처리
-            		applyButtonPerms('update');
+            		 pageMode = 'update';
+          	     applyButtonPerms();
             }
 
             // 3. 데이터 바인딩 (name 속성과 key 매칭)
