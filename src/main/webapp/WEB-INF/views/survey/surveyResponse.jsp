@@ -46,7 +46,7 @@
                         <td class="align-middle fw-semibold"><c:out value="${q.content}"/></td>
                     </tr>
                     <!-- 질문 이미지 -->
-                    <c:if test="${not empty q.imageFileNo and q.imageFileNo gt 0}">
+                    <c:if test="${not empty q.imageFileNo and q.imageFileNo > 0}">
                     <tr>
                         <td colspan="2" class="text-center py-2">
                             <img src="survey/getImage.do?fileNo=${q.imageFileNo}"
