@@ -50,7 +50,7 @@
                     <tr>
                         <td colspan="2" class="text-center py-2">
                             <img src="survey/getImage.do?fileNo=${q.imageFileNo}"
-                                 alt="질문 이미지" style="max-width: 500px; max-height: 350px;">
+                                 alt="질문 이미지" style="max-width: 100%; max-height: 600px;">
                         </td>
                     </tr>
                     </c:if>

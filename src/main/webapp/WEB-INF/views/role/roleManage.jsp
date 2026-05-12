@@ -209,8 +209,8 @@
 
 <script>
 /* 돔 로드 후 등록모드 실행 */
-document.addEventListener('DOMContentLoaded', () => {
-	setInsertMode();
+$(document).ready(function() {
+    setInsertMode();
 });
 
 /* 페이지네이션 페이지 이동 */
@@ -282,14 +282,16 @@ function loadDetail(roleNo) {
             }
 
             // 3. 데이터 바인딩 (name 속성과 key 매칭)
-            Object.keys(role).forEach(key => {
+            Object.keys(role).forEach(function(key) {
                 const $el = $form.find('[name=' + key + ']');
-                if ($el.length > 0) $el.val(role[key]);
+                if ($el.length > 0) {
+                    $el.val(role[key]);
+                }
             });
 
             $('#dtlRoleName')[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
         },
-        error : () => { alert('서버 오류가 발생하였습니다.'); }
+        error : function() { alert('서버 오류가 발생하였습니다.'); }
     });
 }
 
@@ -304,11 +306,28 @@ function saveRole() {
     const sortOrd = $('#dtlSortOrd').val();
     const roleDesc = $('#dtlRoleDesc').val()
 
-    if (!roleName) { alert('롤 명을 입력해 주세요.'); $('#dtlRoleName').focus(); return; }
-    if (!roleRank) { alert('사용자 구분코드를 선택해 주세요.'); return; }
-    if (!adminYn)  { alert('관리자 여부를 선택해 주세요.'); return; }
-    if (!useYn)    { alert('사용 여부를 선택해 주세요.'); return; }
-    if (sortOrd === '') { alert('정렬 순서를 입력해 주세요.'); $('#dtlSortOrd').focus(); return; }
+    if (!roleName) {
+        alert('롤 명을 입력해 주세요.');
+        $('#dtlRoleName').focus();
+        return;
+    }
+    if (!roleRank) {
+        alert('사용자 구분코드를 선택해 주세요.');
+        return;
+    }
+    if (!adminYn) {
+        alert('관리자 여부를 선택해 주세요.');
+        return;
+    }
+    if (!useYn) {
+        alert('사용 여부를 선택해 주세요.');
+        return;
+    }
+    if (sortOrd === '') {
+        alert('정렬 순서를 입력해 주세요.');
+        $('#dtlSortOrd').focus();
+        return;
+    }
 
     $.ajax({
         type    : 'post',
@@ -324,28 +343,34 @@ function saveRole() {
             sortOrd : sortOrd
         },
         dataType: 'json',
-        success : result => {
+        success : function(result) {
             alert(result.desc);
-            if (result.msg === 'S') $('#searchForm').submit();
+            if (result.msg === 'S') {
+                $('#searchForm').submit();
+            }
         },
-        error : () => { alert('서버 오류가 발생하였습니다.'); }
+        error : function() { alert('서버 오류가 발생하였습니다.'); }
     });
 }
 
 /* 롤 삭제 */
 function deleteRole() {
-    if (!confirm('정말 삭제하시겠습니까?')) return;
+    if (!confirm('정말 삭제하시겠습니까?')) {
+        return;
+    }
     const roleNo = $('#dtlRoleNo').val();
     $.ajax({
         type    : 'post',
         url     : 'role/roleDelete.do',
         data    : { roleNo: roleNo },
         dataType: 'json',
-        success : result => {
+        success : function(result) {
             alert(result.desc);
-            if (result.msg === 'S') $('#searchForm').submit();
+            if (result.msg === 'S') {
+                $('#searchForm').submit();
+            }
         },
-        error : () => { alert('서버 오류가 발생하였습니다.'); }
+        error : function() { alert('서버 오류가 발생하였습니다.'); }
     });
 }
 </script>

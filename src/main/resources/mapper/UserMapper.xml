@@ -236,6 +236,24 @@
         AND u.user_name LIKE CONCAT('%', #{searchUserName}, '%') <!-- 이름 검색 -->
     </if>
     ORDER BY u.user_no ASC
+    LIMIT #{firstIndex}, #{recordCountPerPage}   <!-- 페이징 -->
+    </select>
+
+    <!-- 권한별 사용자 전체 건수 조회 (페이징용) -->
+    <!-- **UserDAO.selectUserTotalCountByRole -->
+    <select id="selectUserTotalCountByRole" parameterType="map" resultType="int">
+    SELECT COUNT(*)
+    FROM users u
+    WHERE u.use_yn = 'Y'                                        <!-- 사용중인 사용자만 -->
+    <if test="searchRoleNo != null and searchRoleNo != ''">
+        AND u.role_no = #{searchRoleNo}                         <!-- 롤 번호 검색 -->
+    </if>
+    <if test="searchUserId != null and searchUserId != ''">
+        AND u.user_id LIKE CONCAT('%', #{searchUserId}, '%')    <!-- 아이디 검색 -->
+    </if>
+    <if test="searchUserName != null and searchUserName != ''">
+        AND u.user_name LIKE CONCAT('%', #{searchUserName}, '%')<!-- 이름 검색 -->
+    </if>
     </select>
 
 </mapper>

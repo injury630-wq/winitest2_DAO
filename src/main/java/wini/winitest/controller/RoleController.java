@@ -18,10 +18,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import wini.winitest.common.MenuUtil;
+import wini.winitest.common.PagingUtil;
 import wini.winitest.service.CodeService;
 import wini.winitest.service.MenuService;
 import wini.winitest.service.RoleService;
 import wini.winitest.service.UserService;
+import egovframework.rte.ptl.mvc.tags.ui.pagination.PaginationInfo;
 
 @Controller
 public class RoleController {
@@ -100,7 +102,7 @@ public class RoleController {
 			Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
 			if (loginUser != null) {
 				param.put("regUser", loginUser.get("userNo"));
-				param.put("updUser", loginUser.get("userNo"));
+				param.put("modUser", loginUser.get("userNo"));
 			}
 
 			String roleNo = (String) param.get("roleNo"); // input으로 넘어와서 빈값 or 문자열값
@@ -190,8 +192,24 @@ public class RoleController {
 	@RequestMapping(value = "/role/userRole.do", method = RequestMethod.POST)
 	public String roleUser(@RequestParam Map<String, Object> param, Model model) throws Exception {
 		MenuUtil.addMenu(model, menuService);
-		model.addAttribute("roleList", roleService.selectAllRoleList());
-		model.addAttribute("userList", userService.selectUserListByRole(param));
+
+		if (param.get("currentPageNo") == null || "".equals(param.get("currentPageNo"))) {
+			param.put("currentPageNo", "1");
+		}
+
+		int currentPageNo = Integer.parseInt((String) param.get("currentPageNo"));
+		int recordCountPerPage = 30;
+		int pageSize = 10;
+
+		PaginationInfo paginationInfo = PagingUtil.create(currentPageNo, recordCountPerPage, pageSize);
+		paginationInfo.setTotalRecordCount(userService.selectUserTotalCountByRole(param));
+
+		param.put("firstIndex",         paginationInfo.getFirstRecordIndex());
+		param.put("recordCountPerPage", recordCountPerPage);
+
+		model.addAttribute("roleList",       roleService.selectAllRoleList());
+		model.addAttribute("userList",       userService.selectUserListByRole(param));
+		model.addAttribute("paginationInfo", paginationInfo);
 		return "role/roleUser";
 	}
 

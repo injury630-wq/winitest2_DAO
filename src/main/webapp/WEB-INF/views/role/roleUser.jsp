@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="c"  uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="ui" uri="http://egovframework.gov/ctl/ui"%>
 
 <div class="px-1">
 
@@ -9,6 +10,7 @@
 
     <!-- 검색 폼 -->
     <form id="searchForm" method="post" action="role/userRole.do">
+        <input type="hidden" name="currentPageNo" id="currentPageNo" value="1" />
         <div class="bg-white border mb-3 p-2">
             <div class="d-flex gap-2 align-items-center flex-wrap">
                 <label class="form-label mb-0" style="font-size: 13px; white-space: nowrap;">권한유형</label>
@@ -129,8 +131,10 @@
                             </c:choose>
                         </tbody>
                     </table>
-                    <div class="px-3 py-2 border-top d-flex justify-content-end">
-                        <button type="button" class="btn btn-primary btn-sm px-4 btn-perm-save" id="applyRoleBtn" onclick="applyRole()" disabled>적용</button>
+                    <div class="px-3 py-2 border-top d-flex justify-content-between align-items-center">
+                        <ui:pagination paginationInfo="${paginationInfo}"
+                                       type="customRenderer" jsFunction="linkPage"/>
+                        <button type="button" class="btn btn-primary btn-sm px-4 btn-perm-upd" id="applyRoleBtn" onclick="applyRole()" disabled>적용</button>
                     </div>
                 </div>
             </div>
@@ -142,37 +146,46 @@
 
 <script>
 function selectTargetRole(row, roleNo, roleRank) {
-    document.querySelectorAll('.role-row').forEach(r => r.classList.remove('table-primary'));
-    row.classList.add('table-primary');
+    $('.role-row').removeClass('table-primary');
+    $(row).addClass('table-primary');
 
-    const isSysAdmin = (String(roleRank) === '70030');
-    document.getElementById('selectedRoleNo').value = isSysAdmin ? '' : roleNo;
-    document.getElementById('applyRoleBtn').disabled = isSysAdmin;
-    if (!isSysAdmin) applyButtonPerms('update');
+    var isSysAdmin = (String(roleRank) === '70030');
+    $('#selectedRoleNo').val(isSysAdmin ? '' : roleNo);
+    $('#applyRoleBtn').prop('disabled', isSysAdmin);
+    if (!isSysAdmin) {
+        applyButtonPerms();
+    }
 }
 
 function toggleAll(chk) {
-	$('.user-chk').prop('checked', chk.checked);
+    $('.user-chk').prop('checked', $(chk).prop('checked'));
+}
+
+function linkPage(pageNo) {
+    $('#currentPageNo').val(pageNo);
+    $('#searchForm').submit();
 }
 
 function applyRole() {
-    if (!document.getElementById('selectedRoleNo').value) {
+    if (!$('#selectedRoleNo').val()) {
         alert('좌측에서 적용할 권한을 선택해 주세요.');
         return;
     }
-    if (!document.querySelector('.user-chk:checked')) {
+    if ($('.user-chk:checked').length === 0) {
         alert('적용할 사용자를 선택해 주세요.');
         return;
     }
     $.ajax({
-        url : 'role/userRoleApply.do',
-        type: 'POST',
-        data: $('#applyForm').serialize(),
+        url    : 'role/userRoleApply.do',
+        type   : 'POST',
+        data   : $('#applyForm').serialize(),
         success: function(res) {
             alert(res.desc);
-            if (res.msg === 'S') $('#searchForm').submit();
+            if (res.msg === 'S') {
+                $('#searchForm').submit();
+            }
         },
-        error: function() { alert('서버 오류가 발생했습니다.'); }
+        error  : function() { alert('서버 오류가 발생했습니다.'); }
     });
 }
 </script>

@@ -74,6 +74,11 @@ public class UserDAO extends EgovComAbstractDAO {
       return selectList("userDAO.selectUserListByRole", param);
   }
 
+  /** 권한별 사용자 전체 건수 조회 */
+  public int selectUserTotalCountByRole(Map<String, Object> param) throws Exception {
+      return (Integer) selectOne("userDAO.selectUserTotalCountByRole", param);
+  }
+
   /** 사용자 권한 변경 */
   public int updateUserRole(Map<String, Object> param) throws Exception {
       return update("userDAO.updateUserRole", param);

@@ -185,51 +185,61 @@ const selectedRoleNo = '${not empty selectedRoleNo ? selectedRoleNo : ""}';
 const isSysAdmin     = ${isSysAdmin};
 
 function selectRoleSSR(roleNo) {
-    document.getElementById('selectedRoleNoInput').value = roleNo;
-    document.getElementById('keywordInput').value        = document.getElementById('roleKeyword').value;
-    document.getElementById('roleSelectForm').submit();
+    $('#selectedRoleNoInput').val(roleNo);
+    $('#keywordInput').val($('#roleKeyword').val());
+    $('#roleSelectForm').submit();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('roleKeyword').value) {
-    	filterRoleList();
+$(document).ready(function() {
+    if ($('#roleKeyword').val()) {
+        filterRoleList();
     }
 });
 
 function filterRoleList() {
-    const keyword = document.getElementById('roleKeyword').value.toLowerCase();
-    document.querySelectorAll('.role-row').forEach(row => {
-        row.style.display = row.innerText.toLowerCase().includes(keyword) ? '' : 'none';
+    var keyword = $('#roleKeyword').val().toLowerCase();
+    $('.role-row').each(function() {
+        $(this).toggle($(this).text().toLowerCase().includes(keyword));
     });
 }
 
 function checkAll(checked) {
-    document.querySelectorAll('#menuPermBody input[type="checkbox"]').forEach(chk => {
-        chk.checked = checked;
-    });
+    $('#menuPermBody input[type="checkbox"]').prop('checked', checked);
 }
 
 function savePerm() {
-    if (isSysAdmin) { alert('시스템관리자의 메뉴 권한은 변경할 수 없습니다.'); return; }
-    if (!selectedRoleNo) { alert('롤을 선택해 주세요.'); return; }
-    const perms = [];
-    document.querySelectorAll('#menuPermBody tr[data-menu-no]').forEach(tr => {
+    if (isSysAdmin) {
+        alert('시스템관리자의 메뉴 권한은 변경할 수 없습니다.');
+        return;
+    }
+    if (!selectedRoleNo) {
+        alert('롤을 선택해 주세요.');
+        return;
+    }
+    var perms = [];
+    $('#menuPermBody tr[data-menu-no]').each(function() {
+        var $tr = $(this);
         perms.push({
-            menuNo: tr.getAttribute('data-menu-no'),
-            dispPerm: tr.querySelector('.chk-disp').checked ? 'Y' : 'N',
-            viewPerm: tr.querySelector('.chk-view').checked ? 'Y' : 'N',
-            insPerm:  tr.querySelector('.chk-ins').checked  ? 'Y' : 'N',
-            updPerm:  tr.querySelector('.chk-upd').checked  ? 'Y' : 'N',
-            delPerm:  tr.querySelector('.chk-del').checked  ? 'Y' : 'N'
+            menuNo  : $tr.data('menu-no'),
+            dispPerm: $tr.find('.chk-disp').prop('checked') ? 'Y' : 'N',
+            viewPerm: $tr.find('.chk-view').prop('checked') ? 'Y' : 'N',
+            insPerm : $tr.find('.chk-ins').prop('checked')  ? 'Y' : 'N',
+            updPerm : $tr.find('.chk-upd').prop('checked')  ? 'Y' : 'N',
+            delPerm : $tr.find('.chk-del').prop('checked')  ? 'Y' : 'N'
         });
     });
-    if (perms.length === 0) { alert('저장할 권한 데이터가 없습니다.'); return; }
+    if (perms.length === 0) {
+        alert('저장할 권한 데이터가 없습니다.');
+        return;
+    }
     $.ajax({
-        url: 'role/menuPermSave.do',
-        type: 'POST',
-        data: { roleNo: selectedRoleNo, permsJson: JSON.stringify(perms) },
-        success: res => { alert(res.desc || (res.msg === 'S' ? '저장됐습니다.' : '저장 중 오류가 발생했습니다.')); },
-        error: () => { alert('서버 오류가 발생했습니다.'); }
+        url    : 'role/menuPermSave.do',
+        type   : 'POST',
+        data   : { roleNo: selectedRoleNo, permsJson: JSON.stringify(perms) },
+        success: function(res) {
+            alert(res.desc || (res.msg === 'S' ? '저장됐습니다.' : '저장 중 오류가 발생했습니다.'));
+        },
+        error  : function() { alert('서버 오류가 발생했습니다.'); }
     });
 }
 

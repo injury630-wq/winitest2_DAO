@@ -136,6 +136,12 @@ public class UserServiceImpl extends EgovAbstractServiceImpl implements UserServ
 		return userDAO.selectUserListByRole(param);
 	}
 
+	/** 권한별 사용자 전체 건수 조회 */
+	@Override
+	public int selectUserTotalCountByRole(Map<String, Object> param) throws Exception {
+		return userDAO.selectUserTotalCountByRole(param);
+	}
+
 	/** 사용자 권한 변경 */
 	@Override
 	public int updateUserRole(Map<String, Object> param) throws Exception {

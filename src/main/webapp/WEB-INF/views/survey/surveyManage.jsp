@@ -126,7 +126,4 @@ function linkPage(pageNo) {
     $('#searchForm').submit();
 }
 
-$(document).ready(function() {
-    applyButtonPerms('insert');
-});
 </script>

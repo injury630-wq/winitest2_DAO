@@ -157,6 +157,7 @@
 
 <script>
 const SURVEY_NO = '${survey.surveyNo}';
+pageMode = '${empty survey ? "insert" : "update"}';
 const deletedQuestionNos  = [];
 const deletedOptionNos    = [];
 const deletedImageFileNos = [];
@@ -248,8 +249,14 @@ function commitQuestion() {
     var type     = $('#qType').val();
     var isChoice = (type === 'radio' || type === 'checkbox' || type === 'select');
 
-    if (!content) { alert('질문 내용을 입력하세요.'); return; }
-    if (isChoice && pendingOpts.length === 0) { alert('선택형 질문은 보기를 1개 이상 추가하세요.'); return; }
+    if (!content) {
+        alert('질문 내용을 입력하세요.');
+        return;
+    }
+    if (isChoice && pendingOpts.length === 0) {
+        alert('선택형 질문은 보기를 1개 이상 추가하세요.');
+        return;
+    }
 
     var q = {
         boardNo     : 0,
@@ -404,7 +411,7 @@ function renderQuestionList() {
     });
 
     $('#questionList').html(html);
-    applyButtonPerms('${empty survey ? "insert" : "update"}');
+    applyButtonPerms();
 }
 
 /* ── 이미지 업로드 ── */
@@ -461,11 +468,26 @@ function saveSurvey() {
     var startDate = $('#startDate').val();
     var endDate   = $('#endDate').val();
 
-    if (!title)     { alert('설문 제목을 입력하세요.'); return; }
-    if (!startDate) { alert('시작일을 입력하세요.'); return; }
-    if (!endDate)   { alert('종료일을 입력하세요.'); return; }
-    if (startDate > endDate) { alert('종료일이 시작일보다 빠릅니다.'); return; }
-    if (questionList.length === 0) { alert('질문을 1개 이상 추가하세요.'); return; }
+    if (!title) {
+        alert('설문 제목을 입력하세요.');
+        return;
+    }
+    if (!startDate) {
+        alert('시작일을 입력하세요.');
+        return;
+    }
+    if (!endDate) {
+        alert('종료일을 입력하세요.');
+        return;
+    }
+    if (startDate > endDate) {
+        alert('종료일이 시작일보다 빠릅니다.');
+        return;
+    }
+    if (questionList.length === 0) {
+        alert('질문을 1개 이상 추가하세요.');
+        return;
+    }
 
     var questions = questionList.map(function(q, i) {
         return {

@@ -41,6 +41,9 @@ public interface UserService {
     /** 권한별 사용자 목록 조회 */
     List<Map<String, Object>> selectUserListByRole(Map<String, Object> param) throws Exception;
 
+    /** 권한별 사용자 전체 건수 조회 */
+    int selectUserTotalCountByRole(Map<String, Object> param) throws Exception;
+
     /** 사용자 권한 변경 */
     int updateUserRole(Map<String, Object> param) throws Exception;
 }
