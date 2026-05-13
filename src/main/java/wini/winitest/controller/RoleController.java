@@ -97,7 +97,7 @@ public class RoleController {
 	/** 롤 등록/수정 (AJAX) */
 	@RequestMapping(value = "/role/roleSave.do", method = RequestMethod.POST)
 	@ResponseBody
-	public Map<String, Object> roleSave(@RequestParam Map<String, Object> param, HttpSession session) {
+	public Map<String, Object> roleSave(@RequestParam Map<String, Object> param, HttpSession session) throws Exception {
 		Map<String, Object> result = new HashMap<String, Object>();
 		try {
 			Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
@@ -129,7 +129,7 @@ public class RoleController {
 			}
 		} catch (Exception e) {
 			result.put("msg",  "E");
-			result.put("desc", "서버 오류가 발생했습니다.");
+			result.put("desc", "컨트롤러 서버 오류가 발생했습니다.");
 			e.printStackTrace();
 		}
 		return result;
@@ -174,12 +174,12 @@ public class RoleController {
 		model.addAttribute("roleList", roleService.selectAllRoleList());
 
 		/* 롤 검색 키워드 유지 */
-		String keyword = (String) param.get("keyword");
+		String keyword = String.valueOf(param.get("keyword"));
 		if (keyword != null && !keyword.isEmpty()) {
 			model.addAttribute("keyword", keyword);
 		}
 
-		String selectedRoleNoStr = (String) param.get("selectedRoleNo");
+		String selectedRoleNoStr = String.valueOf(param.get("selectedRoleNo"));
 		if (selectedRoleNoStr != null && !selectedRoleNoStr.isEmpty()) {
 			int selectedRoleNo = Integer.parseInt(selectedRoleNoStr);
 			param.put("roleNo", selectedRoleNoStr);
@@ -198,7 +198,7 @@ public class RoleController {
 			param.put("currentPageNo", "1");
 		}
 
-		int currentPageNo = Integer.parseInt((String) param.get("currentPageNo"));
+		int currentPageNo = Integer.parseInt(String.valueOf(param.get("currentPageNo")));
 		int recordCountPerPage = 30;
 		int pageSize = 10;
 
@@ -247,12 +247,6 @@ public class RoleController {
 
 			/* @RequestBody로 받으면 Spring이 자동 파싱 -> perms 바로 꺼냄 */
 			List<Map<String, Object>> perms = (List<Map<String, Object>>) param.get("perms");
-
-			/* 기존 방식 (@RequestParam + ObjectMapper 수동 파싱)
-			String permsJson = (String) param.get("permsJson");
-			List<Map<String, Object>> perms = new ObjectMapper().readValue(
-				permsJson, new TypeReference<List<Map<String, Object>>>() {});
-			*/
 
 			roleService.saveMenuPermList(roleNo, perms, modUser);
 			result.put("msg",  "S");

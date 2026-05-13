@@ -328,54 +328,6 @@ public class SurveyServiceImpl extends EgovAbstractServiceImpl implements Survey
         }
         return result;
 
-        /* -- --
-        try {
-            List<Map<String, Object>> questions   = surveyDAO.selectQuestionsBySurveyNo(surveyNo);
-            List<Map<String, Object>> allOptions  = surveyDAO.selectOptionsBySurveyNo(surveyNo);
-            List<Map<String, Object>> choiceStats = surveyDAO.selectStatChoice(surveyNo);
-            List<Map<String, Object>> textAnswers = surveyDAO.selectStatText(surveyNo);
-            List<Map<String, Object>> textCounts  = surveyDAO.selectStatTextCount(surveyNo);
-
-            for (Map<String, Object> q : questions) {
-                int boardNo = ((Number) q.get("boardNo")).intValue();
-
-                List<Map<String, Object>> opts = new ArrayList<>();
-                for (Map<String, Object> opt : allOptions) {
-                    if (((Number) opt.get("qNo")).intValue() == boardNo) opts.add(opt);
-                }
-                q.put("options", opts);
-
-                List<Map<String, Object>> stats = new ArrayList<>();
-                for (Map<String, Object> stat : choiceStats) {
-                    if (((Number) stat.get("boardNo")).intValue() == boardNo) stats.add(stat);
-                }
-                q.put("stats", stats);
-
-                List<Map<String, Object>> ansList = new ArrayList<>();
-                for (Map<String, Object> ans : textAnswers) {
-                    if (((Number) ans.get("boardNo")).intValue() == boardNo) ansList.add(ans);
-                }
-                q.put("answers", ansList);
-
-                int answerCount = 0;
-                for (Map<String, Object> tc : textCounts) {
-                    if (((Number) tc.get("boardNo")).intValue() == boardNo) {
-                        answerCount = ((Number) tc.get("answerCount")).intValue();
-                        break;
-                    }
-                }
-                q.put("answerCount", answerCount);
-            }
-
-            result.put("survey",     surveyDAO.selectSurvey(surveyNo));
-            result.put("questions",  questions);
-            result.put("totalCount", surveyDAO.selectTotalResponseCount(surveyNo));
-            result.put("msg", "S");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return result;
-        -- 기존 방식 끝 -- */
     }
 
     /** 응답자 목록 조회 */

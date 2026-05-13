@@ -190,6 +190,7 @@
 const selectedRoleNo = '${not empty selectedRoleNo ? selectedRoleNo : ""}';
 const isSysAdmin  = ${isSysAdmin};
 
+// 우측 메뉴별 권한 렌더링
 function selectRoleSSR(roleNo) {
     $('#selectedRoleNoInput').val(roleNo);
     $('#keywordInput').val($('#roleKeyword').val());
@@ -244,9 +245,6 @@ function savePerm() {
         headers    : { 'Content-Type': 'application/json' },
         dataType   : 'json',
         data       : JSON.stringify({ roleNo: selectedRoleNo, perms: perms }),
-        /* 기존 방식 (@RequestParam + permsJson 문자열 전송)
-        data       : { roleNo: selectedRoleNo, permsJson: JSON.stringify(perms) },
-        */
         success: function(res) {
             alert(res.desc || (res.msg === 'S' ? '저장됐습니다.' : '저장 중 오류가 발생했습니다.'));
         },

@@ -14,6 +14,10 @@ import egovframework.com.cmm.service.impl.EgovComAbstractDAO;
 @Repository("menuRolePermDAO")
 public class MenuRolePermDAO extends EgovComAbstractDAO {
 
+		/** 신규 롤 등록 시 전체 메뉴에 대한 기본 권한(전부 N) 등록 트랜잭션테스트 */
+		public int insertDefaultMenuRolePermTest(Map<String, Object> param) throws Exception {
+			return insert("menuRolePermDAO.insertDefaultMenuRolePerm", param);
+		}
     /** 신규 롤 등록 시 전체 메뉴에 대한 기본 권한(전부 N) 등록 */
     public void insertDefaultMenuRolePerm(Map<String, Object> param) throws Exception {
         insert("menuRolePermDAO.insertDefaultMenuRolePerm", param);
