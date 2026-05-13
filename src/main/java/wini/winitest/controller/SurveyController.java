@@ -144,11 +144,13 @@ public class SurveyController {
                 param.put("regUser", loginUser.get("userNo"));
                 param.put("userNo",  loginUser.get("userNo"));
             }
+            // 설문참여 중복 확인
             if (surveyService.selectResponseCount(param) > 0) {
                 result.put("msg", "D");
                 return result;
             }
-            return surveyService.saveResponse(param);
+            result = surveyService.saveResponse(param);
+            return result;
         } catch (Exception e) {
             e.printStackTrace();
             result.put("msg", "E");
@@ -160,7 +162,7 @@ public class SurveyController {
     @RequestMapping(value = "/survey/surveyStat.do", method = RequestMethod.POST)
     public String surveyStat(@RequestParam Map<String, Object> param, Model model) throws Exception {
         MenuUtil.addMenu(model, menuService);
-        int surveyNo = Integer.parseInt((String) param.get("surveyNo"));
+        int surveyNo = Integer.parseInt(String.valueOf(param.get("surveyNo")));
         Map<String, Object> result = surveyService.getSurveyStat(surveyNo);
         if ("S".equals(result.get("msg"))) {
             model.addAttribute("survey",     result.get("survey"));
@@ -175,9 +177,9 @@ public class SurveyController {
     public String surveyRespondent(@RequestParam Map<String, Object> param, Model model) throws Exception {
         MenuUtil.addMenu(model, menuService);
         int surveyNo = Integer.parseInt((String) param.get("surveyNo"));
-        model.addAttribute("survey",        surveyService.selectSurvey(surveyNo));
+        model.addAttribute("survey",   surveyService.selectSurvey(surveyNo));
         model.addAttribute("respondentList", surveyService.selectRespondentList(surveyNo));
-        model.addAttribute("surveyNo",      surveyNo);
+        model.addAttribute("surveyNo", surveyNo);
         return "survey/surveyRespondent";
     }
 

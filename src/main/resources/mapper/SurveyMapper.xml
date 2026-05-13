@@ -313,7 +313,7 @@
     <if test="searchKeyword != null and searchKeyword != ''">
         AND s.title LIKE CONCAT('%', #{searchKeyword}, '%')
     </if>
-    ORDER BY s.survey_no DESC
+    ORDER BY s.survey_no DESC, s.start_date DESC
     LIMIT #{firstIndex}, #{recordCountPerPage}
     </select>
 
@@ -351,11 +351,15 @@
         , q_no              <!-- 질문번호 (FK) -->
         , answer_content    <!-- 주관식 답변 -->
         , option_no         <!-- 선택 보기번호 (FK) -->
+        , reg_user					<!-- 응답자 -->
+        , reg_date					<!-- 등록일시 -->
     ) VALUES (
         #{resNo}
         , #{qNo}
         , #{answerContent}
         , #{optionNo}
+        , #{regUser}
+        , NOW()
     )
     </insert>
 
@@ -379,7 +383,7 @@
         , COUNT(rd.res_detail_no)                           AS cnt              <!-- 응답 건수 -->
     FROM
         question q
-    JOIN   q_option qo         ON qo.q_no     = q.board_no
+    JOIN   q_option qo ON qo.q_no = q.board_no
     LEFT JOIN response_detail rd ON rd.option_no = qo.option_no
     WHERE q.survey_no = #{surveyNo}
       AND qo.use_yn   = 'Y'

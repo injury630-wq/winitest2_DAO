@@ -73,12 +73,12 @@ public class RoleServiceImpl extends EgovAbstractServiceImpl implements RoleServ
 	@Override
 	@Transactional
 	public void insertRole(Map<String, Object> param) throws Exception {
-		roleDAO.shiftSortOrd(param);
-		roleDAO.insertRole(param);
+		roleDAO.shiftSortOrd(param); // 순서 변경
+		roleDAO.insertRole(param);   // 롤 등록
 		int roleNo = Integer.parseInt(String.valueOf(param.get("roleNo")));
-		param.put("roleId", buildRoleId((String) param.get("roleRank"), roleNo));
-		roleDAO.updateRoleId(param);
-		menuRolePermDAO.insertDefaultMenuRolePerm(param);
+		param.put("roleId", buildRoleId((String) param.get("roleRank"), roleNo)); // 롤코드 자동생성
+		roleDAO.updateRoleId(param); //롤 코드 변경
+		menuRolePermDAO.insertDefaultMenuRolePerm(param); //메뉴권한 디폴트값 insert 모두 N처리
 	}
 
 	/** 권한 그룹 수정 */

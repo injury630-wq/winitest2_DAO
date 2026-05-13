@@ -244,14 +244,14 @@ public class SurveyServiceImpl extends EgovAbstractServiceImpl implements Survey
     }
 
     /**
-     * 응답 저장
+     * 응답 ㄴ저장
      */
     @Override
     @Transactional
     public Map<String, Object> saveResponse(Map<String, Object> param) throws Exception {
         Map<String, Object> result = new HashMap<>();
 
-        surveyDAO.insertResponse(param);
+        surveyDAO.insertResponse(param); // 응답 헤더 저장
         int resNo = ((Number) param.get("resNo")).intValue();
 
         List<Map<String, Object>> answers = (List<Map<String, Object>>) param.get("answers");
@@ -264,10 +264,11 @@ public class SurveyServiceImpl extends EgovAbstractServiceImpl implements Survey
                     if (optionNos != null) {
                         for (Object optNo : optionNos) {
                             Map<String, Object> detail = new HashMap<>();
-                            detail.put("resNo",         resNo);
-                            detail.put("qNo",           boardNo);
-                            detail.put("optionNo",      ((Number) optNo).intValue());
+                            detail.put("resNo", resNo);
+                            detail.put("qNo", boardNo);
+                            detail.put("optionNo", ((Number) optNo).intValue());
                             detail.put("answerContent", null);
+                            detail.put("regUser", param.get("regUser"));
                             surveyDAO.insertResponseDetail(detail);
                         }
                     }
@@ -277,6 +278,7 @@ public class SurveyServiceImpl extends EgovAbstractServiceImpl implements Survey
                     detail.put("qNo",           boardNo);
                     detail.put("optionNo",      ((Number) answer.get("optionNo")).intValue());
                     detail.put("answerContent", null);
+                    detail.put("regUser", param.get("regUser"));
                     surveyDAO.insertResponseDetail(detail);
                 } else {
                     Map<String, Object> detail = new HashMap<>();
@@ -284,6 +286,7 @@ public class SurveyServiceImpl extends EgovAbstractServiceImpl implements Survey
                     detail.put("qNo",           boardNo);
                     detail.put("optionNo",      null);
                     detail.put("answerContent", answer.get("content"));
+                    detail.put("regUser", param.get("regUser"));
                     surveyDAO.insertResponseDetail(detail);
                 }
             }
@@ -299,28 +302,28 @@ public class SurveyServiceImpl extends EgovAbstractServiceImpl implements Survey
         Map<String, Object> result = new HashMap<>();
         result.put("msg", "E");
         try {
-            List<Map<String, Object>> questions      = surveyDAO.selectQuestionsBySurveyNo(surveyNo);
-            List<Map<String, Object>> allOptions     = surveyDAO.selectOptionsBySurveyNo(surveyNo);
-            List<Map<String, Object>> choiceStats    = surveyDAO.selectStatChoice(surveyNo);
-            List<Map<String, Object>> textAnswers    = surveyDAO.selectStatText(surveyNo);
-            List<Map<String, Object>> textCounts     = surveyDAO.selectStatTextCount(surveyNo);
+            List<Map<String, Object>> questions = surveyDAO.selectQuestionsBySurveyNo(surveyNo); // 설문의 질문 전체
+            List<Map<String, Object>> allOptions = surveyDAO.selectOptionsBySurveyNo(surveyNo); // 설문의 객관식 보기 전체
+            List<Map<String, Object>> choiceStats = surveyDAO.selectStatChoice(surveyNo); //객관식 보기별 응답과 응답건수
+            List<Map<String, Object>> textAnswers = surveyDAO.selectStatText(surveyNo); // 설문의 서술형 답변 전체
+            List<Map<String, Object>> textCounts  = surveyDAO.selectStatTextCount(surveyNo); // 설문의 서술형 응답 전체 건수
 
             for (Map<String, Object> q : questions) {
                 int boardNo = ((Number) q.get("boardNo")).intValue();
 
-                List<Map<String, Object>> opts = new java.util.ArrayList<>();
-                for (Map<String, Object> opt : allOptions) {
+                List<Map<String, Object>> opts = new ArrayList<>();
+                for (Map<String, Object> opt : allOptions) { // 전체 보기 순회: 현재 질문 번호 같을때 추가
                     if (((Number) opt.get("qNo")).intValue() == boardNo) opts.add(opt);
                 }
                 q.put("options", opts);
 
-                List<Map<String, Object>> stats = new java.util.ArrayList<>();
+                List<Map<String, Object>> stats = new ArrayList<>();
                 for (Map<String, Object> stat : choiceStats) {
                     if (((Number) stat.get("boardNo")).intValue() == boardNo) stats.add(stat);
                 }
                 q.put("stats", stats);
 
-                List<Map<String, Object>> ansList = new java.util.ArrayList<>();
+                List<Map<String, Object>> ansList = new ArrayList<>();
                 for (Map<String, Object> ans : textAnswers) {
                     if (((Number) ans.get("boardNo")).intValue() == boardNo) ansList.add(ans);
                 }
@@ -339,7 +342,7 @@ public class SurveyServiceImpl extends EgovAbstractServiceImpl implements Survey
             result.put("survey",     surveyDAO.selectSurvey(surveyNo));
             result.put("questions",  questions);
             result.put("totalCount", surveyDAO.selectTotalResponseCount(surveyNo));
-            result.put("msg",        "S");
+            result.put("msg", "S");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -374,7 +377,7 @@ public class SurveyServiceImpl extends EgovAbstractServiceImpl implements Survey
         Map<String, Object> fileInfo = saved.get(0);
         fileInfo.put("regUser", regUser);
         surveyDAO.insertSurveyTempImage(fileInfo);
-        result.put("msg",    "S");
+        result.put("msg","S");
         result.put("fileNo", fileInfo.get("fileNo"));
         return result;
     }

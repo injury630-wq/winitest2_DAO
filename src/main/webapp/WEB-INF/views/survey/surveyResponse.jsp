@@ -132,33 +132,31 @@ function submitResponse() {
     };
 
     let valid = true;
-
+		// 질문 영역 데이터 가져오기
     $('.question-block').each(function() {
-        const boardNo = $(this).data('board-no');
-        const type    = $(this).data('type');
+        const boardNo = $(this).data('board-no'); // 질문번호
+        const type    = $(this).data('type'); // 질문유형
 
-        if (type === 'radio' || type === 'select') {
-            const val = type === 'radio'
-                ? $('input[name=q_' + boardNo + ']:checked').val()
-                : $('select[name=q_' + boardNo + ']').val();
+        if (type === 'radio' || type === 'select') {//객관식
+            const val = type === 'radio'? $('input[name=q_' + boardNo + ']:checked').val(): $('select[name=q_' + boardNo + ']').val();
             if (!val) {
                 alert('모든 질문에 응답해주세요.');
                 valid = false;
-                return false;
+                return false; // each 구문 break
             }
             payload.answers.push({ boardNo: boardNo, type: type, optionNo: parseInt(val) });
-        } else if (type === 'checkbox') {
+        } else if (type === 'checkbox') {//복수객관식
             const checked = [];
             $('input[name=q_' + boardNo + ']:checked').each(function() {
                 checked.push(parseInt($(this).val()));
             });
-            if (checked.length === 0) {
+            if (checked.length === 0) { // 1개 이상 선택해야함
                 alert('모든 질문에 응답해주세요.');
                 valid = false;
                 return false;
             }
             payload.answers.push({ boardNo: boardNo, type: type, optionNos: checked });
-        } else {
+        } else {//텍스트형
             const content = $('[name=q_' + boardNo + ']').val().trim();
             if (!content) {
                 alert('모든 질문에 응답해주세요.');

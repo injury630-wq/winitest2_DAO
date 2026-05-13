@@ -57,13 +57,13 @@ public class RoleController {
 
 		try {
 			// 검색조건 콤보박스용
-			model.addAttribute("useYnOptions",    codeService.selectCodeOptions("USE_YN"));
-			model.addAttribute("adminYnOptions",  codeService.selectCodeOptions("ADMIN_YN"));
+			model.addAttribute("useYnOptions",  codeService.selectCodeOptions("USE_YN"));
+			model.addAttribute("adminYnOptions", codeService.selectCodeOptions("ADMIN_YN"));
 			model.addAttribute("userTypeOptions", codeService.selectCodeOptions("USER_TYPE"));
 
 			Map<String, Object> result = roleService.selectRoleList(param);
-			model.addAttribute("list",           result.get("list"));
-			model.addAttribute("search",         result.get("search"));
+			model.addAttribute("list",  result.get("list"));
+			model.addAttribute("search", result.get("search"));
 			model.addAttribute("paginationInfo", result.get("paginationInfo"));
 		} catch (Exception e) {
 			model.addAttribute("msg", "서버 오류가 발생했습니다.");
@@ -107,11 +107,11 @@ public class RoleController {
 
 			String roleNo = (String) param.get("roleNo"); // input으로 넘어와서 빈값 or 문자열값
 
-			if (roleNo == null || roleNo.isEmpty()) { //등록
+			if (roleNo == null || roleNo.isEmpty()) { //등록 모드
 				roleService.insertRole(param);
 				result.put("msg",  "S");
 				result.put("desc", "등록이 완료됐습니다.");
-			} else {// 수정
+			} else {// 수정 모드
 				if (roleService.isSystemAdmin(roleNo)) { // 시스템 관리자는 불가
 					result.put("msg",  "E");
 					result.put("desc", "시스템관리자 권한그룹은 수정할 수 없습니다.");

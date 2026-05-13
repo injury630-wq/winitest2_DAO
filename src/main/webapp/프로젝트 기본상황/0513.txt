@@ -1,0 +1,6 @@
+통계 구하는 방식 전체를 다 조회해서 하는 방식
+ -> 질문 다 가져오고 반복문 돌리고 질문 타입으로 분기 나누고 
+ 	객관식이면 response_detail의 option_no와 q_option 조인해서 내용가져오고 count, group by로 개수 가져오고
+ 	서술형이면 response_detail의 answer_content 그냥 가져오면 되고 count, group by 개수 가져오기
+ 	그렇게 질문의 객체에 응답과 응답개수를 같이 넣고 질문 목록을 만들고 바로 가져오는 방식
+surveyRespondentDetail.jsp prevQNo 왜 쓰지
