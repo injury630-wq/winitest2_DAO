@@ -94,8 +94,8 @@
                                 onclick="checkAll(true)" ${isSysAdmin ? 'disabled' : ''}>전체 선택</button>
                         <button type="button" class="btn btn-outline-secondary btn-sm px-2"
                                 onclick="checkAll(false)" ${isSysAdmin ? 'disabled' : ''}>전체 해제</button>
-                        <button type="button" class="btn btn-primary btn-sm px-3 btn-perm-upd"
-                                onclick="savePerm()" ${isSysAdmin ? 'disabled' : ''}>저장</button>
+                        <button type="button" class="btn btn-primary btn-sm px-3 btn-perm-upd" ${isSysAdmin ? 'disabled' : ''}
+                                onclick="savePerm()" >저장</button>
                     </div>
                 </div>
 
@@ -185,7 +185,7 @@
 </div>
 <script>
 const selectedRoleNo = '${not empty selectedRoleNo ? selectedRoleNo : ""}';
-const isSysAdmin     = ${isSysAdmin};
+const isSysAdmin  = ${isSysAdmin};
 
 function selectRoleSSR(roleNo) {
     $('#selectedRoleNoInput').val(roleNo);
@@ -199,7 +199,7 @@ $(document).ready(function() {
     }
 });
 
-function filterRoleList() {
+function filterRoleList() { // 좌측 롤 목록 검색
     var keyword = $('#roleKeyword').val().toLowerCase();
     $('.role-row').each(function() {
         $(this).toggle($(this).text().toLowerCase().includes(keyword));

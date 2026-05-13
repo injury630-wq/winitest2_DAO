@@ -4,3 +4,14 @@
  	서술형이면 response_detail의 answer_content 그냥 가져오면 되고 count, group by 개수 가져오기
  	그렇게 질문의 객체에 응답과 응답개수를 같이 넣고 질문 목록을 만들고 바로 가져오는 방식
 surveyRespondentDetail.jsp prevQNo 왜 쓰지
+
+
+메뉴권한 jsp 
+	1.<c:if test="${not empty selectedRoleNo}">
+	2.${isSysAdmin ? 'disabled' : ''} 저장버튼 diabled 안됨
+	3.function filterRoleList() {
+    var keyword = $('#roleKeyword').val().toLowerCase();
+    $('.role-row').each(function() {
+        $(this).toggle($(this).text().toLowerCase().includes(keyword));
+    }); 쓰이는데 없음
+}
