@@ -90,12 +90,15 @@
                         </c:if>
                     </span>
                     <div class="d-flex gap-1">
-                        <button type="button" class="btn btn-outline-secondary btn-sm px-2"
-                                onclick="checkAll(true)" ${isSysAdmin ? 'disabled' : ''}>전체 선택</button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm px-2"
-                                onclick="checkAll(false)" ${isSysAdmin ? 'disabled' : ''}>전체 해제</button>
-                        <button type="button" class="btn btn-primary btn-sm px-3 btn-perm-upd" ${isSysAdmin ? 'disabled' : ''}
-                                onclick="savePerm()" >저장</button>
+                        <button type="button" onclick="checkAll(true)"
+                                class="btn btn-outline-secondary btn-sm px-2 ${isSysAdmin ? '' : 'btn-perm-upd'}"
+                                ${isSysAdmin ? 'disabled' : ''}>전체 선택</button>
+                        <button type="button" onclick="checkAll(false)"
+                                class="btn btn-outline-secondary btn-sm px-2 ${isSysAdmin ? '' : 'btn-perm-upd'}"
+                                ${isSysAdmin ? 'disabled' : ''}>전체 해제</button>
+                        <button type="button" onclick="savePerm()"
+                                class="btn btn-primary btn-sm px-3 ${isSysAdmin ? '' : 'btn-perm-upd'}"
+                                ${isSysAdmin ? 'disabled' : ''}>저장</button>
                     </div>
                 </div>
 
@@ -199,7 +202,7 @@ $(document).ready(function() {
     }
 });
 
-function filterRoleList() { // 좌측 롤 목록 검색
+function filterRoleList() { // 좌측 롤 목록 검색 db 조회없이 숨기기 toggle() true, false 보이기, 숨기기
     var keyword = $('#roleKeyword').val().toLowerCase();
     $('.role-row').each(function() {
         $(this).toggle($(this).text().toLowerCase().includes(keyword));
@@ -236,9 +239,14 @@ function savePerm() {
         return;
     }
     $.ajax({
-        url    : 'role/menuPermSave.do',
-        type   : 'POST',
-        data   : { roleNo: selectedRoleNo, permsJson: JSON.stringify(perms) },
+        url        : 'role/menuPermSave.do',
+        type       : 'POST',
+        headers    : { 'Content-Type': 'application/json' },
+        dataType   : 'json',
+        data       : JSON.stringify({ roleNo: selectedRoleNo, perms: perms }),
+        /* 기존 방식 (@RequestParam + permsJson 문자열 전송)
+        data       : { roleNo: selectedRoleNo, permsJson: JSON.stringify(perms) },
+        */
         success: function(res) {
             alert(res.desc || (res.msg === 'S' ? '저장됐습니다.' : '저장 중 오류가 발생했습니다.'));
         },

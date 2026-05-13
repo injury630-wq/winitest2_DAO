@@ -423,6 +423,46 @@
     GROUP BY q.board_no
     </select>
 
+    <!-- 통계(질문단건): 선택형 보기별 응답 건수 -->
+    <!-- **SurveyDAO.selectStatChoiceByQuestion -->
+    <select id="selectStatChoiceByQuestion" parameterType="int" resultType="map">
+    SELECT
+        qo.option_no                                        AS optionNo         <!-- 보기번호 -->
+        , qo.content                                        AS optionContent    <!-- 보기 내용 -->
+        , COUNT(rd.res_detail_no)                           AS cnt              <!-- 응답 건수 -->
+    FROM
+        q_option qo
+    LEFT JOIN response_detail rd ON rd.option_no = qo.option_no
+    WHERE qo.q_no   = #{boardNo}
+      AND qo.use_yn = 'Y'
+    GROUP BY qo.option_no, qo.content
+    ORDER BY qo.sort_ord ASC
+    </select>
+
+    <!-- 통계(질문단건): 서술형 답변 목록 -->
+    <!-- **SurveyDAO.selectStatTextByQuestion -->
+    <select id="selectStatTextByQuestion" parameterType="int" resultType="map">
+    SELECT
+        answer_content                                      AS answerContent    <!-- 답변 내용 -->
+    FROM
+        response_detail
+    WHERE q_no            = #{boardNo}
+      AND answer_content  IS NOT NULL
+      AND answer_content  != ''
+    ORDER BY res_detail_no ASC
+    </select>
+
+    <!-- 통계(질문단건): 서술형 답변 건수 -->
+    <!-- **SurveyDAO.selectStatTextCountByQuestion -->
+    <select id="selectStatTextCountByQuestion" parameterType="int" resultType="int">
+    SELECT COUNT(*)
+    FROM
+        response_detail
+    WHERE q_no           = #{boardNo}
+      AND answer_content IS NOT NULL
+      AND answer_content != ''
+    </select>
+
     <!-- 총 응답자 수 -->
     <!-- **SurveyDAO.selectTotalResponseCount -->
     <select id="selectTotalResponseCount" parameterType="int" resultType="int">

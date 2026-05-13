@@ -4,14 +4,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+// import com.fasterxml.jackson.core.type.TypeReference; // @RequestParam 방식 복구 시 필요
+// import com.fasterxml.jackson.databind.ObjectMapper;   // @RequestParam 방식 복구 시 필요
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -231,10 +232,10 @@ public class RoleController {
 	/** 메뉴별 권한 저장 (AJAX) */
 	@RequestMapping(value = "/role/menuPermSave.do", method = RequestMethod.POST)
 	@ResponseBody
-	public Map<String, Object> menuPermSave(@RequestParam Map<String, Object> param, HttpSession session) {
+	public Map<String, Object> menuPermSave(@RequestBody Map<String, Object> param, HttpSession session) {
 		Map<String, Object> result = new HashMap<String, Object>();
 		try {
-			String roleNo = (String) param.get("roleNo");
+			String roleNo = String.valueOf(param.get("roleNo"));
 			if (roleService.isSystemAdmin(roleNo)) {
 				result.put("msg",  "E");
 				result.put("desc", "시스템관리자의 메뉴 권한은 변경할 수 없습니다.");
@@ -244,10 +245,14 @@ public class RoleController {
 			Map<String, Object> loginUser = (Map<String, Object>) session.getAttribute("loginUser");
 			Object modUser = loginUser != null ? loginUser.get("userNo") : null;
 
-			String permsJson = (String) param.get("permsJson");
+			/* @RequestBody로 받으면 Spring이 자동 파싱 -> perms 바로 꺼냄 */
+			List<Map<String, Object>> perms = (List<Map<String, Object>>) param.get("perms");
 
+			/* 기존 방식 (@RequestParam + ObjectMapper 수동 파싱)
+			String permsJson = (String) param.get("permsJson");
 			List<Map<String, Object>> perms = new ObjectMapper().readValue(
 				permsJson, new TypeReference<List<Map<String, Object>>>() {});
+			*/
 
 			roleService.saveMenuPermList(roleNo, perms, modUser);
 			result.put("msg",  "S");

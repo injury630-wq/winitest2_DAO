@@ -14,4 +14,4 @@ surveyRespondentDetail.jsp prevQNo 왜 쓰지
     $('.role-row').each(function() {
         $(this).toggle($(this).text().toLowerCase().includes(keyword));
     }); 쓰이는데 없음
-}
+}surveyRespondentDetail.jsp prevQNo라는 c:set을 쓰던데 이건 왜 쓰는거야? 이유가 없는거같은데 아까 그 복잡한 방식때문에 뭔가 필요해서 넣은건가?

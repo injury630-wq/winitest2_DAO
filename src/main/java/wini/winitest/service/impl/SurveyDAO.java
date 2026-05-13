@@ -106,19 +106,34 @@ public class SurveyDAO extends EgovComAbstractDAO {
         return selectOne("surveyDAO.selectResponseCount", param);
     }
 
-    /** 통계: 선택형 옵션별 응답 건수 */
+    /** 통계: 선택형 옵션별 응답 건수 (설문 전체) */
     public List<Map<String, Object>> selectStatChoice(int surveyNo) throws Exception {
         return selectList("surveyDAO.selectStatChoice", surveyNo);
     }
 
-    /** 통계: 텍스트형 답변 목록 */
+    /** 통계: 텍스트형 답변 목록 (설문 전체) */
     public List<Map<String, Object>> selectStatText(int surveyNo) throws Exception {
         return selectList("surveyDAO.selectStatText", surveyNo);
     }
 
-    /** 통계: 텍스트형 답변 건수 */
+    /** 통계: 텍스트형 답변 건수 (설문 전체) */
     public List<Map<String, Object>> selectStatTextCount(int surveyNo) throws Exception {
         return selectList("surveyDAO.selectStatTextCount", surveyNo);
+    }
+
+    /** 통계: 선택형 보기별 응답 건수 (질문 단건) */
+    public List<Map<String, Object>> selectStatChoiceByQuestion(int boardNo) throws Exception {
+        return selectList("surveyDAO.selectStatChoiceByQuestion", boardNo);
+    }
+
+    /** 통계: 서술형 답변 목록 (질문 단건) */
+    public List<Map<String, Object>> selectStatTextByQuestion(int boardNo) throws Exception {
+        return selectList("surveyDAO.selectStatTextByQuestion", boardNo);
+    }
+
+    /** 통계: 서술형 답변 건수 (질문 단건) */
+    public int selectStatTextCountByQuestion(int boardNo) throws Exception {
+        return selectOne("surveyDAO.selectStatTextCountByQuestion", boardNo);
     }
 
     /** 총 응답자 수 */

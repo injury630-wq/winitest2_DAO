@@ -302,17 +302,45 @@ public class SurveyServiceImpl extends EgovAbstractServiceImpl implements Survey
         Map<String, Object> result = new HashMap<>();
         result.put("msg", "E");
         try {
-            List<Map<String, Object>> questions = surveyDAO.selectQuestionsBySurveyNo(surveyNo); // 설문의 질문 전체
-            List<Map<String, Object>> allOptions = surveyDAO.selectOptionsBySurveyNo(surveyNo); // 설문의 객관식 보기 전체
-            List<Map<String, Object>> choiceStats = surveyDAO.selectStatChoice(surveyNo); //객관식 보기별 응답과 응답건수
-            List<Map<String, Object>> textAnswers = surveyDAO.selectStatText(surveyNo); // 설문의 서술형 답변 전체
-            List<Map<String, Object>> textCounts  = surveyDAO.selectStatTextCount(surveyNo); // 설문의 서술형 응답 전체 건수
+            List<Map<String, Object>> questions = surveyDAO.selectQuestionsBySurveyNo(surveyNo);
+
+            // 질문 순회 후 타입으로 분기 -> 질문 단건 쿼리로 통계 조회
+            for (Map<String, Object> q : questions) {
+                int boardNo = ((Number) q.get("boardNo")).intValue();
+                String type = (String) q.get("type");
+
+                if ("text".equals(type) || "textarea".equals(type)) {
+                    // 서술형: 답변 목록 + 답변 건수
+                    q.put("answers",     surveyDAO.selectStatTextByQuestion(boardNo));
+                    q.put("answerCount", surveyDAO.selectStatTextCountByQuestion(boardNo));
+                } else {
+                    // 선택형(radio, checkbox, select): 보기별 응답 건수
+                    q.put("stats", surveyDAO.selectStatChoiceByQuestion(boardNo));
+                }
+            }
+
+            result.put("survey",     surveyDAO.selectSurvey(surveyNo));
+            result.put("questions",  questions);
+            result.put("totalCount", surveyDAO.selectTotalResponseCount(surveyNo));
+            result.put("msg", "S");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+
+        /* -- --
+        try {
+            List<Map<String, Object>> questions   = surveyDAO.selectQuestionsBySurveyNo(surveyNo);
+            List<Map<String, Object>> allOptions  = surveyDAO.selectOptionsBySurveyNo(surveyNo);
+            List<Map<String, Object>> choiceStats = surveyDAO.selectStatChoice(surveyNo);
+            List<Map<String, Object>> textAnswers = surveyDAO.selectStatText(surveyNo);
+            List<Map<String, Object>> textCounts  = surveyDAO.selectStatTextCount(surveyNo);
 
             for (Map<String, Object> q : questions) {
                 int boardNo = ((Number) q.get("boardNo")).intValue();
 
                 List<Map<String, Object>> opts = new ArrayList<>();
-                for (Map<String, Object> opt : allOptions) { // 전체 보기 순회: 현재 질문 번호 같을때 추가
+                for (Map<String, Object> opt : allOptions) {
                     if (((Number) opt.get("qNo")).intValue() == boardNo) opts.add(opt);
                 }
                 q.put("options", opts);
@@ -347,6 +375,7 @@ public class SurveyServiceImpl extends EgovAbstractServiceImpl implements Survey
             e.printStackTrace();
         }
         return result;
+        -- 기존 방식 끝 -- */
     }
 
     /** 응답자 목록 조회 */
